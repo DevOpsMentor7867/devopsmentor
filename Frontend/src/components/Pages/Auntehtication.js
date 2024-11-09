@@ -442,13 +442,12 @@ export default function AuthComponent() {
           </div>
         </div>
 
-        {showSuccessPopup && (
+        {showSuccessPopup &&  user(
           <div
             id="successModal"
             className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-modal md:h-full"
           >
             <div className="relative p-4 w-full max-w-md h-full md:h-auto">
-              {/* Modal content */}
               <div className="relative p-4 text-center bg-white rounded-lg shadow dark:bg-gray-800 sm:p-5">
                 <button
                   onClick={toggleModal}
