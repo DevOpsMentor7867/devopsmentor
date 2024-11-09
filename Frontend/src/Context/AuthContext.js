@@ -26,10 +26,10 @@ export const AuthContextProvider = ({ children }) => {
           withCredentials: true
         });
         if (response.data.user) {
-          dispatch({ type: 'LOGIN', payload: response.data.user });
+          dispatch({ type: 'LOGIN', payload: response.data.user.email });
         }
       } catch (error) {
-        console.error('Authentication check failed:', error);
+        console.log("User is not Authenticated")
       }
     };
 

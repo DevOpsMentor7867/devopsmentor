@@ -9,16 +9,22 @@ import {
 import Home from "./components/Pages/Home";
 import LogIn from "./components/Pages/Auntehtication";
 import Dashboard from "./components/Pages/Dashboard";
+import { useAuthContext } from "./API/UseAuthContext";
+// import { useNavigate } from "react-router-dom";
 
 function App() {
+  const { user } = useAuthContext();
+  // const Navigate = useNavigate();
+
   return (
-    //  <Signup/>
     <Router>
       <Routes>
-      <Route path="/" element={ <Home />} />
-      {/* <Route path="/signup" element={ <Signup />} /> */}
-      <Route path="/login" element={ <LogIn />} />
-      <Route path="/Dashboard" element={ <Dashboard />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<LogIn />} />
+        <Route
+          path="/Dashboard"
+          element={user ? <Dashboard /> : <LogIn />}
+        />
       </Routes>
     </Router>
   );

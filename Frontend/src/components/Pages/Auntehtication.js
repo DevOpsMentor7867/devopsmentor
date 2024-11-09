@@ -12,6 +12,8 @@ import DoodleComp from "../Core/DoodleComp";
 import { RegisterUser } from "../../API/RegisterUser";
 import { VerifyOTP } from "../../API/VerifyOTP";
 import { LoginUser } from "../../API/LoginUser";
+import { useAuthContext } from "../../API/UseAuthContext";
+
 
 export default function AuthComponent() {
   const [activeForm, setActiveForm] = useState("login");
@@ -25,8 +27,11 @@ export default function AuthComponent() {
   const [otpError, setOtpError] = useState("");
   const [timeLeft, setTimeLeft] = useState(120);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
-
+  const {user} = useAuthContext();
   const navigate = useNavigate();
+
+
+
 
   const handleGoogleSignIn = async () => {
     try {
@@ -57,7 +62,9 @@ export default function AuthComponent() {
     } else {
       await login(email, password);
       console.log("Logging in...");
-      navigate("/Dashboard");
+      if (user) {
+        navigate("/Dashboard");
+      }
     }
   };
 

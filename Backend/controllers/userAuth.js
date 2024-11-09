@@ -108,7 +108,6 @@ verification_queue.process(async (job) => {
       const newUser = new User({ email, password: storedPassword });
       await newUser.save();
       console.log('User saved successfully:', newUser);
-      console.log('hhhhhhhhhhhh');
       await redisClient.del(stored_key);
       return { success: true, message: 'OTP verified successfully' };
     } else {
@@ -125,7 +124,6 @@ login_queue.process(async (job) => {
   const { email, password } = job.data;
 
   try {
-    console.log("email is ",email );
     const user = await User.findOne({ email });
     if (!user) {
       return { success: false, message: 'Invalid email credentials' };
@@ -214,12 +212,8 @@ const userController = {
   }, 
   
   login: async (req, res) => {
-   console.log (" req.body iddddd", req.body);
    try {
     const { email, password } = req.body;
-    //console.log('Request Body:', req.body);
-
-
     const job = await login_queue.add({ email, password }, {
       attempts: 3,
       backoff: {
@@ -235,7 +229,7 @@ const userController = {
         sameSite: 'strict', // Protect against CSRF
         maxAge: SESSION_EXPIRY * 1000 // Convert seconds to milliseconds
       });
-      res.status(200).json({ token: result.token, message: result.message });
+      res.status(200).json({ token: result.token, email: email });
     } else {
       res.status(401).json({ message: result.message });
     }

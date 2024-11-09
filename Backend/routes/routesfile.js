@@ -28,7 +28,7 @@ const redisClient = redis.createClient({
   });
 
   redisClient.connect().catch(console.error);
-const authMiddleware = async (req, res, next) => {
+  const authMiddleware = async (req, res, next) => {
     try {
       const token = req.cookies.session || req.headers.authorization?.split(' ')[1];
   
@@ -53,19 +53,20 @@ const authMiddleware = async (req, res, next) => {
       res.status(401).json({ message: 'Authentication failed' });
     }
   };
-
-userRouter.get('/user/dummy',authMiddleware, (req, res) => {
-    try {
   
-        res.status(200).json({
-          message: 'Authentication successful',
-    
-        });
-      } catch (error) {
-        console.error('Error in dummy route:', error);
-        res.status(500).json({ message: 'Internal server error' });
-      }
+  userRouter.get('/user/dummy', authMiddleware, (req, res) => {
+    try {
+      // Send userData along with the success message
+      res.status(200).json({
+        message: 'Authentication successful',
+        user: req.user,  // Send the userData in the response
+      });
+    } catch (error) {
+      console.error('Error in dummy route:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
   });
+  
 // Add other routes here if needed
 
 module.exports =  userRouter; 
