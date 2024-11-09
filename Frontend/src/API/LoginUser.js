@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useAuthContext } from "../API/UseAuthContext";
+import { useState } from "react";
 
 const api = axios.create({
   baseURL: 'http://localhost:8000/api',
@@ -8,28 +9,31 @@ const api = axios.create({
 
 export const LoginUser = () => {
   const { dispatch } = useAuthContext();
+  const [loginError, setError] = useState(null);
 
   const login = async (email, password) => {
+    setError(null);
+
     try {
       const response = await api.post('/user/login', { email, password });
-      
-      // Check if the response is successful
       if (response.status >= 200 && response.status < 300) {
-        // Accessing the token and message from response.data
         const { token, email } = response.data;
-        
-        // Dispatching the action with the correct payload
         dispatch({ 
           type: "LOGIN", 
           payload: { token, email } 
         });
       } else {
-        console.error("Login User Failed", response.data);
+        setError(response.data.message || "An error occurred during login.");
       }
     } catch (error) {
+      if (error.response && error.response.data && error.response.data.message) {
+        setError(error.response.data.message);
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
       console.error("Login User Error:", error);
     }
   };
 
-  return { login };
+  return { login, loginError };
 };

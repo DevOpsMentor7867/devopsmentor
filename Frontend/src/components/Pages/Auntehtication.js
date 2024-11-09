@@ -14,7 +14,6 @@ import { VerifyOTP } from "../../API/VerifyOTP";
 import { LoginUser } from "../../API/LoginUser";
 import { useAuthContext } from "../../API/UseAuthContext";
 
-
 export default function AuthComponent() {
   const [activeForm, setActiveForm] = useState("login");
   const [showOTPDialog, setShowOTPDialog] = useState(false);
@@ -27,11 +26,8 @@ export default function AuthComponent() {
   const [otpError, setOtpError] = useState("");
   const [timeLeft, setTimeLeft] = useState(120);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
-  const {user} = useAuthContext();
+  const { user } = useAuthContext();
   const navigate = useNavigate();
-
-
-
 
   const handleGoogleSignIn = async () => {
     try {
@@ -44,11 +40,10 @@ export default function AuthComponent() {
 
   const toggleModal = () => {
     setShowSuccessPopup(!showSuccessPopup);
-    setActiveForm("login");
   };
 
-  const { signup } = RegisterUser();
-  const { login } = LoginUser();
+  const { signup, RegisterError, RegisterCheck } = RegisterUser();
+  const { login, loginError } = LoginUser();
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (activeForm === "signup") {
@@ -57,8 +52,10 @@ export default function AuthComponent() {
         return;
       }
       await signup(email, password);
-      setShowOTPDialog(true);
-      setTimeLeft(120);
+      setOtpError("");
+      if (RegisterError == null) {
+        setShowOTPDialog(true);
+      }
     } else {
       await login(email, password);
       console.log("Logging in...");
@@ -68,7 +65,7 @@ export default function AuthComponent() {
     }
   };
 
-  const { PostSignup } = VerifyOTP();
+  const { PostSignup, VerifyotpError } = VerifyOTP();
   const handleVerifyOTP = async () => {
     const otpValue = otp.join("");
     if (otpValue.length < 6) {
@@ -77,11 +74,12 @@ export default function AuthComponent() {
       setOtp(["", "", "", "", "", ""]);
       setTimeLeft(120);
     } else {
-      console.log("Verifying OTP:", otpValue);
+      setTimeLeft(120);
       setOtpError("");
       await PostSignup(email, otpValue);
-      setShowOTPDialog(false);
-      setShowSuccessPopup(true);
+      // setShowOTPDialog(false);
+      // setShowSuccessPopup(true);
+      // setActiveForm("login");
     }
   };
 
@@ -206,6 +204,9 @@ export default function AuthComponent() {
                 </button>
               </div>
             </div>
+            {loginError && (
+              <p className="text-red-500 text-s mb-4">{loginError}</p>
+            )}
             <Button
               type="submit"
               className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"
@@ -252,19 +253,6 @@ export default function AuthComponent() {
       case "signup":
         return (
           <>
-            {/* <div>
-              <Label htmlFor="name" className="text-white">Name</Label>
-              <Input
-                id="name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Enter your name"
-                className="bg-white bg-opacity-20 text-white placeholder-gray-300"
-                required
-              />
-            </div> */}
-
             <div>
               <Label htmlFor="email" className="text-white">
                 Email
@@ -346,6 +334,9 @@ export default function AuthComponent() {
                 </p>
               )}
             </div>
+            {RegisterError && (
+              <p className="text-red-500 text-s mb-4">{RegisterError}</p>
+            )}
             <Button
               type="submit"
               className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"
@@ -442,7 +433,7 @@ export default function AuthComponent() {
           </div>
         </div>
 
-        {showSuccessPopup &&  user(
+        {showSuccessPopup && (
           <div
             id="successModal"
             className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-modal md:h-full"
@@ -499,68 +490,78 @@ export default function AuthComponent() {
         )}
 
         <AnimatePresence>
-          {showOTPDialog && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-20"
-            >
-              <div className="bg-gray-800 p-8 rounded-lg shadow-2xl relative max-w-lg">
-                <button
-                  onClick={() => setShowOTPDialog(false)}
-                  className="absolute top-2 right-2 text-gray-400 hover:text-white"
+          {RegisterError
+            ? null
+            : showOTPDialog && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-20"
                 >
-                  <ArrowLeft size={24} />
-                </button>
-                <h3 className="text-xl font-bold mb-4 text-white">
-                  Verify Your Account
-                </h3>
-                <p className="text-sm text-gray-400 mb-4">
-                  We've sent a one-time password to {email}. Please enter it
-                  below to complete your registration.
-                </p>
+                  <div className="bg-gray-800 p-8 rounded-lg shadow-2xl relative max-w-lg">
+                    <button
+                      onClick={() => setShowOTPDialog(false)}
+                      className="absolute top-2 right-2 text-gray-400 hover:text-white"
+                    >
+                      <ArrowLeft size={24} />
+                    </button>
+                    {RegisterError}
+                    <h3 className="text-xl font-bold mb-4 text-white">
+                      Verify Your Account
+                    </h3>
+                    <p className="text-sm text-gray-400 mb-4">
+                      {RegisterCheck
+                        ? `A one-time password was already sent to ${email}. Please check your email and enter the OTP below to complete your registration.`
+                        : `We've sent a one-time password to ${email}. Please enter it below to complete your registration.`}
+                    </p>
+                    <div className="flex justify-between mb-6">
+                      {otp.map((digit, index) => (
+                        <input
+                          key={index}
+                          id={`otp-${index}`}
+                          type="text"
+                          maxLength={1}
+                          className="w-12 h-12 text-center bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                          value={digit}
+                          onChange={(e) =>
+                            handleOtpChange(index, e.target.value)
+                          }
+                        />
+                      ))}
+                    </div>
 
-                <div className="flex justify-between mb-6">
-                  {otp.map((digit, index) => (
-                    <input
-                      key={index}
-                      id={`otp-${index}`}
-                      type="text"
-                      maxLength={1}
-                      className="w-12 h-12 text-center bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
-                      value={digit}
-                      onChange={(e) => handleOtpChange(index, e.target.value)}
-                    />
-                  ))}
-                </div>
+                    {otpError && (
+                      <p className="text-red-500 text-s mb-4">{otpError}</p>
+                    )}
+                    {VerifyotpError && (
+                      <p className="text-red-500 text-s mb-4">
+                        {VerifyotpError}
+                      </p>
+                    )}
 
-                {otpError && (
-                  <p className="text-red-500 text-xs mb-4">{otpError}</p>
-                )}
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-400">
+                        OTP Expires in: {formatTime(timeLeft)}
+                      </span>
+                      <button
+                        onClick={retryOTP}
+                        className="text-blue-500 hover:text-blue-600 transition-colors"
+                      >
+                        <RefreshCcw size={20} />
+                      </button>
+                    </div>
 
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-400">
-                    OTP Expires in: {formatTime(timeLeft)}
-                  </span>
-                  <button
-                    onClick={retryOTP}
-                    className="text-blue-500 hover:text-blue-600 transition-colors"
-                  >
-                    <RefreshCcw size={20} />
-                  </button>
-                </div>
-
-                <Button
-                  onClick={handleVerifyOTP}
-                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white mt-4"
-                  disabled={timeLeft === 0}
-                >
-                  Verify OTP
-                </Button>
-              </div>
-            </motion.div>
-          )}
+                    <Button
+                      onClick={handleVerifyOTP}
+                      className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white mt-4"
+                      disabled={timeLeft === 0}
+                    >
+                      Verify OTP
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
         </AnimatePresence>
         <DoodleComp />
       </div>

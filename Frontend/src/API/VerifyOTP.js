@@ -1,41 +1,39 @@
-// import { useState } from "react";
-// import { useAuthContext } from "./UseAuthContext";
+import { useState } from "react";
 import axios from 'axios';
 
 const api = axios.create({
   baseURL: 'http://localhost:8000/api',
   withCredentials: true 
 });
-  
+
 export const VerifyOTP = () => {
-  // const [signupError, setError] = useState(null);
-  // const [signupError, setError] = useState(null);
-  // const [isLoading, setIsLoading] = useState(false);
-  // const { dispatch } = useAuthContext();
+  const [VerifyotpError, setError] = useState(null);
 
   const PostSignup = async (email, otp) => {
-    // setIsLoading(true);
-    // setError(null);
+    setError(null);  // Clear previous errors
+    console.log("FE otp", email, otp);
 
-    console.log("FE otp", email, otp)
     try {
-      const response = await api.post('/user/verify', {email, otp });
+      const response = await api.post('/user/verify', { email, otp });
 
       if (response.status >= 200 && response.status < 300) {
         console.log("Signup successful", response.data);
-        // dispatch({ type: "LOGIN", payload: response.data });
       } else {
+        setError(response.data.message); // Set error message from backend
         console.error("Signup failed", response.data);
-        // setError(response.data.error);
       }
     } catch (error) {
-      console.error("Error:", error);
-      // setError(error.response?.data.error || "An unexpected error occurred.");
-    } finally {
-      // setIsLoading(false);
+      if (error.response) {
+        // Error from backend
+        setError(error.response.data.message);  // Set specific backend error
+        console.error("Error:", error.response.data.message);
+      } else {
+        // Network error or other
+        setError("An unexpected error occurred");
+        console.error("Error:", error);
+      }
     }
   };
 
-  return { PostSignup};
-  // return { PostSignup, signupError, isLoading };
+  return { PostSignup, VerifyotpError };  // Return otpError so you can use it in components
 };

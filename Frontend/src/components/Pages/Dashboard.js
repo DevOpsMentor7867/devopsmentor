@@ -1,11 +1,13 @@
 import React from 'react'
 import { LogoutUser } from '../../API/LogoutUser';  // Assuming you will create the LogoutUser function
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
   const { logout } = LogoutUser();
-
+  const navigate = useNavigate();
   const handleLogout = () => {
     logout();
+    navigate('/login')
   }
 
   return (
