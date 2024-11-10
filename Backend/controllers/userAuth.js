@@ -179,7 +179,7 @@ const userController = {
       if (user) {
         return res.status(400).json({
           message:
-            "This user already exists. Please sign in or use a different email to create a new account.",
+            "An account with this email already exists. Please login or use a different email.",
         });
       }
 

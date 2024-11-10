@@ -50,7 +50,7 @@ export default function AuthComponent() {
     } catch (error) {
       console.error("Google sign in error:", error);
     }
-    clearInputs();
+    // clearInputs();
   };
 
   const toggleModal = () => {
@@ -75,7 +75,7 @@ export default function AuthComponent() {
         navigate("/Dashboard");
       }
     }
-    clearInputs();
+    // clearInputs();
   };
 
   const handleVerifyOTP = async () => {
@@ -93,7 +93,7 @@ export default function AuthComponent() {
         setShowOTPDialog(false);
         setShowSuccessPopup(true);
         setActiveForm("login");
-        clearInputs();
+        // clearInputs();
       }
     }
   };
@@ -406,7 +406,7 @@ export default function AuthComponent() {
 
   return (
     <>
-      <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-900 to-gray-800 overflow-hidden relative p-4 sm:p-6 md:p-8">
+      <div className="min-h-screen flex flex-col  to-gray-800 overflow-hidden relative p-4 sm:p-6 md:p-8">
         <Link
           to="/"
           className="absolute top-4 left-4 text-white hover:text-cyan-300 transition-colors flex items-center text-lg z-10"
