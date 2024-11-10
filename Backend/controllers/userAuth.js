@@ -102,7 +102,7 @@ verification_queue.process(async (job) => {
     const stored_key = `registration:${email}`;
     const stored_data = await redisClient.get(stored_key);
     if (!stored_data) {
-      return { success: false, message: "OTP has expired or is invalid" };
+      return { success: false, message: "Your OTP has expired. Please Request a new OTP " };
     }
     const { password: storedPassword, otp: storedOTP } =
       JSON.parse(stored_data);

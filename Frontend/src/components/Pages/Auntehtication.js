@@ -15,6 +15,7 @@ import { LoginUser } from "../../API/LoginUser";
 import { useAuthContext } from "../../API/UseAuthContext";
 
 export default function AuthComponent() {
+  // State variables
   const [activeForm, setActiveForm] = useState("login");
   const [showOTPDialog, setShowOTPDialog] = useState(false);
   const [email, setEmail] = useState("");
@@ -26,24 +27,36 @@ export default function AuthComponent() {
   const [otpError, setOtpError] = useState("");
   const [timeLeft, setTimeLeft] = useState(120);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+
+  // Hooks
   const { user } = useAuthContext();
   const navigate = useNavigate();
+  const { signup, RegisterError, RegisterCheck } = RegisterUser();
+  const { login, loginError } = LoginUser();
+  const { PostSignup, VerifyotpError, otpSuccess } = VerifyOTP();
+
+  // Helper functions
+  const clearInputs = () => {
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setOtp(["", "", "", "", "", ""]);
+  };
 
   const handleGoogleSignIn = async () => {
     try {
-      // Implement Google Sign In logic here
       console.log("Initiating Google sign in...");
+      // Implement Google Sign In logic here
     } catch (error) {
       console.error("Google sign in error:", error);
     }
+    clearInputs();
   };
 
   const toggleModal = () => {
     setShowSuccessPopup(!showSuccessPopup);
   };
 
-  const { signup, RegisterError, RegisterCheck } = RegisterUser();
-  const { login, loginError } = LoginUser();
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (activeForm === "signup") {
@@ -58,28 +71,30 @@ export default function AuthComponent() {
       }
     } else {
       await login(email, password);
-      console.log("Logging in...");
       if (user) {
         navigate("/Dashboard");
       }
     }
+    clearInputs();
   };
 
-  const { PostSignup, VerifyotpError } = VerifyOTP();
   const handleVerifyOTP = async () => {
     const otpValue = otp.join("");
     if (otpValue.length < 6) {
-      console.log(otpValue.length);
       setOtpError("OTP must be 6 digits long and all fields must be filled.");
       setOtp(["", "", "", "", "", ""]);
-      setTimeLeft(120);
     } else {
-      setTimeLeft(120);
       setOtpError("");
       await PostSignup(email, otpValue);
-      // setShowOTPDialog(false);
-      // setShowSuccessPopup(true);
-      // setActiveForm("login");
+      console.log("in auth", otpSuccess);
+      if (otpSuccess != null) {
+        console.log("in auth func", otpSuccess);
+        setTimeLeft(120);
+        setShowOTPDialog(false);
+        setShowSuccessPopup(true);
+        setActiveForm("login");
+        clearInputs();
+      }
     }
   };
 
@@ -141,6 +156,13 @@ export default function AuthComponent() {
     setTimeLeft(120);
   }, []);
 
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
+  };
+
+  // Effects
   useEffect(() => {
     if (timeLeft <= 0) return;
 
@@ -151,12 +173,7 @@ export default function AuthComponent() {
     return () => clearInterval(timerId);
   }, [timeLeft]);
 
-  const formatTime = (seconds) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
-  };
-
+  // Render functions
   const renderForm = () => {
     switch (activeForm) {
       case "login":
@@ -226,7 +243,6 @@ export default function AuthComponent() {
               type="button"
               onClick={handleGoogleSignIn}
               className="w-full bg-white hover:bg-gray-100 text-gray-900 flex items-center justify-center gap-2 transition-colors"
-              w-full
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
@@ -414,7 +430,9 @@ export default function AuthComponent() {
                 className={`absolute top-0 left-0 w-1/2 h-full flex items-center justify-center text-white font-semibold z-20 transition-colors duration-300 ${
                   activeForm === "login" ? "text-gray-900" : ""
                 }`}
-                onClick={() => setActiveForm("login")}
+                onClick={() => {
+                  setActiveForm("login");
+                }}
               >
                 Login
               </button>
@@ -422,7 +440,9 @@ export default function AuthComponent() {
                 className={`absolute top-0 right-0 w-1/2 h-full flex items-center justify-center text-white font-semibold z-20 transition-colors duration-300 ${
                   activeForm === "signup" ? "text-gray-900" : ""
                 }`}
-                onClick={() => setActiveForm("signup")}
+                onClick={() => {
+                  setActiveForm("signup");
+                }}
               >
                 Sign Up
               </button>
@@ -476,7 +496,7 @@ export default function AuthComponent() {
                   <span className="sr-only">Success</span>
                 </div>
                 <p className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-                  Registration Successfull
+                  Registration Successful
                 </p>
                 <Button
                   onClick={toggleModal}
@@ -501,7 +521,9 @@ export default function AuthComponent() {
                 >
                   <div className="bg-gray-800 p-8 rounded-lg shadow-2xl relative max-w-lg">
                     <button
-                      onClick={() => setShowOTPDialog(false)}
+                      onClick={() => {
+                        setShowOTPDialog(false);
+                      }}
                       className="absolute top-2 right-2 text-gray-400 hover:text-white"
                     >
                       <ArrowLeft size={24} />
