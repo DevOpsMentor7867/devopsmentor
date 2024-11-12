@@ -8,7 +8,7 @@ import {
 // import Signup from "./components/Pages/SignUp";
 import Home from "./components/Pages/Home";
 import LogIn from "./components/Pages/Auntehtication";
-import Dashboard from "./components/Pages/Dashboard";
+import Dashboard from "./Dashboard/Dashboard";
 import { useAuthContext } from "./API/UseAuthContext";
 // import { useNavigate } from "react-router-dom";
 

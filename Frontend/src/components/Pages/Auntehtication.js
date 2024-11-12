@@ -36,12 +36,12 @@ export default function AuthComponent() {
   const { PostSignup, VerifyotpError, otpSuccess } = VerifyOTP();
 
   // Helper functions
-  const clearInputs = () => {
-    setEmail("");
-    setPassword("");
-    setConfirmPassword("");
-    setOtp(["", "", "", "", "", ""]);
-  };
+  // const clearInputs = () => {
+  //   setEmail("");
+  //   setPassword("");
+  //   setConfirmPassword("");
+  //   setOtp(["", "", "", "", "", ""]);
+  // };
 
   const handleGoogleSignIn = async () => {
     try {
