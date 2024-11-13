@@ -266,7 +266,7 @@ export default function Component() {
           </div>
         </div>
 
-        <div className="flex flex-row relative h-[calc(95vh-120px)]">
+        <div className="flex flex-row  h-[calc(95vh-120px)]">
           {/* Question Section */}
           <div
             className="relative overflow-hidden backdrop-blur-md bg-white bg-opacity-10 border-none transition-all duration-300 h-full"
@@ -332,6 +332,12 @@ export default function Component() {
             </div>
           </div>
 
+          <div
+              className="-ml-2 left-0 top-0 bottom-0 w-3 bg-gray-600 hover:bg-cyan-600 transition-colors duration-500 cursor-ew-resize flex items-center justify-center z-[100]"
+              onMouseDown={handleDragStart}
+            >
+              <div className="h-8 w-[10px] bg-current rounded-full" />
+            </div>
           {/* Terminal Section */}
           <div
             className="relative overflow-hidden backdrop-blur-md bg-white bg-opacity-10 border-none transition-all duration-300 h-full"
@@ -339,8 +345,8 @@ export default function Component() {
           >
             <div className="relative z-10">
               <div className="flex items-center justify-between border-b border-white border-opacity-10 p-2">
-                <div className="flex items-center gap-2">
-                  <TerminalIcon className="w-4 h-4 text-gray-400" />
+                <div className="flex items-center gap-2 ">
+                  <TerminalIcon className=" w-4 h-4 text-gray-400" />
                   <span className="text-white font-mono text-sm">
                     Terminal 1
                   </span>
@@ -359,12 +365,7 @@ export default function Component() {
               </div>
               <div ref={terminalRef} className="h-[400px]" />
             </div>
-            <div
-              className="absolute left-0 top-0 bottom-0 w-3 bg-gray-600 hover:bg-cyan-600 transition-colors duration-500 cursor-ew-resize flex items-center justify-center z-[100]"
-              onMouseDown={handleDragStart}
-            >
-              <div className="h-8 w-[10px] bg-current rounded-full" />
-            </div>
+            
           </div>
         </div>
       </div>
