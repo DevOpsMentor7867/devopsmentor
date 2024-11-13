@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState } from "react";
 import {
   Globe,
   ShoppingCart,
@@ -7,30 +7,42 @@ import {
   Maximize2,
   MoreVertical,
   Settings,
-//   Search
-} from "lucide-react"
-
+  //   Search
+} from "lucide-react";
+import "./SideBar.css";
 export default function TopNav({ isSidebarOpen }) {
-  const [isFullscreen, setIsFullscreen] = useState(false)
+  // eslint-disable-next-line
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen()
-      setIsFullscreen(true)
+      document.documentElement.requestFullscreen();
+      setIsFullscreen(true);
     } else {
-      document.exitFullscreen()
-      setIsFullscreen(false)
+      document.exitFullscreen();
+      setIsFullscreen(false);
     }
-  }
+  };
 
   return (
-    <nav 
-      className={`fixed top-0 right-0 z-50 flex items-center gap-4 bg-white bg-opacity-5 px-8 py-4 transition-all duration-300 ${
-        isSidebarOpen ? "left-60" : "left-14"
+    <nav
+      className={`fixed top-0 right-0 z-50 flex items-center gap-4 bg-white bg-opacity-5 px-4 py-0 transition-all duration-300 bottom-gradient-border ${
+        isSidebarOpen ? "left-52" : "left-14"
       }`}
     >
-      <div className="relative flex-1">
-       
+      <div className="relative flex-1 text-2xl font-semibold uppercase text-gray-400">
+        {/* {isSidebarOpen ? (
+          ""
+        ) : ( */}
+          <div className="flex items-center gap-2">
+            <img
+              src="project-logo.png"
+              alt=""
+              className="object-cover h-20 w-20"
+            />
+            <span>DEVOPS MENTOR</span>
+          </div>
+        {/* )} */}
       </div>
 
       <div className="flex items-center gap-2">
@@ -99,5 +111,5 @@ export default function TopNav({ isSidebarOpen }) {
         </button>
       </div>
     </nav>
-  )
+  );
 }

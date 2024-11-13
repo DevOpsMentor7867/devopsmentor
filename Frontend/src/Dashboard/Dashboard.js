@@ -1,50 +1,63 @@
-import React, { useState } from "react"
-import TopNav from "./Components/TopNav"
-import Sidebar from "./Components/SideBar"
+import React, { useState } from "react";
+import { Routes, Route } from "react-router-dom";
+import TopNav from "./Components/TopNav";
+import Sidebar from "./Components/SideBar";
+import TerminalQuiz from "./Components/Terminal";
 
-export default function Dashboard() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+// Placeholder components for other routes
+const Dashboard = () => (
+  <div className="p-6">
+    <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
+    <p className="text-gray-600">Welcome to your dashboard</p>
+  </div>
+);
+
+const Inbox = () => (
+  <div className="p-6">
+    <h1 className="text-2xl font-bold text-gray-800">Inbox</h1>
+    <p className="text-gray-600">Your messages will appear here</p>
+  </div>
+);
+
+const Users = () => (
+  <div className="p-6">
+    <h1 className="text-2xl font-bold text-gray-800">Users</h1>
+    <p className="text-gray-600">User management dashboard</p>
+  </div>
+);
+
+const Products = () => (
+  <div className="p-6">
+    <h1 className="text-2xl font-bold text-gray-800">Products</h1>
+    <p className="text-gray-600">Product management dashboard</p>
+  </div>
+);
+
+export default function DashboardLayout() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen)
-  }
+    setIsSidebarOpen(!isSidebarOpen);
+  };
 
   return (
-    <div className="min-h-screen "  >
+    <div className="min-h-screen">
       <TopNav isSidebarOpen={isSidebarOpen} />
       <Sidebar isOpen={isSidebarOpen} onToggle={toggleSidebar} />
       <main
         className={`transition-all duration-300 ${
-          isSidebarOpen ? "ml-64" : "ml-16"
-        }`}
-      >
-        {/* Your main content goes here */}
+          isSidebarOpen ? "ml-56" : "ml-16"
+        } pt-16`}
+      >      
+        <Routes>      
+          {/* Main routes */}
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/kanban" element={<TerminalQuiz />} />
+          <Route path="/inbox" element={<Inbox />} />
+          <Route path="/users" element={<Users />} />
+          <Route path="/products" element={<Products />} />
+        </Routes>
       </main>
     </div>
-  )
+  );
 }
-// import React from 'react'
-// import { LogoutUser } from '../API/LogoutUser';  // Assuming you will create the LogoutUser function
-// import { useNavigate } from "react-router-dom";
-
-// export default function Dashboard() {
-//   const { logout } = LogoutUser();
-//   const navigate = useNavigate();
-//   const handleLogout = () => {
-//     logout();
-//     navigate('/login')
-//   }
-
-//   return (
-//     <div className="min-h-screen  bg-gradient-to-br from-gray-900 to-gray-800 overflow-hidden relative p-4 sm:p-6 md:p-8 text-white text-center text-6xl">
-//     <h1>THIS IS THE DASHBOARD PAGE</h1>
-//     <button
-//       onClick={handleLogout}
-//       className="mt-8 py-2 px-6 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-opacity-50 transition ease-in-out duration-300 w-50"
-//     >
-//       Logout
-//     </button>
-//   </div>
-
-//   );
-// }
