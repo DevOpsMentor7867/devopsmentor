@@ -1,4 +1,8 @@
+"use client";
+
 import React, { useState, useEffect, useRef } from "react";
+import { Terminal } from "xterm";
+import "xterm/css/xterm.css";
 
 const TerminalIcon = () => (
   <svg
@@ -104,24 +108,18 @@ const X = () => (
   </svg>
 );
 
-export default function TerminalQuiz() {
+export default function Component() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [terminalContent, setTerminalContent] = useState([
-    "~ → docker run redis",
-    "1:C 26 Mar 2024 05:31:57.208 * ooo000ooo000o Redis is starting ooo000ooo000o",
-    "1:C 26 Mar 2024 05:31:57.208 * Redis version=7.2.3, bits=64, commit=00000000",
-    "1:M 26 Mar 2024 05:31:57.209 * Running mode=standalone, port=6379",
-    "1:M 26 Mar 2024 05:31:57.210 * Server initialized",
-    "~ → ",
-  ]);
   const [isChecked, setIsChecked] = useState(false);
   const [containerStopped, setContainerStopped] = useState(false);
   const [time, setTime] = useState(3600); // 1 hour in seconds
   const [isDragging, setIsDragging] = useState(false);
-  const [terminalPosition, setTerminalPosition] = useState("right");
   const [terminalWidth, setTerminalWidth] = useState(50); // 50% by default
   const dragStartX = useRef(0);
   const dragStartWidth = useRef(0);
+  const terminalRef = useRef(null);
+  const socketRef = useRef(null);
+  const termInstanceRef = useRef(null);
 
   const questions = [
     {
@@ -150,33 +148,35 @@ export default function TerminalQuiz() {
   }, []);
 
   useEffect(() => {
+    socketRef.current = new WebSocket("ws://localhost:6060");
+    termInstanceRef.current = new Terminal({ cursorBlink: true });
+    termInstanceRef.current.open(terminalRef.current);
+
+    socketRef.current.onmessage = (event) => {
+      termInstanceRef.current.write(event.data);
+    };
+
+    termInstanceRef.current.onKey(({ key }) => {
+      socketRef.current.send(key);
+    });
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.close();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     const handleMouseMove = (e) => {
       if (!isDragging) return;
       const containerRect = document
         .querySelector(".container")
         ?.getBoundingClientRect();
       if (!containerRect) return;
-      const deltaX = e.clientX - dragStartX.current;
-      const containerWidth = containerRect.width;
       const newWidth =
-        terminalPosition === "left"
-          ? Math.min(
-              Math.max(
-                ((dragStartWidth.current + deltaX) / containerWidth) * 100,
-                30
-              ),
-              70
-            )
-          : Math.min(
-              Math.max(
-                ((containerWidth - (dragStartWidth.current + deltaX)) /
-                  containerWidth) *
-                  100,
-                30
-              ),
-              70
-            );
-      setTerminalWidth(newWidth);
+        ((containerRect.right - e.clientX) / containerRect.width) * 100;
+      setTerminalWidth(Math.min(Math.max(newWidth, 30), 70));
     };
 
     const handleMouseUp = () => {
@@ -192,7 +192,7 @@ export default function TerminalQuiz() {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [isDragging, terminalPosition]);
+  }, [isDragging]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -220,11 +220,15 @@ export default function TerminalQuiz() {
   const handleCheck = () => {
     setIsChecked(true);
     setContainerStopped(true);
-    setTerminalContent((prev) => [
-      ...prev,
-      "Container stopped successfully",
-      "~ → ",
-    ]);
+    fetch("http://localhost:5500/done_lab", { method: "GET" })
+      .then((response) => {
+        if (response.ok) {
+          console.log("Lab checked successfully");
+        } else {
+          console.error("Error checking lab");
+        }
+      })
+      .catch((error) => console.error("Error:", error));
   };
 
   const handleNext = () => {
@@ -246,166 +250,65 @@ export default function TerminalQuiz() {
     }
   };
 
-  const toggleTerminalPosition = () => {
-    setTerminalPosition((prev) => (prev === "left" ? "right" : "left"));
-  };
-
   return (
-    <div className="mt-20">
+    <div className="mt-2">
       <div className="container mx-auto p-4">
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: "1.5rem",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-            <span style={{ color: "white", fontFamily: "monospace" }}>sk</span>
-            <button
-              style={{
-                color: "#9ca3af",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <span className="text-white font-mono">sk</span>
+            <button className="text-gray-400 bg-transparent border-none cursor-pointer">
               Hint
             </button>
           </div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              color: "white",
-            }}
-          >
-            <Clock style={{ width: "1rem", height: "1rem" }} />
-            <span style={{ fontFamily: "monospace" }}>{formatTime(time)}</span>
+          <div className="flex items-center gap-2 text-white">
+            <Clock className="w-4 h-4" />
+            <span className="font-mono">{formatTime(time)}</span>
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: "1.5rem", position: "relative" }}>
+        <div className="flex flex-row relative h-[calc(95vh-120px)]">
           {/* Question Section */}
           <div
-            style={{
-              position: "relative",
-              overflow: "hidden",
-              backdropFilter: "blur(8px)",
-              backgroundColor: "rgba(255, 255, 255, 0.1)",
-              border: "none",
-              transition: "all 0.3s",
-              order: terminalPosition === "left" ? 2 : 1,
-              width: `${100 - terminalWidth}%`,
-            }}
+            className="relative overflow-hidden backdrop-blur-md bg-white bg-opacity-10 border-none transition-all duration-300 h-full"
+            style={{ width: `${100 - terminalWidth}%` }}
           >
-            <div
-              style={{ padding: "1.5rem", position: "relative", zIndex: 10 }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "0.5rem",
-                }}
-              >
-                <div style={{ display: "flex", gap: "0.25rem" }}>
+            <div className="p-6 relative z-10">
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-1">
                   {Array.from({ length: 17 }).map((_, i) => (
                     <div
                       key={i}
-                      style={{
-                        height: "0.25rem",
-                        width: "1.5rem",
-                        borderRadius: "9999px",
-                        backgroundColor:
-                          i <= currentQuestion ? "#3b82f6" : "#374151",
-                      }}
+                      className={`h-1 w-6 rounded-full ${
+                        i <= currentQuestion ? "bg-blue-500" : "bg-gray-700"
+                      }`}
                     />
                   ))}
                 </div>
               </div>
 
-              <div
-                style={{
-                  minHeight: "120px",
-                  color: "white",
-                  marginTop: "1.5rem",
-                }}
-              >
-                <p
-                  style={{
-                    fontSize: "1.25rem",
-                    fontWeight: 600,
-                    marginBottom: "1rem",
-                  }}
-                >
+              <div className="min-h-[120px] text-white mt-6">
+                <p className="text-xl font-semibold mb-4">
                   {questions[currentQuestion].text}
                 </p>
                 {containerStopped && (
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.5rem",
-                      color: "#10b981",
-                    }}
-                  >
-                    <CheckCircle2
-                      style={{ width: "1.25rem", height: "1.25rem" }}
-                    />
+                  <div className="flex items-center gap-2 text-green-500">
+                    <CheckCircle2 className="w-5 h-5" />
                     <span>Container Stopped</span>
                   </div>
                 )}
               </div>
 
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: "1rem",
-                }}
-              >
+              <div className="flex flex-col items-center gap-4">
                 <button
                   onClick={handleCheck}
-                  style={{
-                    width: "100%",
-                    padding: "0.75rem",
-                    fontSize: "1rem",
-                    fontWeight: 500,
-                    borderRadius: "9999px",
-                    color: isChecked ? "#10b981" : "white",
-                    overflow: "hidden",
-                    position: "relative",
-                    background: "transparent",
-                    border: "2px solid transparent",
-                    backgroundImage:
-                      "linear-gradient(rgba(26, 31, 54, 0.8), rgba(26, 31, 54, 0.8)), linear-gradient(45deg, #00D2FF, #3A7BD5)",
-                    backgroundOrigin: "border-box",
-                    backgroundClip: "padding-box, border-box",
-                    cursor: "pointer",
-                  }}
+                  className={`w-full py-3 text-base font-medium rounded-full overflow-hidden relative ${
+                    isChecked ? "text-green-500" : "text-white"
+                  } bg-gradient-to-r from-blue-500 to-blue-600 border-2 border-transparent bg-clip-padding cursor-pointer`}
                 >
-                  <div
-                    style={{
-                      position: "relative",
-                      zIndex: 10,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
+                  <div className="relative z-10 flex items-center justify-center">
                     {isChecked ? (
                       <>
-                        <CheckCircle2
-                          style={{
-                            width: "1.25rem",
-                            height: "1.25rem",
-                            marginRight: "0.5rem",
-                          }}
-                        />
+                        <CheckCircle2 className="w-5 h-5 mr-2" />
                         Checked
                       </>
                     ) : (
@@ -416,32 +319,14 @@ export default function TerminalQuiz() {
                 {isChecked && (
                   <button
                     onClick={handleNext}
-                    style={{
-                      width: "100%",
-                      padding: "0.75rem",
-                      fontSize: "1rem",
-                      fontWeight: 500,
-                      color: "white",
-                      borderRadius: "9999px",
-                      background: "linear-gradient(45deg, #00D2FF, #3A7BD5)",
-                      border: "none",
-                      cursor: "pointer",
-                    }}
+                    className="w-full py-3 text-base font-medium text-white rounded-full bg-gradient-to-r from-blue-500 to-blue-600 border-none cursor-pointer"
                   >
                     Next
                   </button>
                 )}
               </div>
 
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  color: "#9ca3af",
-                  fontSize: "0.875rem",
-                  marginTop: "1rem",
-                }}
-              >
+              <div className="flex justify-between text-gray-400 text-sm mt-4">
                 <span>{currentQuestion + 1} / 17</span>
               </div>
             </div>
@@ -449,126 +334,37 @@ export default function TerminalQuiz() {
 
           {/* Terminal Section */}
           <div
-            style={{
-              position: "relative",
-              overflow: "hidden",
-              backdropFilter: "blur(8px)",
-              backgroundColor: "rgba(255, 255, 255, 0.1)",
-              border: "none",
-              transition: "all 0.3s",
-              order: terminalPosition === "left" ? 1 : 2,
-              width: `${terminalWidth}%`,
-            }}
+            className="relative overflow-hidden backdrop-blur-md bg-white bg-opacity-10 border-none transition-all duration-300 h-full"
+            style={{ width: `${terminalWidth}%` }}
           >
-            <div style={{ position: "relative", zIndex: 10 }}>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-                  padding: "0.5rem",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
-                  }}
-                >
-                  <TerminalIcon
-                    style={{ width: "1rem", height: "1rem", color: "#9ca3af" }}
-                  />
-                  <span
-                    style={{
-                      color: "white",
-                      fontFamily: "monospace",
-                      fontSize: "0.875rem",
-                    }}
-                  >
+            <div className="relative z-10">
+              <div className="flex items-center justify-between border-b border-white border-opacity-10 p-2">
+                <div className="flex items-center gap-2">
+                  <TerminalIcon className="w-4 h-4 text-gray-400" />
+                  <span className="text-white font-mono text-sm">
                     Terminal 1
                   </span>
                 </div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
-                  }}
-                >
-                  <button
-                    onClick={toggleTerminalPosition}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "#9ca3af",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <Maximize2 style={{ width: "1rem", height: "1rem" }} />
+                <div className="flex items-center gap-2">
+                  <button className="bg-transparent border-none text-gray-400 cursor-pointer">
+                    <Maximize2 className="w-4 h-4" />
                   </button>
-                  <button
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "#9ca3af",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <Plus style={{ width: "1rem", height: "1rem" }} />
+                  <button className="bg-transparent border-none text-gray-400 cursor-pointer">
+                    <Plus className="w-4 h-4" />
                   </button>
-                  <button
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "#9ca3af",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <X style={{ width: "1rem", height: "1rem" }} />
+                  <button className="bg-transparent border-none text-gray-400 cursor-pointer">
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
               </div>
-              <div
-                style={{
-                  padding: "1rem",
-                  fontFamily: "monospace",
-                  fontSize: "0.875rem",
-                  height: "400px",
-                  overflow: "auto",
-                }}
-              >
-                {terminalContent.map((line, index) => (
-                  <div
-                    key={index}
-                    style={{ color: "#d1d5db", marginBottom: "0.25rem" }}
-                  >
-                    {line}
-                  </div>
-                ))}
-                <div
-                  style={{
-                    color: "#60a5fa",
-                    animation: "blink 1s step-end infinite",
-                  }}
-                >
-                  _
-                </div>
-              </div>
+              <div ref={terminalRef} className="h-[400px]" />
             </div>
             <div
-              style={{
-                position: "absolute",
-                [terminalPosition === "left" ? "right" : "left"]: 0,
-                top: 0,
-                bottom: 0,
-                width: "4px",
-                backgroundColor: "#4b5563",
-                cursor: "ew-resize",
-              }}
+              className="absolute left-0 top-0 bottom-0 w-3 bg-gray-600 hover:bg-cyan-600 transition-colors duration-500 cursor-ew-resize flex items-center justify-center z-[100]"
               onMouseDown={handleDragStart}
-            />
+            >
+              <div className="h-8 w-[10px] bg-current rounded-full" />
+            </div>
           </div>
         </div>
       </div>
