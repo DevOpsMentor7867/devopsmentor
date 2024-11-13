@@ -2,7 +2,10 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { Terminal } from "xterm";
+import { Users, Brain } from "lucide-react";
 import "xterm/css/xterm.css";
+import Collaboration from "./Collaboration";
+import AiAssistant from "./AiAssistant";
 
 const TerminalIcon = () => (
   <svg
@@ -11,8 +14,8 @@ const TerminalIcon = () => (
     height="24"
     viewBox="0 0 24 24"
     fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
+    stroke="red"
+    strokeWidth="3"
     strokeLinecap="round"
     strokeLinejoin="round"
   >
@@ -62,32 +65,21 @@ const Maximize2 = () => (
     height="24"
     viewBox="0 0 24 24"
     fill="none"
-    stroke="currentColor"
+    stroke="url(#gradient)"
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
   >
+    <defs>
+      <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style={{ stopColor: "#06b6d4", stopOpacity: 1 }} />
+        <stop offset="100%" style={{ stopColor: "#3b82f6", stopOpacity: 1 }} />
+      </linearGradient>
+    </defs>
     <polyline points="15 3 21 3 21 9"></polyline>
     <polyline points="9 21 3 21 3 15"></polyline>
     <line x1="21" y1="3" x2="14" y2="10"></line>
     <line x1="3" y1="21" x2="10" y2="14"></line>
-  </svg>
-);
-
-const Plus = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="12" y1="5" x2="12" y2="19"></line>
-    <line x1="5" y1="12" x2="19" y2="12"></line>
   </svg>
 );
 
@@ -98,46 +90,113 @@ const X = () => (
     height="24"
     viewBox="0 0 24 24"
     fill="none"
-    stroke="currentColor"
+    stroke="url(#gradientX)"
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
   >
+    <defs>
+      <linearGradient id="gradientX" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#06b6d4" stopOpacity="1" />
+        <stop offset="100%" stopColor="#3b82f6" stopOpacity="1" />
+      </linearGradient>
+    </defs>
     <line x1="18" y1="6" x2="6" y2="18"></line>
     <line x1="6" y1="6" x2="18" y2="18"></line>
   </svg>
 );
 
-export default function Component() {
+const tools = {
+  docker: {
+    name: "Docker",
+    labs: [
+      {
+        id: "docker-basics",
+        name: "Docker Basics",
+        questions: [
+          {
+            id: 1,
+            text: "Create a new container from nginx image",
+            hint: "Use docker run command with the nginx image",
+          },
+          {
+            id: 2,
+            text: "List all running containers",
+            hint: "Use docker ps command",
+          },
+        ],
+      },
+      {
+        id: "docker-compose",
+        name: "Docker Compose",
+        questions: [
+          {
+            id: 1,
+            text: "Create a docker-compose.yml file",
+            hint: "Define services, networks, and volumes",
+          },
+        ],
+      },
+    ],
+  },
+  kubernetes: {
+    name: "Kubernetes",
+    labs: [
+      {
+        id: "k8s-pods",
+        name: "Pod Management",
+        questions: [
+          {
+            id: 1,
+            text: "Create a new pod using nginx image",
+            hint: "Use kubectl run command",
+          },
+        ],
+      },
+    ],
+  },
+  git: {
+    name: "Git",
+    labs: [
+      {
+        id: "git-basics",
+        name: "Git Fundamentals",
+        questions: [
+          {
+            id: 1,
+            text: "Initialize a new git repository",
+            hint: "Use git init command",
+          },
+        ],
+      },
+    ],
+  },
+};
+
+function TerminalComponent() {
+  const [currentTool, setCurrentTool] = useState("docker");
+  const [currentLab, setCurrentLab] = useState("docker-basics");
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [isChecked, setIsChecked] = useState(false);
   const [containerStopped, setContainerStopped] = useState(false);
-  const [time, setTime] = useState(3600); // 1 hour in seconds
+  const [time, setTime] = useState(3600);
   const [isDragging, setIsDragging] = useState(false);
-  const [terminalWidth, setTerminalWidth] = useState(50); // 50% by default
+  const [terminalWidth, setTerminalWidth] = useState(55);
+  const [showHint, setShowHint] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [showCollaboration, setShowCollaboration] = useState(false);
+  const [showAiAssistant, setShowAiAssistant] = useState(false);
+
   const dragStartX = useRef(0);
   const dragStartWidth = useRef(0);
   const terminalRef = useRef(null);
   const socketRef = useRef(null);
   const termInstanceRef = useRef(null);
 
-  const questions = [
-    {
-      id: 1,
-      text: "Stop the container you just created",
-      hint: "Use the docker stop command",
-    },
-    {
-      id: 2,
-      text: "How do you stop a running container?",
-      hint: "Use the container ID or name",
-    },
-    {
-      id: 3,
-      text: "What command creates a new container from an image?",
-      hint: "Start a new container instance",
-    },
-  ];
+  const getCurrentLab = () =>
+    tools[currentTool].labs.find((lab) => lab.id === currentLab);
+  const totalQuestions = getCurrentLab()?.questions.length || 0;
+  const progress = ((currentQuestion + 1) / totalQuestions) * 100;
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -148,22 +207,23 @@ export default function Component() {
   }, []);
 
   useEffect(() => {
-    socketRef.current = new WebSocket("ws://localhost:6060");
-    termInstanceRef.current = new Terminal({ cursorBlink: true });
-    termInstanceRef.current.open(terminalRef.current);
+    // Terminal setup
+    if (terminalRef.current) {
+      termInstanceRef.current = new Terminal();
+      termInstanceRef.current.open(terminalRef.current);
+      termInstanceRef.current.write(
+        "Welcome to the interactive terminal!\r\n$ "
+      );
+    }
 
+    // WebSocket connection (replace with your actual WebSocket URL)
+    socketRef.current = new WebSocket("ws://your-websocket-url");
     socketRef.current.onmessage = (event) => {
       termInstanceRef.current.write(event.data);
     };
 
-    termInstanceRef.current.onKey(({ key }) => {
-      socketRef.current.send(key);
-    });
-
     return () => {
-      if (socketRef.current) {
-        socketRef.current.close();
-      }
+      if (socketRef.current) socketRef.current.close();
     };
   }, []);
 
@@ -217,6 +277,48 @@ export default function Component() {
       .padStart(2, "0")}`;
   };
 
+  const handleNextQuestion = () => {
+    if (currentQuestion + 1 < totalQuestions) {
+      setCurrentQuestion((prev) => prev + 1);
+      setIsChecked(false);
+    } else {
+      handleNextLab();
+    }
+  };
+
+  const handleNextLab = () => {
+    const currentToolLabs = tools[currentTool].labs;
+    const currentLabIndex = currentToolLabs.findIndex(
+      (lab) => lab.id === currentLab
+    );
+    if (currentLabIndex + 1 < currentToolLabs.length) {
+      setCurrentLab(currentToolLabs[currentLabIndex + 1].id);
+      setCurrentQuestion(0);
+      setIsChecked(false);
+    } else {
+      handleNextTool();
+    }
+  };
+
+  const handleNextTool = () => {
+    const toolKeys = Object.keys(tools);
+    const currentToolIndex = toolKeys.indexOf(currentTool);
+    if (currentToolIndex + 1 < toolKeys.length) {
+      const nextTool = toolKeys[currentToolIndex + 1];
+      setCurrentTool(nextTool);
+      setCurrentLab(tools[nextTool].labs[0].id);
+      setCurrentQuestion(0);
+      setIsChecked(false);
+    } else {
+      // All tools completed
+      alert("Congratulations! You've completed all the labs!");
+    }
+  };
+
+  const toggleFullScreen = () => {
+    setIsFullScreen(!isFullScreen);
+  };
+
   const handleCheck = () => {
     setIsChecked(true);
     setContainerStopped(true);
@@ -231,144 +333,239 @@ export default function Component() {
       .catch((error) => console.error("Error:", error));
   };
 
-  const handleNext = () => {
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion((prev) => prev + 1);
-      setIsChecked(false);
-      setContainerStopped(false);
-    }
-  };
-
-  const handleDragStart = (e) => {
-    setIsDragging(true);
-    dragStartX.current = e.clientX;
-    const containerRect = document
-      .querySelector(".container")
-      ?.getBoundingClientRect();
-    if (containerRect) {
-      dragStartWidth.current = (terminalWidth / 100) * containerRect.width;
-    }
-  };
-
   return (
-    <div className="mt-2">
-      <div className="container mx-auto p-4">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <span className="text-white font-mono">sk</span>
-            <button className="text-gray-400 bg-transparent border-none cursor-pointer">
-              Hint
-            </button>
-          </div>
-          <div className="flex items-center gap-2 text-white">
-            <Clock className="w-4 h-4" />
-            <span className="font-mono">{formatTime(time)}</span>
+    <div className={`${isFullScreen ? "fixed inset-0 z-50 bg-gray-900" : ""}`}>
+      {/* Top Section */}
+      <div className="bg-gradient-to-r from-gray-800 to-gray-900 border-b border-gray-700 my-7">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between ">
+            {/* Left Section - Title */}
+            <div className="flex items-center space-x-4">
+              <div className="text-white">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-500 to-blue-500 bg-clip-text text-transparent">
+                  {tools?.[currentTool]?.name || "Loading..."}
+                </h1>
+                <p className="text-sm text-gray-400">
+                  {getCurrentLab()?.name || "Loading..."}
+                </p>
+              </div>
+            </div>
+
+            {/* Middle Section - Progress */}
+            <div className="flex-1 flex justify-center ml-36">
+              <div className="rounded-lg p-2 shadow-xl">
+                <div className="text-center">
+                  <p className="text-sm text-gray-400">Progress</p>
+                  <div className="flex items-center mt-2">
+                    <div className="w-64 h-2 bg-gray-700 rounded-full">
+                      <div
+                        className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                    <span className="ml-2 text-white">
+                      {Math.round(progress)}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Section - Buttons and Timer */}
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setShowCollaboration(true)}
+                className="px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:opacity-90 transition-opacity flex items-center gap-2"
+              >
+                <Users className="w-4 h-4" />
+                Collaborate
+              </button>
+              <button
+                onClick={() => setShowAiAssistant(true)}
+                className="px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:opacity-90 transition-opacity flex items-center gap-2"
+              >
+                <Brain className="w-4 h-4" />
+                ASK AI
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-row  h-[calc(95vh-120px)]">
-          {/* Question Section */}
+        {/* Modals */}
+        {/* <Collaboration
+          isOpen={showCollaboration}
+          onClose={() => setShowCollaboration(false)}
+        />
+        <AiAssistant
+          isOpen={showAiAssistant}
+          onClose={() => setShowAiAssistant(false)}
+        /> */}
+      </div>
+      {showCollaboration && (
+        <Collaboration
+          isOpen={showCollaboration}
+          onClose={() => setShowCollaboration(false)}
+        />
+      )}
+      {showAiAssistant && (
+        <AiAssistant
+          isOpen={showAiAssistant}
+          onClose={() => setShowAiAssistant(false)}
+        />
+      )}
+
+      {/* Main Content */}
+      <div className="container mx-auto p-4 -my-8">
+        <div className="flex flex-row h-[calc(90vh-120px)] gap-2">
+          {/* Questions Section */}
           <div
-            className="relative overflow-hidden backdrop-blur-md bg-white bg-opacity-10 border-none transition-all duration-300 h-full"
+            className="relative rounded-xl overflow-hidden backdrop-blur-md bg-gray-800/50 border border-gray-700 transition-all duration-300"
             style={{ width: `${100 - terminalWidth}%` }}
           >
-            <div className="p-6 relative z-10">
-              <div className="flex flex-col gap-2">
-                <div className="flex gap-1">
-                  {Array.from({ length: 17 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className={`h-1 w-6 rounded-full ${
-                        i <= currentQuestion ? "bg-blue-500" : "bg-gray-700"
-                      }`}
-                    />
-                  ))}
-                </div>
-              </div>
+            <div className="p-6 h-full flex flex-col">
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-6">
+                  {/* Left Section - Question Text */}
+                  <h2 className="text-xl font-bold text-cgrad">
+                    Question {currentQuestion + 1}
+                  </h2>
 
-              <div className="min-h-[120px] text-white mt-6">
-                <p className="text-xl font-semibold mb-4">
-                  {questions[currentQuestion].text}
-                </p>
+                  {/* Right Section - Hint Button and Timer */}
+                  <div className="flex items-center space-x-4">
+                    <div className="text-center">
+                      <p className="text-sm text-gray-400">Time</p>
+                      <div className="flex items-center mt-2 text-white">
+                        <Clock className="w-4 h-4 mr-2" />
+                        <span className="text-red-700 ml-2 font-mono">
+                          {formatTime(time)}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowHint(true)}
+                      className="px-4 py-2 rounded-lg bg-gray-700 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 transition-colors text-white"
+                    >
+                      Hint
+                    </button>
+                  </div>
+                </div>
+
+                <div className="prose prose-invert">
+                  <p className="text-lg text-gray-200">
+                    {getCurrentLab()?.questions[currentQuestion]?.text}
+                  </p>
+                </div>
+
                 {containerStopped && (
-                  <div className="flex items-center gap-2 text-green-500">
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span>Container Stopped</span>
+                  <div className="mt-4 flex items-center text-green-500">
+                    <CheckCircle2 className="w-5 h-5 mr-2" />
+                    <span>Success!</span>
                   </div>
                 )}
               </div>
 
-              <div className="flex flex-col items-center gap-4">
+              <div className="space-y-4 mt-auto">
                 <button
                   onClick={handleCheck}
-                  className={`w-full py-3 text-base font-medium rounded-full overflow-hidden relative ${
-                    isChecked ? "text-green-500" : "text-white"
-                  } bg-gradient-to-r from-blue-500 to-blue-600 border-2 border-transparent bg-clip-padding cursor-pointer`}
+                  className={`
+                    w-full py-3 rounded-lg font-medium
+                    ${
+                      isChecked
+                        ? "bg-green-500 text-white"
+                        : "bg-gradient-to-r from-cyan-500 to-blue-500 text-white"
+                    }
+                    transition-all duration-300 hover:opacity-90
+                  `}
                 >
-                  <div className="relative z-10 flex items-center justify-center">
-                    {isChecked ? (
-                      <>
-                        <CheckCircle2 className="w-5 h-5 mr-2" />
-                        Checked
-                      </>
-                    ) : (
-                      "Check"
-                    )}
-                  </div>
+                  {isChecked ? "Completed!" : "Check Answer"}
                 </button>
+
                 {isChecked && (
                   <button
-                    onClick={handleNext}
-                    className="w-full py-3 text-base font-medium text-white rounded-full bg-gradient-to-r from-blue-500 to-blue-600 border-none cursor-pointer"
+                    onClick={handleNextQuestion}
+                    className="w-full py-3 rounded-lg font-medium bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white hover:opacity-90 transition-all duration-300"
                   >
-                    Next
+                    {currentQuestion + 1 < totalQuestions
+                      ? "Next Question"
+                      : "Next Lab"}
                   </button>
                 )}
-              </div>
 
-              <div className="flex justify-between text-gray-400 text-sm mt-4">
-                <span>{currentQuestion + 1} / 17</span>
+                {currentQuestion + 1 >= totalQuestions && isChecked && (
+                  <button
+                    onClick={handleNextTool}
+                    className="w-full py-3 rounded-lg font-medium bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white hover:opacity-90 transition-all duration-300"
+                  >
+                    Next Tool
+                  </button>
+                )}
               </div>
             </div>
           </div>
 
+          {/* Drag Handle */}
           <div
-              className="-ml-2 left-0 top-0 bottom-0 w-3 bg-gray-600 hover:bg-cyan-600 transition-colors duration-500 cursor-ew-resize flex items-center justify-center z-[100]"
-              onMouseDown={handleDragStart}
-            >
-              <div className="h-8 w-[10px] bg-current rounded-full" />
-            </div>
+            className="w-2 cursor-col-resize bg-gray-700 hover:bg-cyan-600 transition-colors duration-300 rounded-full"
+            onMouseDown={(e) => {
+              setIsDragging(true);
+              dragStartX.current = e.clientX;
+              dragStartWidth.current = terminalWidth;
+            }}
+          />
+
           {/* Terminal Section */}
           <div
-            className="relative overflow-hidden backdrop-blur-md bg-white bg-opacity-10 border-none transition-all duration-300 h-full"
+            className="relative rounded-xl overflow-hidden backdrop-blur-md bg-gray-800/50 border border-gray-700 transition-all duration-300"
             style={{ width: `${terminalWidth}%` }}
           >
-            <div className="relative z-10">
-              <div className="flex items-center justify-between border-b border-white border-opacity-10 p-2">
-                <div className="flex items-center gap-2 ">
-                  <TerminalIcon className=" w-4 h-4 text-gray-400" />
-                  <span className="text-white font-mono text-sm">
-                    Terminal 1
-                  </span>
+            <div className="h-full flex flex-col">
+              <div className="flex items-center justify-between px-4 py-2 bg-gray-900/50 border-b border-gray-700">
+                <div className="flex items-center space-x-2">
+                  <TerminalIcon className="w-4 h-4 text-red-700" />
+                  <span className="text-cgrad font-mono text-sm">Terminal</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button className="bg-transparent border-none text-gray-400 cursor-pointer">
-                    <Maximize2 className="w-4 h-4" />
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={toggleFullScreen}
+                    className="p-1 hover:bg-gray-700 rounded"
+                  >
+                    <Maximize2 className="w-4 h-4 text-gray-400" />
                   </button>
-                  <button className="bg-transparent border-none text-gray-400 cursor-pointer">
-                    <Plus className="w-4 h-4" />
-                  </button>
-                  <button className="bg-transparent border-none text-gray-400 cursor-pointer">
-                    <X className="w-4 h-4" />
+                  <button
+                    onClick={() => setTerminalWidth(50)}
+                    className="p-1 hover:bg-gray-700 rounded"
+                  >
+                    <X className="w-4 h-4 text-gray-400" />
                   </button>
                 </div>
               </div>
-              <div ref={terminalRef} className="h-[400px]" />
+              <div ref={terminalRef} className="flex-1" />
             </div>
-            
           </div>
         </div>
       </div>
+
+      {/* Hint Modal */}
+      {showHint && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 shadow-xl border border-gray-700">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-white">Hint</h3>
+              <button
+                onClick={() => setShowHint(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <p className="text-gray-200">
+              {getCurrentLab()?.questions[currentQuestion]?.hint}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+export default TerminalComponent;

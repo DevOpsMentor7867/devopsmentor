@@ -1,36 +1,65 @@
 import React from "react";
-import {
-  LayoutDashboard,
-  LayoutGrid,
-  Inbox,
-  Users,
-  ShoppingBag,
-  LogIn,
-  UserPlus,
-  Menu,
-} from "lucide-react";
+import { Menu } from "lucide-react";
 import "./SideBar.css";
 import { Link } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faHome,
+  faTable,
+  faInbox,
+  faUsers,
+  faShoppingBag,
+  faSignInAlt,
+  faUserPlus,
+} from "@fortawesome/free-solid-svg-icons";
 
 export default function Sidebar({ isOpen, onToggle }) {
   const menuItems = [
-    { icon: LayoutDashboard, label: "Dashboard", to: "/Dashboard" },
-    { icon: LayoutGrid, label: "Kanban", to: "/dashboard/kanban" },
-    { icon: Inbox, label: "Inbox", to: "/dashboard/inbox" },
-    { icon: Users, label: "Users", to: "/dashboard/users" },
-    { icon: ShoppingBag, label: "Products", to: "/dashboard/products" },
-    { icon: LogIn, label: "Sign In", to: "/dashboard/signin" },
-    { icon: UserPlus, label: "Sign Up", to: "/dashboard/signup" },
+    {
+      icon: <FontAwesomeIcon icon={faHome} />,
+      label: "Dashboard",
+      to: "/dashboard",
+    },
+    {
+      icon: <FontAwesomeIcon icon={faTable} />,
+      label: "Kanban",
+      to: "/dashboard/kanban",
+    },
+    {
+      icon: <FontAwesomeIcon icon={faInbox} />,
+      label: "Inbox",
+      to: "/dashboard/inbox",
+    },
+    {
+      icon: <FontAwesomeIcon icon={faUsers} />,
+      label: "Users",
+      to: "/dashboard/users",
+    },
+    {
+      icon: <FontAwesomeIcon icon={faShoppingBag} />,
+      label: "Products",
+      to: "/dashboard/products",
+    },
+    {
+      icon: <FontAwesomeIcon icon={faSignInAlt} />,
+      label: "Sign In",
+      to: "/dashboard/signin",
+    },
+    {
+      icon: <FontAwesomeIcon icon={faUserPlus} />,
+      label: "Sign Up",
+      to: "/dashboard/signup",
+    },
   ];
 
   return (
-    <div className="fixed top-0 left-0 z-40 h-screen  ">
+    <div className="fixed top-0 left-0 z-40 h-screen">
       <div
-        className={`h-screen transition-all duration-300 relative h-screen border-r border-transparent sidebar-gradient-border ${
+        className={`h-screen transition-all duration-300 relative border-r border-transparent sidebar-gradient-border ${
           isOpen ? "w-[13rem]" : "w-14"
         } bg-white bg-opacity-5 text-gray-100`}
       >
-        <div className="flex h-16 items-center justify-between pr-4">
+        <div className="flex h-16 items-center justify-between pr-[12px]">
           {isOpen && (
             <div className="flex items-center mt-4 pl-4">
               <h5 className="text-2xl font-semibold uppercase text-gray-400">
@@ -55,21 +84,18 @@ export default function Sidebar({ isOpen, onToggle }) {
           {menuItems.map((item) => (
             <Link
               key={item.label}
-              to={item.to} // Replace 'href' with 'to' for React Router Link
-              className="flex items-center rounded-lg px-2 py-2 hover:bg-gradient-to-r hover:from-cyan-600 hover:to-blue-600 text-xl text-gray-300"
+              to={item.to}
+              className="flex items-center rounded-lg px-2 py-2 hover:bg-gradient-to-r hover:from-cyan-600 hover:to-blue-600 text-xl text-gray-300 ml-[6px]"
             >
               {isOpen ? (
                 <>
-                  <div className="h-8 w-8 text-gradient-to-r from-cyan-500 to-blue-500">
-                    <item.icon className="h-8 w-8" />
-                  </div>
-
+                  <div className="h-8 w-8 ">{item.icon}</div>
                   <span className="ml-4 text-transparent bg-gradient-to-r from-cyan-500 to-blue-500 bg-clip-text">
                     {item.label}
                   </span>
                 </>
               ) : (
-                <item.icon className="h-8 w-8" />
+                item.icon
               )}
             </Link>
           ))}

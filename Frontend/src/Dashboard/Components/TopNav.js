@@ -36,11 +36,11 @@ export default function TopNav({ isSidebarOpen }) {
         ) : ( */}
           <div className="flex items-center gap-2">
             <img
-              src="project-logo.png"
+              src="/project-logo.png"
               alt=""
               className="object-cover h-20 w-20"
             />
-            <span>DEVOPS MENTOR</span>
+            <span className="text-cgrad" >DEVOPS MENTOR</span>
           </div>
         {/* )} */}
       </div>
@@ -97,7 +97,7 @@ export default function TopNav({ isSidebarOpen }) {
 
         <div className="h-8 w-8 overflow-hidden rounded-full">
           <img
-            src="project-logo.png"
+            src="/project-logo.png"
             alt="User avatar"
             className="h-full w-full object-cover"
           />
