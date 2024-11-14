@@ -3,10 +3,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Terminal } from "xterm";
 import { Users, Brain } from "lucide-react";
-import "xterm/css/xterm.css";
 import Collaboration from "./Collaboration";
 import AiAssistant from "./AiAssistant";
-
+import { FitAddon } from "xterm-addon-fit";
+import "xterm/css/xterm.css";
 const TerminalIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -193,8 +193,9 @@ function TerminalComponent() {
   const socketRef = useRef(null);
   const termInstanceRef = useRef(null);
 
-  const getCurrentLab = () =>
+  const getCurrentLab = () => 
     tools[currentTool].labs.find((lab) => lab.id === currentLab);
+  
   const totalQuestions = getCurrentLab()?.questions.length || 0;
   const progress = ((currentQuestion + 1) / totalQuestions) * 100;
 
@@ -209,17 +210,71 @@ function TerminalComponent() {
   useEffect(() => {
     // Terminal setup
     if (terminalRef.current) {
-      termInstanceRef.current = new Terminal();
+      termInstanceRef.current = new Terminal({
+        theme: {
+          background: "#1e2430",
+          foreground: "#ffffff",
+          cursor: "#ffffff",
+          selection: "rgba(255, 255, 255, 0.3)",
+          black: "#000000",
+          red: "#e06c75",
+          green: "#98c379",
+          yellow: "#d19a66",
+          blue: "#61afef",
+          magenta: "#c678dd",
+          cyan: "#56b6c2",
+          white: "#ffffff",
+          brightBlack: "#5c6370",
+          brightRed: "#e06c75",
+          brightGreen: "#98c379",
+          brightYellow: "#d19a66",
+          brightBlue: "#61afef",
+          brightMagenta: "#c678dd",
+          brightCyan: "#56b6c2",
+          brightWhite: "#ffffff",
+        },
+        fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+        fontSize: 14,
+        lineHeight: 1.2,
+        cursorBlink: true,
+      });
+
+      const fitAddon = new FitAddon();
+      termInstanceRef.current.loadAddon(fitAddon);
+
       termInstanceRef.current.open(terminalRef.current);
-      termInstanceRef.current.write(
-        "Welcome to the interactive terminal!\r\n$ "
+      fitAddon.fit();
+
+      // Write ASCII art with proper formatting
+      termInstanceRef.current.writeln("\x1b[34m"); // Set color to blue
+      termInstanceRef.current.writeln(
+        " ____              ___                 __  __            _             "
       );
+      termInstanceRef.current.writeln(
+        "|  _ \\  _____   __/ _ \\ _ __  ___     |  \\/  | ___ _ __ | |_ ___  _ __ "
+      );
+      termInstanceRef.current.writeln(
+        "| | | |/ _ \\ \\ / / | | | '_ \\/ __|    | |\\/| |/ _ \\ '_ \\| __/ _ \\| '__|"
+      );
+      termInstanceRef.current.writeln(
+        "| |_| |  __/\\ V /| |_| | |_) \\__ \\    | |  | |  __/ | | | || (_) | |   "
+      );
+      termInstanceRef.current.writeln(
+        "|____/ \\___| \\_/  \\___/| .__/|___/    |_|  |_|\\___|_| |_|\\__\\___/|_|   "
+      );
+      termInstanceRef.current.writeln(
+        "                       |_|                                              "
+      );
+      // eslint-disable-next-line no-useless-escape
+      termInstanceRef.current.writeln("\x1b[38;2;148;226;213m          ✨\s Welcome to the Enhanced DevOps Mentor Terminal ✨"); 
+      termInstanceRef.current.writeln("\x1b[0m"); // Reset color
+      termInstanceRef.current.write("$ ");
     }
 
     // WebSocket connection (replace with your actual WebSocket URL)
     socketRef.current = new WebSocket("ws://your-websocket-url");
     socketRef.current.onmessage = (event) => {
-      termInstanceRef.current.write(event.data);
+      termInstanceRef.current?.write(event.data);
     };
 
     return () => {
@@ -352,7 +407,7 @@ function TerminalComponent() {
             </div>
 
             {/* Middle Section - Progress */}
-            <div className="flex-1 flex justify-center ml-36">
+            <div className="flex-1 flex justify-center ml-30">
               <div className="rounded-lg p-2 shadow-xl">
                 <div className="text-center">
                   <p className="text-sm text-gray-400">Progress</p>
@@ -433,7 +488,6 @@ function TerminalComponent() {
                   {/* Right Section - Hint Button and Timer */}
                   <div className="flex items-center space-x-4">
                     <div className="text-center">
-                      <p className="text-sm text-gray-400">Time</p>
                       <div className="flex items-center mt-2 text-white">
                         <Clock className="w-4 h-4 mr-2" />
                         <span className="text-red-700 ml-2 font-mono">
@@ -532,7 +586,7 @@ function TerminalComponent() {
                     <Maximize2 className="w-4 h-4 text-gray-400" />
                   </button>
                   <button
-                    onClick={() => setTerminalWidth(50)}
+                    onClick={() => setTerminalWidth(55)}
                     className="p-1 hover:bg-gray-700 rounded"
                   >
                     <X className="w-4 h-4 text-gray-400" />
