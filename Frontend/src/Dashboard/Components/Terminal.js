@@ -1,11 +1,10 @@
-"use client";
-
 import React, { useState, useEffect, useRef } from "react";
 import { Terminal } from "xterm";
-import { Users, Brain } from 'lucide-react';
+import { FitAddon } from "xterm-addon-fit";
+import { Users, Brain, CheckCircle2, Clock, Maximize2, X } from 'lucide-react';
+import { useParams } from 'react-router-dom';
 import Collaboration from "./Collaboration";
 import AiAssistant from "./AiAssistant";
-import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -26,159 +25,9 @@ const TerminalIcon = () => (
   </svg>
 );
 
-const CheckCircle2 = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-  </svg>
-);
-
-const Clock = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="10"></circle>
-    <polyline points="12 6 12 12 16 14"></polyline>
-  </svg>
-);
-
-const Maximize2 = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="url(#gradient)"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <defs>
-      <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" style={{ stopColor: "#06b6d4", stopOpacity: 1 }} />
-        <stop offset="100%" style={{ stopColor: "#3b82f6", stopOpacity: 1 }} />
-      </linearGradient>
-    </defs>
-    <polyline points="15 3 21 3 21 9"></polyline>
-    <polyline points="9 21 3 21 3 15"></polyline>
-    <line x1="21" y1="3" x2="14" y2="10"></line>
-    <line x1="3" y1="21" x2="10" y2="14"></line>
-  </svg>
-);
-
-const X = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="url(#gradientX)"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <defs>
-      <linearGradient id="gradientX" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#06b6d4" stopOpacity="1" />
-        <stop offset="100%" stopColor="#3b82f6" stopOpacity="1" />
-      </linearGradient>
-    </defs>
-    <line x1="18" y1="6" x2="6" y2="18"></line>
-    <line x1="6" y1="6" x2="18" y2="18"></line>
-  </svg>
-);
-
-const tools = {
-  docker: {
-    name: "Docker",
-    labs: [
-      {
-        id: "docker-basics",
-        name: "Docker Basics",
-        questions: [
-          {
-            id: 1,
-            text: "Create a new container from nginx image",
-            hint: "Use docker run command with the nginx image",
-          },
-          {
-            id: 2,
-            text: "List all running containers",
-            hint: "Use docker ps command",
-          },
-        ],
-      },
-      {
-        id: "docker-compose",
-        name: "Docker Compose",
-        questions: [
-          {
-            id: 1,
-            text: "Create a docker-compose.yml file",
-            hint: "Define services, networks, and volumes",
-          },
-        ],
-      },
-    ],
-  },
-  kubernetes: {
-    name: "Kubernetes",
-    labs: [
-      {
-        id: "k8s-pods",
-        name: "Pod Management",
-        questions: [
-          {
-            id: 1,
-            text: "Create a new pod using nginx image",
-            hint: "Use kubectl run command",
-          },
-        ],
-      },
-    ],
-  },
-  git: {
-    name: "Git",
-    labs: [
-      {
-        id: "git-basics",
-        name: "Git Fundamentals",
-        questions: [
-          {
-            id: 1,
-            text: "Initialize a new git repository",
-            hint: "Use git init command",
-          },
-        ],
-      },
-    ],
-  },
-};
-
 function TerminalComponent() {
-  const [currentTool, setCurrentTool] = useState("docker");
-  const [currentLab, setCurrentLab] = useState("docker-basics");
-  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [questions, setQuestions] = useState([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isChecked, setIsChecked] = useState(false);
   const [containerStopped, setContainerStopped] = useState(false);
   const [time, setTime] = useState(3600);
@@ -189,17 +38,30 @@ function TerminalComponent() {
   const [showCollaboration, setShowCollaboration] = useState(false);
   const [showAiAssistant, setShowAiAssistant] = useState(false);
 
+  const { toolId, labId } = useParams();
+
   const dragStartX = useRef(0);
   const dragStartWidth = useRef(0);
   const terminalRef = useRef(null);
   const socketRef = useRef(null);
   const termInstanceRef = useRef(null);
 
-  const getCurrentLab = () =>
-    tools[currentTool].labs.find((lab) => lab.id === currentLab);
+  useEffect(() => {
+    fetchQuestions();
+  }, [toolId, labId]);
 
-  const totalQuestions = getCurrentLab()?.questions.length || 0;
-  const progress = ((currentQuestion + 1) / totalQuestions) * 100;
+  const fetchQuestions = async () => {
+    try {
+      const response = await fetch(`http://localhost:8000/api/tools/${toolId}/labs/${labId}/questions`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setQuestions(data.questions);
+    } catch (error) {
+      console.error("Error fetching questions:", error);
+    }
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -210,12 +72,10 @@ function TerminalComponent() {
   }, []);
 
   useEffect(() => {
-    // Terminal setup
     if (terminalRef.current) {
       termInstanceRef.current = new Terminal({
         theme: {
           background: "#1F2937",
-          opacity: "50",
           foreground: "#ffffff",
           cursor: "#ffffff",
           selection: "rgba(255, 255, 255, 0.3)",
@@ -248,8 +108,7 @@ function TerminalComponent() {
       termInstanceRef.current.open(terminalRef.current);
       fitAddon.fit();
 
-      // Write ASCII art with proper formatting
-      termInstanceRef.current.writeln("\x1b[34m"); // Set color to blue
+      termInstanceRef.current.writeln("\x1b[34m");
       termInstanceRef.current.writeln(
         " ____              ___                 __  __            _             "
       );
@@ -268,15 +127,13 @@ function TerminalComponent() {
       termInstanceRef.current.writeln(
         "                       |_|                                              "
       );
-      // eslint-disable-next-line no-useless-escape
       termInstanceRef.current.writeln(
-        "\x1b[38;2;148;226;213m          ✨s Welcome to the Enhanced DevOps Mentor Terminal ✨"
+        "\x1b[38;2;148;226;213m          ✨ Welcome to the Enhanced DevOps Mentor Terminal ✨"
       );
-      termInstanceRef.current.writeln("\x1b[0m"); // Reset color
+      termInstanceRef.current.writeln("\x1b[0m");
       termInstanceRef.current.write("$ ");
     }
 
-    // WebSocket connection (replace with your actual WebSocket URL)
     socketRef.current = new WebSocket("ws://your-websocket-url");
     socketRef.current.onmessage = (event) => {
       termInstanceRef.current?.write(event.data);
@@ -338,42 +195,17 @@ function TerminalComponent() {
   };
 
   const handleNextQuestion = () => {
-    if (currentQuestion + 1 < totalQuestions) {
-      setCurrentQuestion((prev) => prev + 1);
+    if (currentQuestionIndex + 1 < questions.length) {
+      setCurrentQuestionIndex(prevIndex => prevIndex + 1);
       setIsChecked(false);
     } else {
-      handleNextLab();
+      alert("Congratulations! You've completed all questions for this lab!");
     }
   };
 
-  const handleNextLab = () => {
-    const currentToolLabs = tools[currentTool].labs;
-    const currentLabIndex = currentToolLabs.findIndex(
-      (lab) => lab.id === currentLab
-    );
-    if (currentLabIndex + 1 < currentToolLabs.length) {
-      setCurrentLab(currentToolLabs[currentLabIndex + 1].id);
-      setCurrentQuestion(0);
-      setIsChecked(false);
-    } else {
-      handleNextTool();
-    }
-  };
+  const getCurrentQuestion = () => questions[currentQuestionIndex] || {};
 
-  const handleNextTool = () => {
-    const toolKeys = Object.keys(tools);
-    const currentToolIndex = toolKeys.indexOf(currentTool);
-    if (currentToolIndex + 1 < toolKeys.length) {
-      const nextTool = toolKeys[currentToolIndex + 1];
-      setCurrentTool(nextTool);
-      setCurrentLab(tools[nextTool].labs[0].id);
-      setCurrentQuestion(0);
-      setIsChecked(false);
-    } else {
-      // All tools completed
-      alert("Congratulations! You've completed all the labs!");
-    }
-  };
+  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
 
   const toggleFullScreen = () => {
     setIsFullScreen(!isFullScreen);
@@ -423,26 +255,23 @@ function TerminalComponent() {
       animate="visible"
       variants={containerVariants}
     >
-      {/* Top Section */}
       <motion.div
         className="bg-gradient-to-r from-gray-800 to-gray-900 border-b border-gray-700 my-7"
         variants={itemVariants}
       >
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between ">
-            {/* Left Section - Title */}
             <div className="flex items-center space-x-4">
               <div className="text-white">
                 <h1 className="text-2xl font-bold text-cgrad">
-                  {tools?.[currentTool]?.name || "Loading..."}
+                  {questions[0]?.toolName || "Loading..."}
                 </h1>
                 <p className="text-sm text-gray-400">
-                  {getCurrentLab()?.name || "Loading..."}
+                  {questions[0]?.labName || "Loading..."}
                 </p>
               </div>
             </div>
 
-            {/* Middle Section - Progress */}
             <div className="flex-1 flex justify-center ml-30">
               <div className="rounded-lg p-2 shadow-xl">
                 <div className="text-center">
@@ -465,7 +294,6 @@ function TerminalComponent() {
               </div>
             </div>
 
-            {/* Right Section - Buttons and Timer */}
             <div className="flex items-center space-x-4">
               <motion.button
                 onClick={() => setShowCollaboration(true)}
@@ -503,10 +331,8 @@ function TerminalComponent() {
         />
       )}
 
-      {/* Main Content */}
       <motion.div className="container mx-auto p-4 -my-8" variants={itemVariants}>
         <div className="flex flex-row h-[calc(90vh-120px)] gap-2">
-          {/* Questions Section */}
           <motion.div
             className="relative rounded-xl overflow-hidden backdrop-blur-md bg-gray-800 border border-gray-700 transition-all duration-300"
             style={{ width: `${100 - terminalWidth}%` }}
@@ -515,12 +341,10 @@ function TerminalComponent() {
             <div className="p-6 h-full flex flex-col">
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-6">
-                  {/* Left Section - Question Text */}
                   <h2 className="text-xl font-bold text-cgrad">
-                    Question {currentQuestion + 1}
+                    Question {currentQuestionIndex + 1}
                   </h2>
 
-                  {/* Right Section - Hint Button and Timer */}
                   <div className="flex items-center space-x-4">
                     <div className="text-center">
                       <div className="flex items-center mt-2 text-white">
@@ -543,7 +367,7 @@ function TerminalComponent() {
 
                 <div className="prose prose-invert">
                   <p className="text-lg text-gray-200">
-                    {getCurrentLab()?.questions[currentQuestion]?.text}
+                    {getCurrentQuestion().text}
                   </p>
                 </div>
 
@@ -588,30 +412,13 @@ function TerminalComponent() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    {currentQuestion + 1 < totalQuestions
-                      ? "Next Question"
-                      : "Next Lab"}
-                  </motion.button>
-                )}
-
-                {currentQuestion + 1 >= totalQuestions && isChecked && (
-                  <motion.button
-                    onClick={handleNextTool}
-                    className="w-full py-3 rounded-lg font-medium bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white hover:opacity-90 transition-all duration-300"
-                    initial={{ opacity: 0, y: 0 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2 }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    Next Tool
+                    Next Question
                   </motion.button>
                 )}
               </div>
             </div>
           </motion.div>
 
-          {/* Drag Handle */}
           <motion.div
             className="w-2 cursor-col-resize bg-gray-700 hover:bg-cyan-600 transition-colors duration-300 rounded-full"
             onMouseDown={(e) => {
@@ -622,7 +429,6 @@ function TerminalComponent() {
             variants={itemVariants}
           />
 
-          {/* Terminal Section */}
           <motion.div
             className="relative rounded-xl overflow-hidden backdrop-blur-md bg-gray-800/50 border border-gray-700 transition-all duration-300"
             style={{ width: `${terminalWidth}%` }}
@@ -659,7 +465,6 @@ function TerminalComponent() {
         </div>
       </motion.div>
 
-      {/* Hint Modal */}
       <AnimatePresence>
         {showHint && (
           <motion.div
@@ -686,9 +491,7 @@ function TerminalComponent() {
                   <X className="w-6 h-6" />
                 </motion.button>
               </div>
-              <p className="text-gray-200"> 
-                {getCurrentLab()?.questions[currentQuestion]?.hint}
-              </p>
+              <p className="text-gray-200">{getCurrentQuestion().hint}</p>
             </motion.div>
           </motion.div>
         )}

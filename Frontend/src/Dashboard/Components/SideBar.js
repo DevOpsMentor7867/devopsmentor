@@ -5,12 +5,10 @@ import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faHome,
-  faTable,
-  faInbox,
-  faUsers,
-  faShoppingBag,
-  faSignInAlt,
-  faUserPlus,
+  faTools,
+  faFlask,
+  faTerminal,
+  faUserCircle,
 } from "@fortawesome/free-solid-svg-icons";
 
 export default function Sidebar({ isOpen, onToggle }) {
@@ -21,34 +19,24 @@ export default function Sidebar({ isOpen, onToggle }) {
       to: "/dashboard",
     },
     {
-      icon: <FontAwesomeIcon icon={faTable} />,
-      label: "Kanban",
-      to: "/dashboard/kanban",
+      icon: <FontAwesomeIcon icon={faTools} />,
+      label: "Tools",
+      to: "/dashboard/tools",
     },
     {
-      icon: <FontAwesomeIcon icon={faInbox} />,
-      label: "Inbox",
-      to: "/dashboard/inbox",
+      icon: <FontAwesomeIcon icon={faFlask} />,
+      label: "Labs",
+      to: "/dashboard/labs",
     },
     {
-      icon: <FontAwesomeIcon icon={faUsers} />,
-      label: "Users",
-      to: "/dashboard/users",
+      icon: <FontAwesomeIcon icon={faTerminal} />,
+      label: "Terminal",
+      to: "/dashboard/terminal",
     },
     {
-      icon: <FontAwesomeIcon icon={faShoppingBag} />,
-      label: "Products",
-      to: "/dashboard/products",
-    },
-    {
-      icon: <FontAwesomeIcon icon={faSignInAlt} />,
-      label: "Sign In",
-      to: "/dashboard/signin",
-    },
-    {
-      icon: <FontAwesomeIcon icon={faUserPlus} />,
-      label: "Sign Up",
-      to: "/dashboard/signup",
+      icon: <FontAwesomeIcon icon={faUserCircle} />,
+      label: "Profile",
+      to: "/dashboard/profile",
     },
   ];
 

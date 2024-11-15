@@ -3,6 +3,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const connectToDatabase = require("./db/mongoose");
 const routes = require("./routes/routesfile");
+const toolRoutes = require("./routes/toolRoutes");
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const app = express();
@@ -34,6 +35,7 @@ app.use(bodyParser.json({
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use('/api', routes);
+app.use('/api', toolRoutes);
 (async () => {
     try {
       await connectToDatabase();
