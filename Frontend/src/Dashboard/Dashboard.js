@@ -3,21 +3,11 @@ import { Routes, Route } from "react-router-dom";
 import TopNav from "./Components/TopNav";
 import Sidebar from "./Components/SideBar";
 import TerminalQuiz from "./Components/Terminal";
+import UserProfile from "./Components/userProfile";
+import ToolData from "./Components/ToolData";
 
 // Placeholder components for other routes
-const Dashboard = () => (
-  <div className="p-6">
-    <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-    <p className="text-gray-600">Welcome to your dashboard</p>
-  </div>
-);
 
-const Inbox = () => (
-  <div className="p-6">
-    <h1 className="text-2xl font-bold text-gray-800">Inbox</h1>
-    <p className="text-gray-600">Your messages will appear here</p>
-  </div>
-);
 
 const Users = () => (
   <div className="p-6">
@@ -51,9 +41,9 @@ export default function DashboardLayout() {
       >      
         <Routes>      
           {/* Main routes */}
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/" element={<UserProfile />} />
           <Route path="/kanban" element={<TerminalQuiz />} />
-          <Route path="/inbox" element={<Inbox />} />
+          <Route path="/inbox" element={<ToolData />} />
           <Route path="/users" element={<Users />} />
           <Route path="/products" element={<Products />} />
         </Routes>

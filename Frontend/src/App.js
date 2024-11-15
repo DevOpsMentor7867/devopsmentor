@@ -13,6 +13,7 @@ import { useAuthContext } from "./API/UseAuthContext";
 // import { useNavigate } from "react-router-dom";
 
 function App() {
+  // eslint-disable-next-line
   const { user } = useAuthContext();
   // const Navigate = useNavigate();
 
@@ -21,7 +22,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<LogIn />} />
-        <Route path="/dashboard/*" element={user ? <Dashboard /> : <LogIn />} />
+        {/* <Route path="/dashboard/*" element={user ? <Dashboard /> : <LogIn />} /> */}
+        <Route path="/dashboard/*" element={ <Dashboard /> } />
       </Routes>
     </Router>
   );

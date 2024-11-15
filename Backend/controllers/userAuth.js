@@ -170,8 +170,8 @@ logout_queue.process(async (job) => {
 });
 
 // user controller defined for authentication
-const userController = {
-  register: async (req, res) => {
+
+ module.exports.register = async (req, res) => {
     try {
       const { email, password } = req.body;
       const user = await User.findOne({ email });
@@ -205,9 +205,9 @@ const userController = {
         .status(500)
         .json({ message: "Registration failed", error: error.message });
     }
-  },
+  }
 
-  verifyOtp: async (req, res) => {
+  module.exports.verifyOtp = async (req, res) => {
     try {
       const { email, otp } = req.body;
       console.log("from otp", email, otp);
@@ -233,9 +233,9 @@ const userController = {
         .status(500)
         .json({ message: "OTP verification failed", error: error.message });
     }
-  },
+  }
 
-  login: async (req, res) => {
+  module.exports.login = async (req, res) => {
     try {
       const { email, password } = req.body;
       const job = await login_queue.add(
@@ -264,8 +264,9 @@ const userController = {
       console.error("Login error:", error);
       res.status(500).json({ message: "Login failed", error: error.message });
     }
-  },
-  logout: async (req, res) => {
+  }
+
+  module.exports.logout = async (req, res) => {
     try {
       const token = req.cookies.session;
       if (!token) {
@@ -310,8 +311,8 @@ const userController = {
       console.error("Logout error:", error);
       res.status(500).json({ message: "Logout failed", error: error.message });
     }
-  },
-};
+  }
+
 
 registration_queue.on("error", (error) => {
   console.error("Registration queue error:", error);
@@ -329,4 +330,3 @@ verification_queue.on("failed", (job, error) => {
   console.error(`Verification job ${job.id} failed:`, error);
 });
 
-module.exports = userController;

@@ -4,13 +4,16 @@
 
 @layer utilities {
   .text-cgrad {
-    background-image: linear-gradient(to right, #06b6d4, #3b82f6);
+    background: linear-gradient(20deg, #119cd6 0%, #119cd6 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
   .bg-green {
-    background-image: linear-gradient(to right, #3eb040, #10b981);
+    background-image: linear-gradient(to right, #1cb488, #1cb488);
+  }
+  .bg-grad {
+    background-image: linear-gradient(to right, #119cd6, #119cd6);
   }
 }
 
