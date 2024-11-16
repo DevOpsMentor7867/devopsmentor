@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import { Users, Brain, CheckCircle2, Clock, Maximize2, X } from 'lucide-react';
@@ -27,6 +27,7 @@ const TerminalIcon = () => (
 
 function TerminalComponent() {
   const [questions, setQuestions] = useState([]);
+  const [ToolName, setToolName] = useState('');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isChecked, setIsChecked] = useState(false);
   const [containerStopped, setContainerStopped] = useState(false);
@@ -37,6 +38,7 @@ function TerminalComponent() {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [showCollaboration, setShowCollaboration] = useState(false);
   const [showAiAssistant, setShowAiAssistant] = useState(false);
+  const [labName, setLabName] = useState('');
 
   const { toolId, labId } = useParams();
 
@@ -50,7 +52,7 @@ function TerminalComponent() {
     fetchQuestions();
   }, [toolId, labId]);
 
-  const fetchQuestions = async () => {
+  const fetchQuestions = useCallback(async () => {
     try {
       const response = await fetch(`http://localhost:8000/api/tools/${toolId}/labs/${labId}/questions`);
       if (!response.ok) {
@@ -58,10 +60,12 @@ function TerminalComponent() {
       }
       const data = await response.json();
       setQuestions(data.questions);
+      setToolName(data.toolName);
+      setLabName(data.labName);
     } catch (error) {
       console.error("Error fetching questions:", error);
     }
-  };
+  }, [toolId, labId]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -264,10 +268,10 @@ function TerminalComponent() {
             <div className="flex items-center space-x-4">
               <div className="text-white">
                 <h1 className="text-2xl font-bold text-cgrad">
-                  {questions[0]?.toolName || "Loading..."}
+                  {ToolName || "Loading..."}
                 </h1>
                 <p className="text-sm text-gray-400">
-                  {questions[0]?.labName || "Loading..."}
+                  {labName || "Loading..."}
                 </p>
               </div>
             </div>

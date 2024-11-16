@@ -64,7 +64,7 @@ const getQuestionsByLab = async (req, res) => {
     if (questions.length === 0) {
       return res.status(404).json({ message: 'No questions found for this lab' });
     }
-
+    console.log("as" ,tool.name, lab.name)
     res.status(200).json({
       toolName: tool.name,
       toolDescription: tool.description,
