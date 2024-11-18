@@ -25,8 +25,8 @@ export default function Sidebar({ isOpen, onToggle }) {
     },
     {
       icon: <FontAwesomeIcon icon={faFlask} />,
-      label: "Labs",
-      to: "/dashboard/labs",
+      label: "loading",
+      to: "/dashboard/loading",
     },
     {
       icon: <FontAwesomeIcon icon={faTerminal} />,

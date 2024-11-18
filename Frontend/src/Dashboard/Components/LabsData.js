@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaArrowRight, FaDocker } from 'react-icons/fa';
 import { useParams, useNavigate } from 'react-router-dom';
+import LoadingScreen from './LoadingPage';
 
 const Labs = () => {
   const [hoveredLab, setHoveredLab] = useState(null);
@@ -8,11 +9,16 @@ const Labs = () => {
   const [toolName, setToolName] = useState('');
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedLab, setSelectedLab] = useState(null);
   const { toolId } = useParams();
   const navigate = useNavigate();
 
-  const handleLabClick = (labId) => {
-    navigate(`/dashboard/${toolId}/labs/${labId}/questions`);
+  const handleLabClick = async (lab) => {
+    setSelectedLab(lab);
+    setIsLoading(true);
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    navigate(`/dashboard/${toolId}/labs/${lab.id}/questions`);
   };
 
   const fetchLabs = useCallback(async () => {
@@ -29,6 +35,7 @@ const Labs = () => {
       }
       setLabs(data.labs);
       setToolName(data.toolName);
+
     } catch (error) {
       console.error('Error fetching labs:', error);
       setError(`Failed to load labs. Please try again later.`);
@@ -42,7 +49,7 @@ const Labs = () => {
   }, [fetchLabs]);
 
   if (isLoading) {
-    return <div className="text-white text-center">Loading labs...</div>;
+    return <LoadingScreen toolName={toolName} labName={selectedLab ? selectedLab.name : 'Loading Lab'} />;
   }
 
   if (error) {
@@ -60,7 +67,7 @@ const Labs = () => {
             <div
               key={lab.id}
               className="bg-gray-800 rounded-lg h-72 p-4 flex flex-col cursor-pointer transform transition-all duration-300 hover:scale-105 relative overflow-hidden group"
-              onClick={() => handleLabClick(lab.id)}
+              onClick={() => handleLabClick(lab)}
               onMouseEnter={() => setHoveredLab(lab.id)}
               onMouseLeave={() => setHoveredLab(null)}
             >

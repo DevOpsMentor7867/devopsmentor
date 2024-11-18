@@ -50,6 +50,7 @@ function TerminalComponent() {
 
   useEffect(() => {
     fetchQuestions();
+    //eslint-disable-next-line
   }, [toolId, labId]);
 
   const fetchQuestions = useCallback(async () => {
