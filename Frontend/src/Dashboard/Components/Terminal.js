@@ -1,12 +1,22 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
-import { Users, Brain, CheckCircle2, Clock, Maximize2, X } from 'lucide-react';
-import { useParams } from 'react-router-dom';
+import {
+  Users,
+  Brain,
+  Ban,
+  CheckCircle2,
+  Clock,
+  Maximize2,
+  X,
+} from "lucide-react";
+import { useParams } from "react-router-dom";
 import Collaboration from "./Collaboration";
 import AiAssistant from "./AiAssistant";
 import "xterm/css/xterm.css";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from 'react-router-dom';
+
 
 const TerminalIcon = () => (
   <svg
@@ -27,7 +37,7 @@ const TerminalIcon = () => (
 
 function TerminalComponent() {
   const [questions, setQuestions] = useState([]);
-  const [ToolName, setToolName] = useState('');
+  const [ToolName, setToolName] = useState("");
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isChecked, setIsChecked] = useState(false);
   const [containerStopped, setContainerStopped] = useState(false);
@@ -38,7 +48,7 @@ function TerminalComponent() {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [showCollaboration, setShowCollaboration] = useState(false);
   const [showAiAssistant, setShowAiAssistant] = useState(false);
-  const [labName, setLabName] = useState('');
+  const [labName, setLabName] = useState("");
 
   const { toolId, labId } = useParams();
 
@@ -47,6 +57,69 @@ function TerminalComponent() {
   const terminalRef = useRef(null);
   const socketRef = useRef(null);
   const termInstanceRef = useRef(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      event.preventDefault();
+      event.returnValue =
+        "Are you sure you want to leave? Your current progress will be lost.";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handlePopState = (event) => {
+      event.preventDefault();
+      if (
+        window.confirm(
+          "Are you sure you want to leave? Your current progress will be lost."
+        )
+      ) {
+        navigate(-1);
+      } else {
+        window.history.pushState(null, "", window.location.pathname);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [navigate]);
+
+  const handleEndLab = useCallback(() => {
+    const confirmEnd = window.confirm(
+      "Are you sure you want to end the lab? Your current progress will be lost."
+    );
+    if (confirmEnd) {
+      // Send request to backend
+      fetch("http://your-backend-url/end-lab", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ toolId, labId }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("Lab ended successfully", data);
+          // Redirect to dashboard or perform any other action
+          // navigate(`/dashboard/${toolId}/labs`);
+        })
+        .catch((error) => {
+          console.error("Error ending lab:", error);
+        });
+    }
+    navigate(`/dashboard/${toolId}/labs`);
+
+  }, [toolId, labId, navigate]);
 
   useEffect(() => {
     fetchQuestions();
@@ -55,7 +128,9 @@ function TerminalComponent() {
 
   const fetchQuestions = useCallback(async () => {
     try {
-      const response = await fetch(`http://localhost:8000/api/tools/${toolId}/labs/${labId}/questions`);
+      const response = await fetch(
+        `http://localhost:8000/api/tools/${toolId}/labs/${labId}/questions`
+      );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -201,7 +276,7 @@ function TerminalComponent() {
 
   const handleNextQuestion = () => {
     if (currentQuestionIndex + 1 < questions.length) {
-      setCurrentQuestionIndex(prevIndex => prevIndex + 1);
+      setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
       setIsChecked(false);
     } else {
       alert("Congratulations! You've completed all questions for this lab!");
@@ -277,7 +352,7 @@ function TerminalComponent() {
               </div>
             </div>
 
-            <div className="flex-1 flex justify-center ml-30">
+            <div className="flex-1 flex justify-center ml-20">
               <div className="rounded-lg p-2 shadow-xl">
                 <div className="text-center">
                   <p className="text-sm text-gray-400">Progress</p>
@@ -318,6 +393,15 @@ function TerminalComponent() {
                 <Brain className="w-4 h-4" />
                 ASK AI
               </motion.button>
+              <motion.button
+                onClick={handleEndLab}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:opacity-90 transition-opacity flex items-center gap-2"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Ban size={18} strokeWidth={3.25} />
+                End Lab
+              </motion.button>
             </div>
           </div>
         </div>
@@ -336,7 +420,10 @@ function TerminalComponent() {
         />
       )}
 
-      <motion.div className="container mx-auto p-4 -my-8" variants={itemVariants}>
+      <motion.div
+        className="container mx-auto p-4 -my-8"
+        variants={itemVariants}
+      >
         <div className="flex flex-row h-[calc(90vh-120px)] gap-2">
           <motion.div
             className="relative rounded-xl overflow-hidden backdrop-blur-md bg-gray-800 border border-gray-700 transition-all duration-300"

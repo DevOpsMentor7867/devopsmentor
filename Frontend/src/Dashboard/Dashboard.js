@@ -4,8 +4,8 @@ import TopNav from "./Components/TopNav";
 import Sidebar from "./Components/SideBar";
 import TerminalQuiz from "./Components/Terminal";
 import UserProfile from "./Components/userProfile";
-import ToolData from "./Components/ToolData";
-import Labs from "./Components/LabsData";
+import ToolData from "./Components/ToolsPage";
+import Labs from "./Components/LabsPage";
 import LoadingScreen from "./Components/LoadingPage";
 
 export default function DashboardLayout() {
