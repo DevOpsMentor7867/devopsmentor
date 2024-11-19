@@ -94,6 +94,8 @@ function TerminalComponent() {
     };
   }, [navigate]);
 
+  
+
   const handleEndLab = useCallback(() => {
     const confirmEnd = window.confirm(
       "Are you sure you want to end the lab? Your current progress will be lost."
