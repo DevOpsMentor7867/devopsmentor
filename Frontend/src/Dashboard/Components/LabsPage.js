@@ -9,11 +9,11 @@ import { useParams, useNavigate } from 'react-router-dom'
 import LoadingScreen from './LoadingPage'
 
 const iconMap = {
+  "Linux Foundation": FaLinux,
   Docker: FaDocker,
   Kubernetes: SiKubernetes,
   Git: FaGitAlt,
   Terraform: SiTerraform,
-  Linux: FaLinux,
 };
 
 const Labs = () => {
@@ -29,15 +29,15 @@ const Labs = () => {
   const handleLabClick = async (lab) => {
     setSelectedLab(lab)
     setIsLoading(true)
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    navigate(`/dashboard/${toolId}/labs/${lab.id}/questions`)
+    // await new Promise((resolve) => setTimeout(resolve, 2000))
+    navigate(`/dashboard/labs/${lab._id}/questions`)
   }
 
   const fetchLabs = useCallback(async () => {
     if (!toolId) return
     setIsLoading(true)
     try {
-      const response = await fetch(`http://localhost:8000/api/tools/${toolId}/labs`)
+      const response = await fetch(`http://localhost:8000/api/user/${toolId}/labs`)
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
@@ -99,8 +99,8 @@ const Labs = () => {
                     >
                       <div className="flex justify-between items-start mb-auto">
                         <h2 className="text-2xl font-semibold text-cyan-400">{lab.name}</h2>
-                        <FaDocker className="text-6xl text-cyan-400" />
-                      </div>
+                        <IconComponent className="text-8xl text-cyan-400" />
+                        </div>
                       <div className="mt-auto flex justify-between items-end">
                         <p className="text-cyan-400 text-xl">Start Lab</p>
                         <FaArrowRight className="text-cyan-400" />

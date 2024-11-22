@@ -1,49 +1,55 @@
+// index.js
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
-const connectToDatabase = require("./db/mongoose");
-const routes = require("./routes/routesfile");
-const toolRoutes = require("./routes/toolRoutes");
 const cookieParser = require('cookie-parser');
+const routes = require("./routes/routesfile");
+const { createServer } = require('http');
+//const connectToDatabase = require('./db/mongoose');
+const { connectToDatabase, mongoose } = require('./db/mongoose');
+const redisClientPool = require('./redis/redis-server');  
+const dockerClientPool =  require('./docker/docker_connection');
+const execInstancePool =  require('./docker/execPool');
+const {setUpSocketServer, getIo} = require('./socketServer/socket');
+const  setupTerminalNamespace = require('./controllers/terminalSocket');
 const cors = require('cors');
 const app = express();
-
-
 
 app.use(cors({
   origin: 'http://localhost:3000', // The origin of your frontend
   credentials: true,               // Allow credentials
 }));
 
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'http://localhost:3000'); // Specific origin
-  res.header('Access-Control-Allow-Credentials', 'true');             // Allow credentials
-  next();
-});
+const httpServer = createServer(app);
 
-
-app.use(bodyParser.json({
-  verify: (req, res, buf, encoding) => {
-    try {
-      JSON.parse(buf);
-    } catch(e) {
-      res.status(400).json({ message: 'Invalid JSON' });
-    }
-  }
-}));
-//app.use(bodyParser.json()); 
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use('/api', routes);
-app.use('/api', toolRoutes);
-(async () => {
-    try {
-      await connectToDatabase();
-      const port = process.env.PORT;
-      const server = app.listen(port, () => {
-        console.log(`Server running on port: ${port}`);
-      });
-    } catch (error) {
-      console.error("Failed to start the server:", error.message);
-    }
-  })();
+
+const initializeApp = async () => {
+  try {
+    
+    await connectToDatabase();
+    
+    await setUpSocketServer(httpServer);
+
+    await redisClientPool.initialize(); 
+
+    await dockerClientPool.initialize();
+    setupTerminalNamespace();
+    //await execInstancePool.initialize();
+     //await setupTerminalNamespace();
+    const port = process.env.PORT || 3000;
+    httpServer.listen(port, () => {
+      console.log(`Server running on port: ${port}`);
+    });
+  } catch (error) {
+    console.error("Failed to start the server:", error.message);
+    process.exit(1);  
+  }
+};
+
+initializeApp(); 
+
+

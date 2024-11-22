@@ -1,3 +1,10 @@
+## [4.16.4](https://github.com/OptimalBits/bull/compare/v4.16.3...v4.16.4) (2024-11-01)
+
+
+### Bug Fixes
+
+* **deps:** bump msgpackr to 1.1.2 to resolve ERR_BUFFER_OUT_OF_BOUNDS error ([#2783](https://github.com/OptimalBits/bull/issues/2783)) fixes [#2782](https://github.com/OptimalBits/bull/issues/2782) ([bc0ae0a](https://github.com/OptimalBits/bull/commit/bc0ae0ae5b7fb2b067de94c3e51ce1bdd609806d))
+
 ## [4.16.3](https://github.com/OptimalBits/bull/compare/v4.16.2...v4.16.3) (2024-09-10)
 
 

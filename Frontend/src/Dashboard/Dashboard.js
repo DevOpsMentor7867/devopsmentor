@@ -27,9 +27,9 @@ export default function DashboardLayout() {
         <Routes>      
           <Route path="/" element={<UserProfile />} />
           <Route path="/tools" element={<ToolData />} />
-          <Route path="/:toolId/labs" element={<Labs />} />
+          <Route path="/:toolId/labs" element={<Labs />} /> {/* handleClicl tools page */}
           <Route path="/terminal" element={<TerminalQuiz />} />
-          <Route path="/:toolId/labs/:labId/questions" element={<TerminalQuiz />} />
+          <Route path="/labs/:labId/questions" element={<TerminalQuiz />} />
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/loading" element={<LoadingScreen />} />
         </Routes>

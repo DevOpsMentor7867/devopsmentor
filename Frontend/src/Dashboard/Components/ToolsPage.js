@@ -5,11 +5,11 @@ import { GrCircleInformation } from "react-icons/gr";
 import { useNavigate } from "react-router-dom";
 
 const iconMap = {
+  "Linux Foundation": FaLinux,
   Docker: FaDocker,
   Kubernetes: SiKubernetes,
   Git: FaGitAlt,
   Terraform: SiTerraform,
-  Linux: FaLinux,
 };
 
 export default function Component() {
@@ -28,15 +28,15 @@ export default function Component() {
 
   const fetchTools = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/tools");
+      const response = await fetch("http://localhost:8000/api/user/gettools");
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      if (!Array.isArray(data)) {
-        throw new Error("Data is not an array");
+      if (!Array.isArray(data.tools)) {
+        throw new Error("Tools data is not an array");
       }
-      setTools(data);
+      setTools(data.tools);
     } catch (error) {
       console.error("Error fetching tools:", error);
       setError(`Failed to load tools. Error: ${error.message}`);
@@ -62,17 +62,15 @@ export default function Component() {
         {tools.map((tool, index) => {
           const IconComponent = iconMap[tool.name] || GrCircleInformation;
           const isEven = index % 2 === 0;
-          // const prevTool = index > 0 ? tools[index - 1] : null;
 
           return (
             <div key={tool._id} className="relative mb-16">
               {/* Timeline Content */}
               <div className="flex justify-center items-center">
                 {/* Card Container */}
-                
                 <div className={`w-5/12 ${isEven ? "mr-auto" : "ml-auto"}`}>
                   <div
-                    className="bg-gray-800 rounded-lg h-72 p-4 flex flex-col cursor-pointer transform transition-all duration-300 hover:scale-105 relative overflow-hidden"
+                    className="bg-gray-800 rounded-lg h-60 p-4 flex flex-col cursor-pointer transform transition-all duration-300 hover:scale-105 relative overflow-hidden"
                     onClick={() => handleToolClick(tool._id)}
                     onMouseEnter={() => setHoveredTool(tool._id)}
                     onMouseLeave={() => setHoveredTool(null)}
@@ -85,7 +83,7 @@ export default function Component() {
                     </div>
                     <div className="mt-auto flex justify-between items-end">
                       <p className="text-cyan-400 text-2xl">
-                        {tool.labCount} Labs
+                        Explore Now
                       </p>
                       <FaArrowRight className="text-cyan-400" />
                     </div>
@@ -106,7 +104,7 @@ export default function Component() {
                       </p>
                       <div className="mt-auto flex justify-between items-end">
                         <p className="text-cyan-400 text-2xl">
-                          {tool.labCount} Labs
+                          Master {tool.name}
                         </p>
                         <FaArrowRight className="text-cyan-400" />
                       </div>

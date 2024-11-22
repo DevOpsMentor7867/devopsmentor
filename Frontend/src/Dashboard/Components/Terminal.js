@@ -17,7 +17,6 @@ import "xterm/css/xterm.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from 'react-router-dom';
 
-
 const TerminalIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -36,9 +35,11 @@ const TerminalIcon = () => (
 );
 
 function TerminalComponent() {
-  const [questions, setQuestions] = useState([]);
-  const [ToolName, setToolName] = useState("");
+  const [labQuestions, setLabQuestions] = useState([]);
+  const [currentLabIndex, setCurrentLabIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [toolName, setToolName] = useState("");
+  const [labName, setLabName] = useState("");
   const [isChecked, setIsChecked] = useState(false);
   const [containerStopped, setContainerStopped] = useState(false);
   const [time, setTime] = useState(3600);
@@ -48,9 +49,10 @@ function TerminalComponent() {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [showCollaboration, setShowCollaboration] = useState(false);
   const [showAiAssistant, setShowAiAssistant] = useState(false);
-  const [labName, setLabName] = useState("");
+  const [scripts, setScripts] = useState([]);
+  const [currentHintIndex, setCurrentHintIndex] = useState(0); // New state for current hint index
 
-  const { toolId, labId } = useParams();
+  const { labId } = useParams();
 
   const dragStartX = useRef(0);
   const dragStartWidth = useRef(0);
@@ -94,20 +96,17 @@ function TerminalComponent() {
     };
   }, [navigate]);
 
-  
-
   const handleEndLab = useCallback(() => {
     const confirmEnd = window.confirm(
       "Are you sure you want to end the lab? Your current progress will be lost."
     );
     if (confirmEnd) {
-      // Send request to backend
       fetch("http://your-backend-url/end-lab", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ toolId, labId }),
+        body: JSON.stringify({ labId }),
       })
         .then((response) => response.json())
         .then((data) => {
@@ -119,31 +118,35 @@ function TerminalComponent() {
           console.error("Error ending lab:", error);
         });
     }
-    navigate(`/dashboard/${toolId}/labs`);
-
-  }, [toolId, labId, navigate]);
-
-  useEffect(() => {
-    fetchQuestions();
-    //eslint-disable-next-line
-  }, [toolId, labId]);
+    // navigate(`/dashboard/${toolId}/labs`);
+  }, [labId]);
 
   const fetchQuestions = useCallback(async () => {
     try {
       const response = await fetch(
-        `http://localhost:8000/api/tools/${toolId}/labs/${labId}/questions`
+        `http://localhost:8000/api/user/labs/${labId}/questions`
       );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      setQuestions(data.questions);
-      setToolName(data.toolName);
-      setLabName(data.labName);
+      setLabQuestions(data.labQuestions);
+      setToolName(data.toolName || "Tool Name");
+      setLabName(data.labName || "Lab Name");
+      
+      // Extract all scripts from the questions data
+      const allScripts = data.labQuestions.flatMap(lab => 
+        lab.questions_data.map(question => question.script)
+      );
+      setScripts(allScripts);
     } catch (error) {
       console.error("Error fetching questions:", error);
     }
-  }, [toolId, labId]);
+  }, [labId]);
+
+  useEffect(() => {
+    fetchQuestions();
+  }, [fetchQuestions]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -277,17 +280,37 @@ function TerminalComponent() {
   };
 
   const handleNextQuestion = () => {
-    if (currentQuestionIndex + 1 < questions.length) {
+    const currentLab = labQuestions[currentLabIndex];
+    if (currentQuestionIndex + 1 < currentLab.questions_data.length) {
       setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+      setIsChecked(false);
+    } else if (currentLabIndex + 1 < labQuestions.length) {
+      setCurrentLabIndex((prevIndex) => prevIndex + 1);
+      setCurrentQuestionIndex(0);
       setIsChecked(false);
     } else {
       alert("Congratulations! You've completed all questions for this lab!");
     }
   };
 
-  const getCurrentQuestion = () => questions[currentQuestionIndex] || {};
+  const getCurrentQuestion = () => {
+    const currentLab = labQuestions[currentLabIndex];
+    return currentLab ? currentLab.questions_data[currentQuestionIndex] : {};
+  };
 
-  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+  const getTotalQuestions = () => {
+    return labQuestions.reduce((total, lab) => total + lab.questions_data.length, 0);
+  };
+
+  const getCurrentQuestionNumber = () => {
+    let questionNumber = 1;
+    for (let i = 0; i < currentLabIndex; i++) {
+      questionNumber += labQuestions[i].questions_data.length;
+    }
+    return questionNumber + currentQuestionIndex;
+  };
+
+  const progress = (getCurrentQuestionNumber() / getTotalQuestions()) * 100;
 
   const toggleFullScreen = () => {
     setIsFullScreen(!isFullScreen);
@@ -346,10 +369,10 @@ function TerminalComponent() {
             <div className="flex items-center space-x-4">
               <div className="text-white">
                 <h1 className="text-2xl font-bold text-cgrad">
-                  {ToolName || "Loading..."}
+                  {toolName}
                 </h1>
                 <p className="text-sm text-gray-400">
-                  {labName || "Loading..."}
+                  {labName}
                 </p>
               </div>
             </div>
@@ -436,7 +459,7 @@ function TerminalComponent() {
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-bold text-cgrad">
-                    Question {currentQuestionIndex + 1}
+                    Question {getCurrentQuestionNumber()} of {getTotalQuestions()}
                   </h2>
 
                   <div className="flex items-center space-x-4">
@@ -461,7 +484,7 @@ function TerminalComponent() {
 
                 <div className="prose prose-invert">
                   <p className="text-lg text-gray-200">
-                    {getCurrentQuestion().text}
+                    {getCurrentQuestion().question}
                   </p>
                 </div>
 
@@ -577,7 +600,10 @@ function TerminalComponent() {
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-bold text-white">Hint</h3>
                 <motion.button
-                  onClick={() => setShowHint(false)}
+                  onClick={() => {
+                    setShowHint(false);
+                    setCurrentHintIndex(0); // Reset hint index when closing
+                  }}
                   className="text-gray-400 hover:text-white"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
@@ -585,7 +611,19 @@ function TerminalComponent() {
                   <X className="w-6 h-6" />
                 </motion.button>
               </div>
-              <p className="text-gray-200">{getCurrentQuestion().hint}</p>
+              <p className="text-gray-200">
+                {getCurrentQuestion().hints && getCurrentQuestion().hints[currentHintIndex]}
+              </p>
+              {getCurrentQuestion().hints && currentHintIndex < getCurrentQuestion().hints.length - 1 && (
+                <motion.button
+                  onClick={() => setCurrentHintIndex(prevIndex => prevIndex + 1)}
+                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Next Hint
+                </motion.button>
+              )}
             </motion.div>
           </motion.div>
         )}
@@ -595,3 +633,4 @@ function TerminalComponent() {
 }
 
 export default TerminalComponent;
+
