@@ -1,21 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Users, Brain, Ban, CheckCircle2, Clock, Maximize2, X } from 'lucide-react';
+import { useParams, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { io } from "socket.io-client";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
-import {
-  Users,
-  Brain,
-  Ban,
-  CheckCircle2,
-  Clock,
-  Maximize2,
-  X,
-} from "lucide-react";
-import { useParams } from "react-router-dom";
+import "xterm/css/xterm.css";
+
+// Assuming these components exist in your project
 import Collaboration from "./Collaboration";
 import AiAssistant from "./AiAssistant";
-import "xterm/css/xterm.css";
-import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from 'react-router-dom';
 
 const TerminalIcon = () => (
   <svg
@@ -50,16 +44,17 @@ function TerminalComponent() {
   const [showCollaboration, setShowCollaboration] = useState(false);
   const [showAiAssistant, setShowAiAssistant] = useState(false);
   const [scripts, setScripts] = useState([]);
-  const [currentHintIndex, setCurrentHintIndex] = useState(0); // New state for current hint index
+  const [currentHintIndex, setCurrentHintIndex] = useState(0);
 
   const { labId } = useParams();
+  const navigate = useNavigate();
 
   const dragStartX = useRef(0);
   const dragStartWidth = useRef(0);
+  
   const terminalRef = useRef(null);
-  const socketRef = useRef(null);
   const termInstanceRef = useRef(null);
-  const navigate = useNavigate();
+  const socketRef = useRef(null);
 
   useEffect(() => {
     const handleBeforeUnload = (event) => {
@@ -134,7 +129,6 @@ function TerminalComponent() {
       setToolName(data.toolName || "Tool Name");
       setLabName(data.labName || "Lab Name");
       
-      // Extract all scripts from the questions data
       const allScripts = data.labQuestions.flatMap(lab => 
         lab.questions_data.map(question => question.script)
       );
@@ -217,15 +211,41 @@ function TerminalComponent() {
       );
       termInstanceRef.current.writeln("\x1b[0m");
       termInstanceRef.current.write("$ ");
+
+      termInstanceRef.current.onData(data => {
+        if (socketRef.current) {
+          socketRef.current.emit('user-input', data);
+        } else {
+          console.error('Socket connection not established');
+        }
+      });
+      window.addEventListener('resize', () => fitAddon.fit());
     }
 
-    socketRef.current = new WebSocket("ws://your-websocket-url");
-    socketRef.current.onmessage = (event) => {
-      termInstanceRef.current?.write(event.data);
-    };
+    socketRef.current = io(process.env.REACT_APP_SOCKET_URL || "http://localhost:8000/terminal", {
+      path: "/socket.io",
+      transports: ["websocket", "polling"],
+    });
+
+    socketRef.current.on("connect", () => {
+      console.log("Connected to socket server");
+    });
+
+    socketRef.current.on("terminal-output", (data) => {
+      termInstanceRef.current?.write(data);
+    });
+    socketRef.current.on("connect_error", (error) => {
+      console.error("Socket connection error:", error);
+    });
+
+    socketRef.current.on("disconnect", () => {
+      console.log("Disconnected from socket server");
+    });
 
     return () => {
-      if (socketRef.current) socketRef.current.close();
+      // if (socketRef.current) {
+      //   socketRef.current.disconnect();
+      // }
     };
   }, []);
 
@@ -330,6 +350,13 @@ function TerminalComponent() {
       .catch((error) => console.error("Error:", error));
   };
 
+  const handleDoneLab = () => {
+    fetch('http://localhost:3000/done_lab', { method: 'GET' })
+      .then(response => response.text())
+      .then(data => console.log("Lab status:", data))
+      .catch(error => console.error("Error:", error));
+  };
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -377,7 +404,8 @@ function TerminalComponent() {
               </div>
             </div>
 
-            <div className="flex-1 flex justify-center ml-20">
+            <div className="flex-1
+flex justify-center ml-20">
               <div className="rounded-lg p-2 shadow-xl">
                 <div className="text-center">
                   <p className="text-sm text-gray-400">Progress</p>
@@ -426,6 +454,15 @@ function TerminalComponent() {
               >
                 <Ban size={18} strokeWidth={3.25} />
                 End Lab
+              </motion.button>
+              <motion.button
+                onClick={handleDoneLab}
+                className="px-4 py-2 rounded-lg bg-green-600 text-white hover:opacity-90 transition-opacity flex items-center gap-2"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <CheckCircle2 size={18} strokeWidth={3.25} />
+                Done Lab
               </motion.button>
             </div>
           </div>
@@ -602,7 +639,7 @@ function TerminalComponent() {
                 <motion.button
                   onClick={() => {
                     setShowHint(false);
-                    setCurrentHintIndex(0); // Reset hint index when closing
+                    setCurrentHintIndex(0);
                   }}
                   className="text-gray-400 hover:text-white"
                   whileHover={{ scale: 1.1 }}

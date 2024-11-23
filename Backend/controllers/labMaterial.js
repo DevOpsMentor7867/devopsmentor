@@ -15,8 +15,6 @@ getLabQuestionsQueue.process(async (job) => {
 
         
         const labQuestions = await LabQuestion.find({ lab_id: labId }).populate("lab_id");
-
-        console.log(`Lab Questions fetched for Lab ID ${labId}:`, labQuestions);
         return { labQuestions };
     } catch (error) {
         console.error(`Error processing getLabQuestions job:`, error);

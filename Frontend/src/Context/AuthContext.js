@@ -1,5 +1,5 @@
 import { createContext, useReducer, useEffect } from "react";
-import axios from 'axios';
+// import axios from 'axios';
 
 export const AuthContext = createContext();
 
@@ -22,12 +22,12 @@ export const AuthContextProvider = ({ children }) => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/user/dummy', {
-          withCredentials: true
-        });
-        if (response.data.user) {
-          dispatch({ type: 'LOGIN', payload: response.data.user.email });
-        }
+        // const response = await axios.get('http://localhost:8000/api/user/dummy', {
+        //   withCredentials: true
+        // });
+        // if (response.data.user) {
+        //   dispatch({ type: 'LOGIN', payload: response.data.user.email });
+        // }
       } catch (error) {
         console.log("User is not Authenticated")
       }
