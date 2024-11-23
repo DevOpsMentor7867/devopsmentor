@@ -9,7 +9,7 @@ const setUpSocketServer = async (httpServer) => {
     io = new Server(httpServer, {
         path: '/socket.io',
         cors: {
-            origin: "http://localhost:3000", // In production, set this to your frontend's URL
+            origin: "*", // In production, set this to your frontend's URL
             methods: ["GET", "POST"],
         },
         transports: ['websocket', 'polling'],
