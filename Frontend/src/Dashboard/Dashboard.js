@@ -21,7 +21,7 @@ export default function DashboardLayout() {
       <Sidebar isOpen={isSidebarOpen} onToggle={toggleSidebar} />
       <main
         className={`transition-all duration-300 ${
-          isSidebarOpen ? "ml-56" : "ml-16"
+          isSidebarOpen ? "ml-44 mr-8" : "ml-8 mr-8"
         } pt-16`}
       >      
         <Routes>      
@@ -29,7 +29,7 @@ export default function DashboardLayout() {
           <Route path="/tools" element={<ToolData />} />
           <Route path="/:toolId/labs" element={<Labs />} /> {/* handleClicl tools page */}
           <Route path="/terminal" element={<TerminalQuiz />} />
-          <Route path="/labs/:labId/questions" element={<TerminalQuiz />} />
+          <Route path="/labs/:labId/questions" element={<TerminalQuiz sOpen={isSidebarOpen} />} />
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/loading" element={<LoadingScreen />} />
         </Routes>

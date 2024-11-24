@@ -36,7 +36,7 @@ const TerminalIcon = () => (
   </svg>
 );
 
-function TerminalComponent() {
+function TerminalComponent({ isOpen }) {
   const [labQuestions, setLabQuestions] = useState([]);
   const [currentLabIndex, setCurrentLabIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -399,13 +399,15 @@ function TerminalComponent() {
 
   return (
     <motion.div
-      className={`${isFullScreen ? "fixed inset-0 z-50 bg-gray-900" : ""}`}
+      className={` ${
+        isOpen ? "ml-52" : "ml-8 -mr-8"
+        } ${isFullScreen ? "fixed inset-0 z-50 bg-gray-900 " : ""}`}
       initial="hidden"
       animate="visible"
       variants={containerVariants}
     >
       <motion.div
-        className="bg-gradient-to-r from-gray-800 to-gray-900 border-b border-gray-700 my-7"
+        className=" bg-gradient-to-r from-gray-800 to-gray-900 border-b border-gray-700 my-7"
         variants={itemVariants}
       >
         <div className="container mx-auto px-4">
