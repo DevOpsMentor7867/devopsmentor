@@ -129,7 +129,11 @@ const Labs = () => {
                   {/* Timeline Dot - hidden on mobile */}
                   <div className="hidden md:block absolute left-1/2 transform -translate-x-1/2">
                     <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gray-800 border-4 border-cyan-400 flex items-center justify-center">
-                      <IconComponent className="text-3xl md:text-4xl text-cyan-400" />
+                    <img 
+                        src={`/${toolName.toLowerCase()}.png`} 
+                        className="w-8 h-8 md:w-12 md:h-12 " 
+                        alt={`${toolName} logo`}
+                      />
                     </div>
                   </div>
                 </div>

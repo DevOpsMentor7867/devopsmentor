@@ -187,6 +187,46 @@ function TerminalComponent({ isOpen }) {
 
     if (terminalRef.current) {
       newTerm.open(terminalRef.current);
+
+      const style = document.createElement('style');
+      style.textContent = `
+        .xterm-viewport::-webkit-scrollbar {
+          width: 10px;
+        }
+        .xterm-viewport::-webkit-scrollbar-track {
+          background: #1F2937;
+        }
+        .xterm-viewport::-webkit-scrollbar-thumb {
+          background-color: #4B5563;
+          border-radius: 6px;
+          border: 3px solid #1F2937;
+        }
+      `;
+      document.head.appendChild(style);
+      newTerm.writeln("\x1b[34m");
+      newTerm.writeln(
+        " ____              ___                 __  __            _             "
+      );
+      newTerm.writeln(
+        "|  _ \\  _____   __/ _ \\ _ __  ___     |  \\/  | ___ _ __ | |_ ___  _ __ "
+      );
+      newTerm.writeln(
+        "| | | |/ _ \\ \\ / / | | | '_ \\/ __|    | |\\/| |/ _ \\ '_ \\| __/ _ \\| '__|"
+      );
+      newTerm.writeln(
+        "| |_| |  __/\\ V /| |_| | |_) \\__ \\    | |  | |  __/ | | | || (_) | |   "
+      );
+      newTerm.writeln(
+        "|____/ \\___| \\_/  \\___/| .__/|___/    |_|  |_|\\___|_| |_|\\__\\___/|_|   "
+      );
+      newTerm.writeln(
+        "                       |_|                                              "
+      );
+      newTerm.writeln(
+        "\x1b[38;2;148;226;213m          ✨ Welcome to the Enhanced DevOps Mentor Terminal ✨"
+      );
+      newTerm.writeln("\x1b[0m");
+      newTerm.write("$ ");
     }
 
     setTerm(newTerm);
@@ -557,7 +597,7 @@ button
               </div>
 
               <div className="space-y-4 mt-auto">
-                <motion.button
+              <motion.button
                   onClick={() =>
                     handleCheck(scripts[getCurrentQuestionNumber() - 1])
                   }
@@ -575,7 +615,6 @@ button
                 >
                   {isChecked ? "" : "Check Answer"}
                 </motion.button>
-
                 {isChecked && (
                   <motion.button
                     onClick={handleNextQuestion}
