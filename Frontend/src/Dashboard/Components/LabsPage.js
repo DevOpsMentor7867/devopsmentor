@@ -1,17 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { FaDocker, FaGitAlt, FaLinux, FaArrowRight } from "react-icons/fa";
-import { SiKubernetes, SiTerraform } from "react-icons/si";
-import { GrCircleInformation } from "react-icons/gr";
+import {  FaArrowRight } from "react-icons/fa";
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import LoadingScreen from './LoadingPage'
 
-const iconMap = {
-  "Linux Foundation": FaLinux,
-  Docker: FaDocker,
-  Kubernetes: SiKubernetes,
-  Git: FaGitAlt,
-  Terraform: SiTerraform,
-};
 
 const Labs = () => {
   const [hoveredLab, setHoveredLab] = useState(null)
@@ -83,7 +74,6 @@ const Labs = () => {
 
           {labs.map((lab, index) => {
             const isEven = index % 2 === 0
-            const IconComponent = iconMap[toolName] || GrCircleInformation;
 
             return (
               <div key={lab.id} className="relative mb-8 md:mb-16">
