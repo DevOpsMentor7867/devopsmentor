@@ -18,10 +18,10 @@ export default function Component() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const handleToolClick = (toolId) => {
-    navigate(`/dashboard/${toolId}/labs`);
+  const handleToolClick = (toolId, toolName) => {
+    navigate(`/dashboard/${toolId}/labs`, { state: { toolName } });
   };
-
+  
   useEffect(() => {
     fetchTools();
   }, []);
@@ -71,7 +71,7 @@ export default function Component() {
                 <div className={`w-5/12 ${isEven ? "mr-auto" : "ml-auto"}`}>
                   <div
                     className="bg-gray-800 rounded-lg h-60 p-4 flex flex-col cursor-pointer transform transition-all duration-300 hover:scale-105 relative overflow-hidden"
-                    onClick={() => handleToolClick(tool._id)}
+                    onClick={() => handleToolClick(tool._id, tool.name)}
                     onMouseEnter={() => setHoveredTool(tool._id)}
                     onMouseLeave={() => setHoveredTool(null)}
                   >

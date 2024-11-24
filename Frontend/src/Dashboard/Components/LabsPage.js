@@ -1,11 +1,9 @@
-'use client'
-
 import React, { useState, useEffect, useCallback } from 'react'
 import { FaDocker, FaGitAlt, FaLinux, FaArrowRight } from "react-icons/fa";
 import { SiKubernetes, SiTerraform } from "react-icons/si";
 import { GrCircleInformation } from "react-icons/gr";
 import { useParams, useNavigate } from 'react-router-dom'
-// import { Loader2 } from 'lucide-react'
+import { useLocation } from "react-router-dom";
 import LoadingScreen from './LoadingPage'
 
 const iconMap = {
@@ -19,19 +17,25 @@ const iconMap = {
 const Labs = () => {
   const [hoveredLab, setHoveredLab] = useState(null)
   const [labs, setLabs] = useState([])
-  const [toolName, setToolName] = useState('')
+  // const [toolName, setToolName] = useState('')
   const [error, setError] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [selectedLab, setSelectedLab] = useState(null)
   const { toolId } = useParams()
   const navigate = useNavigate()
+  const location = useLocation();
+  const { toolName } = location.state || {}; 
 
   const handleLabClick = async (lab) => {
     setSelectedLab(lab)
     setIsLoading(true)
-    // await new Promise((resolve) => setTimeout(resolve, 2000))
-    navigate(`/dashboard/labs/${lab._id}/questions`)
-  }
+    // await new Promise((resolve) => setTimeout(resolve, 3000))
+    navigate(`/dashboard/labs/${lab._id}/questions`, {
+      state: {
+        toolName: toolName, 
+        labName: lab.name,   
+      }
+    });  }
 
   const fetchLabs = useCallback(async () => {
     if (!toolId) return
@@ -46,7 +50,6 @@ const Labs = () => {
         throw new Error('Labs data is not an array')
       }
       setLabs(data.labs)
-      setToolName(data.toolName)
     } catch (error) {
       console.error('Error fetching labs:', error)
       setError(`Failed to load labs. Please try again later.`)
@@ -92,7 +95,7 @@ const Labs = () => {
                   {/* Card Container */}
                   <div className={`w-5/12 ${isEven ? "ml-auto" : "mr-auto"}`}>
                     <div
-                      className="bg-gray-800 rounded-lg h-72 p-4 flex flex-col cursor-pointer transform transition-all duration-300 hover:scale-105 relative overflow-hidden"
+                      className="bg-gray-800 rounded-lg h-60 p-4 flex flex-col cursor-pointer transform transition-all duration-300 hover:scale-105 relative overflow-hidden"
                       onClick={() => handleLabClick(lab)}
                       onMouseEnter={() => setHoveredLab(lab.id)}
                       onMouseLeave={() => setHoveredLab(null)}

@@ -19,7 +19,7 @@ function LoadingScreen({ toolName = "", labName = "" }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0, delay: 0 }}
         >
-          <h2 className="text-8xl font-bold text-cyan-500 mb-4 mt-10">{toolName}</h2>
+          <h2 className="text-6xl font-bold text-cyan-500 mb-4 mt-10">{toolName}</h2>
           <h3 className="text-2xl text-gray-400">{labName}</h3>
         </motion.div>
 

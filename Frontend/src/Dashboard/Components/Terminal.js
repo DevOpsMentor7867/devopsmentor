@@ -1,23 +1,23 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import {
-  Users,
-  Brain,
-  Ban,
-  CheckCircle2,
-  Clock,
-  Maximize2,
-  X,
-} from "lucide-react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { io } from "socket.io-client";
 import { Terminal } from "xterm";
 // import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
-
-// Assuming these components exist in your project
 import Collaboration from "./Collaboration";
 import AiAssistant from "./AiAssistant";
+import {
+  Users,
+  Brain,
+  Ban,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Maximize2,
+  X,
+} from "lucide-react";
+
 
 const TerminalIcon = () => (
   <svg
@@ -40,10 +40,9 @@ function TerminalComponent() {
   const [labQuestions, setLabQuestions] = useState([]);
   const [currentLabIndex, setCurrentLabIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [toolName, setToolName] = useState("");
-  const [labName, setLabName] = useState("");
   const [isChecked, setIsChecked] = useState(false);
-  const [containerStopped, setContainerStopped] = useState(false);
+  const [ShowSucsess, setShowSucsess] = useState(false);
+  const [ShowQuestionFailure, setShowQuestionFailure] = useState(false);
   const [time, setTime] = useState(3600);
   const [isDragging, setIsDragging] = useState(false);
   const [terminalWidth, setTerminalWidth] = useState(55);
@@ -53,18 +52,18 @@ function TerminalComponent() {
   const [showAiAssistant, setShowAiAssistant] = useState(false);
   const [scripts, setScripts] = useState([]);
   const [currentHintIndex, setCurrentHintIndex] = useState(0);
-
-  const { labId } = useParams();
-  const navigate = useNavigate();
-
-  const dragStartX = useRef(0);
-  const dragStartWidth = useRef(0);
-
-  const terminalRef = useRef(null);
+  const [socketId, setsocketId] = useState(null);
+  const location = useLocation();
+  const { toolName, labName } = location.state || {};
   // eslint-disable-next-line
   const [term, setTerm] = useState(null);
+
+  const { labId } = useParams();
+  const dragStartX = useRef(0);
+  const dragStartWidth = useRef(0);
+  const terminalRef = useRef(null);
   const socketRef = useRef(null);
-  const [socketId, setsocketId] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleBeforeUnload = (event) => {
@@ -72,9 +71,7 @@ function TerminalComponent() {
       event.returnValue =
         "Are you sure you want to leave? Your current progress will be lost.";
     };
-
     window.addEventListener("beforeunload", handleBeforeUnload);
-
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
@@ -116,7 +113,6 @@ function TerminalComponent() {
         .then((response) => response.json())
         .then((data) => {
           console.log("Lab ended successfully", data);
-          // Redirect to dashboard or perform any other action
           // navigate(`/dashboard/${toolId}/labs`);
         })
         .catch((error) => {
@@ -136,9 +132,6 @@ function TerminalComponent() {
       }
       const data = await response.json();
       setLabQuestions(data.labQuestions);
-      setToolName(data.toolName || "Tool Name");
-      setLabName(data.labName || "Lab Name");
-
       const allScripts = data.labQuestions.flatMap((lab) =>
         lab.questions_data.map((question) => question.script)
       );
@@ -161,7 +154,6 @@ function TerminalComponent() {
   }, []);
 
   useEffect(() => {
-    // Initialize xterm.js
     const newTerm = new Terminal({
       theme: {
         background: "#1F2937",
@@ -199,13 +191,12 @@ function TerminalComponent() {
 
     setTerm(newTerm);
 
-    // Connect to Socket.IO server
     socketRef.current = io("http://localhost:8000/terminal");
 
     socketRef.current.on("connect", () => {
       setsocketId(socketRef.current.id);
     });
-    // Initialize terminal
+
     const init = () => {
       if (newTerm._initialized) {
         return;
@@ -221,12 +212,10 @@ function TerminalComponent() {
         newTerm.prompt();
       }, 300);
 
-      // Handle key events and send data to the server
       newTerm.onKey((keyObj) => {
         runCommand(keyObj.key);
       });
 
-      // Listen for output from the server
       socketRef.current.on("output", (data) => {
         newTerm.write(data);
       });
@@ -238,7 +227,6 @@ function TerminalComponent() {
 
     init();
 
-    // Cleanup
     return () => {
       if (socketRef.current) {
         socketRef.current.disconnect();
@@ -300,7 +288,7 @@ function TerminalComponent() {
   };
 
   const handleNextQuestion = () => {
-    setContainerStopped(false);
+    setShowSucsess(false);
     const currentLab = labQuestions[currentLabIndex];
     if (currentQuestionIndex + 1 < currentLab.questions_data.length) {
       setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
@@ -310,6 +298,7 @@ function TerminalComponent() {
       setCurrentQuestionIndex(0);
       setIsChecked(false);
     } else {
+      handleDoneLab();
       alert("Congratulations! You've completed all questions for this lab!");
     }
   };
@@ -360,11 +349,12 @@ function TerminalComponent() {
             console.log("Result:", result);
             // eslint-disable-next-line
             if (result == 0) {
-              console.log("Wrong answer");
+              setShowQuestionFailure(true)
+              setIsChecked(false);
             } else {
-              console.log("correct Answer");
+              setShowQuestionFailure(false)
               setIsChecked(true);
-              setContainerStopped(true);
+              setShowSucsess(true);
             }
           });
         } else {
@@ -450,7 +440,8 @@ function TerminalComponent() {
             </div>
 
             <div className="flex items-center space-x-4">
-              <motion.button
+              <motion.
+button
                 onClick={() => setShowCollaboration(true)}
                 className="px-4 py-2 rounded-lg bg-grad text-white hover:opacity-90 transition-opacity flex items-center gap-2"
                 whileHover={{ scale: 1.05 }}
@@ -477,15 +468,6 @@ function TerminalComponent() {
                 <Ban size={18} strokeWidth={3.25} />
                 End Lab
               </motion.button>
-              {/* <motion.button
-                onClick={handleDoneLab}
-                className="px-4 py-2 rounded-lg bg-green-600 text-white hover:opacity-90 transition-opacity flex items-center gap-2"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <CheckCircle2 size={18} strokeWidth={3.25} />
-                Done Lab
-              </motion.button> */}
             </div>
           </div>
         </div>
@@ -548,7 +530,7 @@ function TerminalComponent() {
                   </p>
                 </div>
 
-                {containerStopped && (
+                {ShowSucsess && (
                   <motion.div
                     className="mt-4 flex items-center text-green-500"
                     initial={{ opacity: 0, y: 0 }}
@@ -557,6 +539,17 @@ function TerminalComponent() {
                   >
                     <CheckCircle2 className="w-5 h-5 mr-2" />
                     <span>Success!</span>
+                  </motion.div>
+                )}
+                {ShowQuestionFailure && (
+                  <motion.div
+                    className="mt-4 flex items-center text-red-500"
+                    initial={{ opacity: 0, y: 0 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <XCircle className="w-5 h-5 mr-2" />
+                    <span>You did not reach the desired output <br /> Please give it a retry!</span>
                   </motion.div>
                 )}
               </div>
@@ -570,7 +563,7 @@ function TerminalComponent() {
                     w-full py-3 rounded-lg font-medium
                     ${
                       isChecked
-                        ? "bg-green-500 text-white"
+                        ? ""
                         : "bg-grad text-white"
                     }
                     transition-all duration-300 hover:opacity-90
@@ -578,7 +571,7 @@ function TerminalComponent() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  {isChecked ? "Completed!" : "Check Answer"}
+                  {isChecked ? "" : "Check Answer"}
                 </motion.button>
 
                 {isChecked && (
@@ -699,3 +692,4 @@ function TerminalComponent() {
 }
 
 export default TerminalComponent;
+
