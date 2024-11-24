@@ -314,6 +314,7 @@ module.exports.scriptExecute = async (req, res) => {
     console.log("Received script execution request");
 
     const { socketId, script } = req.body;  // Extract socketId and script from request body
+    console.log("socketId, script ", socketId, script );
 
     // Check if both socketId and script are provided
     if (!socketId || !script) {

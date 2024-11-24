@@ -1,10 +1,18 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Users, Brain, Ban, CheckCircle2, Clock, Maximize2, X } from 'lucide-react';
+import {
+  Users,
+  Brain,
+  Ban,
+  CheckCircle2,
+  Clock,
+  Maximize2,
+  X,
+} from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { io } from "socket.io-client";
 import { Terminal } from "xterm";
-import { FitAddon } from "xterm-addon-fit";
+// import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
 
 // Assuming these components exist in your project
@@ -51,10 +59,12 @@ function TerminalComponent() {
 
   const dragStartX = useRef(0);
   const dragStartWidth = useRef(0);
-  
+
   const terminalRef = useRef(null);
+  // eslint-disable-next-line
   const [term, setTerm] = useState(null);
   const socketRef = useRef(null);
+  const [socketId, setsocketId] = useState(null);
 
   useEffect(() => {
     const handleBeforeUnload = (event) => {
@@ -128,9 +138,9 @@ function TerminalComponent() {
       setLabQuestions(data.labQuestions);
       setToolName(data.toolName || "Tool Name");
       setLabName(data.labName || "Lab Name");
-      
-      const allScripts = data.labQuestions.flatMap(lab => 
-        lab.questions_data.map(question => question.script)
+
+      const allScripts = data.labQuestions.flatMap((lab) =>
+        lab.questions_data.map((question) => question.script)
       );
       setScripts(allScripts);
     } catch (error) {
@@ -177,9 +187,10 @@ function TerminalComponent() {
       },
       fontFamily: 'Menlo, Monaco, "Courier New", monospace',
       fontSize: 14,
-      lineHeight: 1.2,
+      lineHeight: 1,
+      rows: 35,
+      cols: 90,
       cursorBlink: true,
-
     });
 
     if (terminalRef.current) {
@@ -189,8 +200,11 @@ function TerminalComponent() {
     setTerm(newTerm);
 
     // Connect to Socket.IO server
-    socketRef.current = io('http://localhost:8000/terminal');
+    socketRef.current = io("http://localhost:8000/terminal");
 
+    socketRef.current.on("connect", () => {
+      setsocketId(socketRef.current.id);
+    });
     // Initialize terminal
     const init = () => {
       if (newTerm._initialized) {
@@ -200,7 +214,7 @@ function TerminalComponent() {
       newTerm._initialized = true;
 
       newTerm.prompt = () => {
-        runCommand('\n');
+        runCommand("\n");
       };
 
       setTimeout(() => {
@@ -208,18 +222,18 @@ function TerminalComponent() {
       }, 300);
 
       // Handle key events and send data to the server
-      newTerm.onKey(keyObj => {
+      newTerm.onKey((keyObj) => {
         runCommand(keyObj.key);
       });
 
       // Listen for output from the server
-      socketRef.current.on('output', (data) => {
+      socketRef.current.on("output", (data) => {
         newTerm.write(data);
       });
     };
 
     const runCommand = (command) => {
-      socketRef.current.emit('command', command);
+      socketRef.current.emit("command", command);
     };
 
     init();
@@ -286,6 +300,7 @@ function TerminalComponent() {
   };
 
   const handleNextQuestion = () => {
+    setContainerStopped(false);
     const currentLab = labQuestions[currentLabIndex];
     if (currentQuestionIndex + 1 < currentLab.questions_data.length) {
       setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
@@ -305,7 +320,10 @@ function TerminalComponent() {
   };
 
   const getTotalQuestions = () => {
-    return labQuestions.reduce((total, lab) => total + lab.questions_data.length, 0);
+    return labQuestions.reduce(
+      (total, lab) => total + lab.questions_data.length,
+      0
+    );
   };
 
   const getCurrentQuestionNumber = () => {
@@ -322,25 +340,48 @@ function TerminalComponent() {
     setIsFullScreen(!isFullScreen);
   };
 
-  const handleCheck = () => {
-    setIsChecked(true);
-    setContainerStopped(true);
-    fetch("http://localhost:5500/done_lab", { method: "GET" })
-      .then((response) => {
+  const handleCheck = useCallback(
+    async (script) => {
+      console.log("script from check", script);
+      try {
+        const response = await fetch(
+          "http://localhost:8000/api/user/checkanswer",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ socketId, script }),
+          }
+        );
         if (response.ok) {
-          console.log("Lab checked successfully");
+          response.json().then((data) => {
+            const { result } = data;
+            console.log("Result:", result);
+            // eslint-disable-next-line
+            if (result == 0) {
+              console.log("Wrong answer");
+            } else {
+              console.log("correct Answer");
+              setIsChecked(true);
+              setContainerStopped(true);
+            }
+          });
         } else {
-          console.error("Error checking lab");
+          console.error(response.message);
         }
-      })
-      .catch((error) => console.error("Error:", error));
-  };
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    },
+    [socketId]
+  );
 
   const handleDoneLab = () => {
-    fetch('http://localhost:3000/done_lab', { method: 'GET' })
-      .then(response => response.text())
-      .then(data => console.log("Lab status:", data))
-      .catch(error => console.error("Error:", error));
+    fetch("http://localhost:3000/done_lab", { method: "GET" })
+      .then((response) => response.text())
+      .then((data) => console.log("Lab status:", data))
+      .catch((error) => console.error("Error:", error));
   };
 
   const containerVariants = {
@@ -381,17 +422,12 @@ function TerminalComponent() {
           <div className="flex items-center justify-between ">
             <div className="flex items-center space-x-4">
               <div className="text-white">
-                <h1 className="text-2xl font-bold text-cgrad">
-                  {toolName}
-                </h1>
-                <p className="text-sm text-gray-400">
-                  {labName}
-                </p>
+                <h1 className="text-2xl font-bold text-cgrad">{toolName}</h1>
+                <p className="text-sm text-gray-400">{labName}</p>
               </div>
             </div>
 
-            <div className="flex-1
-flex justify-center ml-20">
+            <div className="flex-1 flex justify-center ml-20">
               <div className="rounded-lg p-2 shadow-xl">
                 <div className="text-center">
                   <p className="text-sm text-gray-400">Progress</p>
@@ -441,7 +477,7 @@ flex justify-center ml-20">
                 <Ban size={18} strokeWidth={3.25} />
                 End Lab
               </motion.button>
-              <motion.button
+              {/* <motion.button
                 onClick={handleDoneLab}
                 className="px-4 py-2 rounded-lg bg-green-600 text-white hover:opacity-90 transition-opacity flex items-center gap-2"
                 whileHover={{ scale: 1.05 }}
@@ -449,7 +485,7 @@ flex justify-center ml-20">
               >
                 <CheckCircle2 size={18} strokeWidth={3.25} />
                 Done Lab
-              </motion.button>
+              </motion.button> */}
             </div>
           </div>
         </div>
@@ -482,7 +518,8 @@ flex justify-center ml-20">
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-bold text-cgrad">
-                    Question {getCurrentQuestionNumber()} of {getTotalQuestions()}
+                    Question {getCurrentQuestionNumber()} of{" "}
+                    {getTotalQuestions()}
                   </h2>
 
                   <div className="flex items-center space-x-4">
@@ -526,7 +563,9 @@ flex justify-center ml-20">
 
               <div className="space-y-4 mt-auto">
                 <motion.button
-                  onClick={handleCheck}
+                  onClick={() =>
+                    handleCheck(scripts[getCurrentQuestionNumber() - 1])
+                  }
                   className={`
                     w-full py-3 rounded-lg font-medium
                     ${
@@ -635,18 +674,22 @@ flex justify-center ml-20">
                 </motion.button>
               </div>
               <p className="text-gray-200">
-                {getCurrentQuestion().hints && getCurrentQuestion().hints[currentHintIndex]}
+                {getCurrentQuestion().hints &&
+                  getCurrentQuestion().hints[currentHintIndex]}
               </p>
-              {getCurrentQuestion().hints && currentHintIndex < getCurrentQuestion().hints.length - 1 && (
-                <motion.button
-                  onClick={() => setCurrentHintIndex(prevIndex => prevIndex + 1)}
-                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Next Hint
-                </motion.button>
-              )}
+              {getCurrentQuestion().hints &&
+                currentHintIndex < getCurrentQuestion().hints.length - 1 && (
+                  <motion.button
+                    onClick={() =>
+                      setCurrentHintIndex((prevIndex) => prevIndex + 1)
+                    }
+                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Next Hint
+                  </motion.button>
+                )}
             </motion.div>
           </motion.div>
         )}
@@ -656,4 +699,3 @@ flex justify-center ml-20">
 }
 
 export default TerminalComponent;
-
