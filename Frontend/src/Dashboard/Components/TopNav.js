@@ -19,18 +19,18 @@ export default function TopNav({ isSidebarOpen }) {
 
   return (
     <nav
-      className={`fixed top-0 right-0 z-50 flex items-center  bg-white bg-opacity-5 px-4 py-0 transition-all duration-300 bottom-gradient-border w-full ${
-        isSidebarOpen ? "left-52" : "left-14"
+      className={`fixed top-0 right-0 z-50 flex items-center bg-[#1A202C] px-4 py-0 transition-all duration-300 bottom-gradient-border w-full pt-7 ${
+        isSidebarOpen ? "left-60" : "left-14"
       }`}
     >
       <div className="relative flex-1 text-2xl font-semibold uppercase text-gray-400  md:w-auto ">
-        <div className="flex items-center gap-2 justify-center md:justify-start">
-          <img
+        <div className="flex items-center gap-2 justify-center md:justify-start ">
+          {/* <img
             src="/project-logo.png"
             alt=""
             className="object-cover h-16 w-16 md:h-20 md:w-20"
-          />
-          <span className="text-cgrad">DEVOPS MENTOR</span>
+          /> */}
+          {/* <span className="text-cgrad">DEVOPS MENTOR</span> */}
         </div>
       </div>
 

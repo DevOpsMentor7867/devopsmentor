@@ -21,7 +21,8 @@ export default function DashboardLayout() {
       <Sidebar isOpen={isSidebarOpen} onToggle={toggleSidebar} />
       <main
         className={`transition-all duration-300 ${
-          isSidebarOpen ? "ml-44 mr-8" : "ml-8 mr-8"
+          isSidebarOpen ? "ml-60 " : "ml-14"
+          // isSidebarOpen ? "ml-44 mr-8" : "ml-8 mr-8"
         } pt-16`}
       >      
         <Routes>      

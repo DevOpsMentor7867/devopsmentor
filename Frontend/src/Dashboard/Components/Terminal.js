@@ -438,10 +438,11 @@ function TerminalComponent({ isOpen }) {
   };
 
   return (
+    // ${
+    //   isOpen ? "" : "ml-16 -mr-8"
+    // } 
     <motion.div
-      className={` ${
-        isOpen ? "ml-52" : "ml-8 -mr-8"
-        } ${isFullScreen ? "fixed inset-0 z-50 bg-gray-900 " : ""}`}
+      className={` ${isFullScreen ? "fixed inset-0 z-50 bg-gray-900 " : ""}`}
       initial="hidden"
       animate="visible"
       variants={containerVariants}
