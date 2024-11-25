@@ -5,14 +5,13 @@ import { Button } from "../UI/button";
 import { Input } from "../UI/input";
 import { Label } from "../UI/label";
 import { ArrowLeft, Eye, EyeOff, RefreshCcw } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import zxcvbn from "zxcvbn";
 import DoodleComp from "../Core/DoodleComp";
 import { RegisterUser } from "../../API/RegisterUser";
 import { VerifyOTP } from "../../API/VerifyOTP";
 import { LoginUser } from "../../API/LoginUser";
-import { useAuthContext } from "../../API/UseAuthContext";
 
 export default function AuthComponent() {
   // State variables
@@ -29,8 +28,6 @@ export default function AuthComponent() {
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
   // Hooks
-  const { user } = useAuthContext();
-  const navigate = useNavigate();
   const { signup, RegisterError, RegisterCheck } = RegisterUser();
   const { login, loginError } = LoginUser();
   const { PostSignup, VerifyotpError, otpSuccess } = VerifyOTP();
@@ -71,9 +68,6 @@ export default function AuthComponent() {
       }
     } else {
       await login(email, password);
-      if (user) {
-        navigate("/Dashboard");
-      }
     }
     // clearInputs();
   };

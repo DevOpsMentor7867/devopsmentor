@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useAuthContext } from "../API/UseAuthContext";
 import { useState } from "react";
-
+import { useNavigate } from "react-router-dom";
 const api = axios.create({
   baseURL: 'http://localhost:8000/api',
   withCredentials: true 
@@ -10,6 +10,7 @@ const api = axios.create({
 export const LoginUser = () => {
   const { dispatch } = useAuthContext();
   const [loginError, setError] = useState(null);
+  const navigate = useNavigate();
 
   const login = async (email, password) => {
     setError(null);
@@ -22,6 +23,7 @@ export const LoginUser = () => {
           type: "LOGIN", 
           payload: { token, email } 
         });
+        navigate("/Dashboard");
       } else {
         setError(response.data.message || "An error occurred during login.");
       }

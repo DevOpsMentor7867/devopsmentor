@@ -19,7 +19,7 @@ export default function TopNav({ isSidebarOpen }) {
 
   return (
     <nav
-      className={`fixed top-0 right-0 z-50 flex items-center  bg-white bg-opacity-5 px-4 py-0 transition-all duration-300 bottom-gradient-border w-full md:${
+      className={`fixed top-0 right-0 z-50 flex items-center  bg-white bg-opacity-5 px-4 py-0 transition-all duration-300 bottom-gradient-border w-full ${
         isSidebarOpen ? "left-52" : "left-14"
       }`}
     >
