@@ -51,7 +51,7 @@ export default function Sidebar({ isOpen, onToggle }) {
       {/* Mobile menu button */}
       <button
         onClick={toggleMobileMenu}
-        className="fixed top-4 left-4 z-50 md:hidden rounded-lg p-2 text-gray-400 hover:bg-opacity-10 hover:text-white"
+        className="fixed top-4 left-4  md:hidden rounded-lg p-2 text-gray-400 hover:bg-opacity-10 hover:text-white"
       >
         {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         <span className="sr-only">Toggle Mobile Menu</span>
@@ -76,7 +76,7 @@ export default function Sidebar({ isOpen, onToggle }) {
               onClick={onToggle}
               className="ml-auto rounded-lg p-1.5 text-gray-400 hover:bg-opacity-10 hover:text-white mt-4"
             >
-              <Menu className="h-6 w-6" />
+              <Menu className="h-6 w-6 " />
               <span className="sr-only">Toggle Menu</span>
             </button>
           </div>

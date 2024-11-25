@@ -23,7 +23,7 @@ export default function TopNav({ isSidebarOpen }) {
         isSidebarOpen ? "left-52" : "left-14"
       }`}
     >
-      <div className="relative flex-1 text-2xl font-semibold uppercase text-gray-400 w-full md:w-auto">
+      <div className="relative flex-1 text-2xl font-semibold uppercase text-gray-400  md:w-auto ">
         <div className="flex items-center gap-2 justify-center md:justify-start">
           <img
             src="/project-logo.png"
