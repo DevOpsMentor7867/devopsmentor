@@ -48,9 +48,9 @@ const ToolsPage = () => {
       <div className="bg-gradient-to-r from-[#09D1C7] to-[#80EE98]/80 p-6 text-black/70 ">
         <h2 className="text-3xl font-bold mb-2">DevOps Tools and Concepts</h2>
         <p className="text-lg">
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex molestias
-          deleniti aperiam totam minus neque voluptates aliquam quos dignissimos
-          et!
+          Providing hands-on experience with industry-standard DevOps Tools, fostering
+          expertise in areas like containerization, CI/CD pipelines, and
+          cloud-native technologies.
         </p>
       </div>
       {/* <div className="absolute inset-0 opacity-5" /> */}
