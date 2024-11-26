@@ -30,7 +30,7 @@ export default function TopNav({ isSidebarOpen }) {
             alt=""
             className="object-cover h-16 w-16 md:h-20 md:w-20"
           /> */}
-          <span className="">Dashboard</span>
+          {/* <span className="">Dashboard</span> */}
         </div>
       </div>
       <div className=" flex-1 text-2xl font-semibold uppercase text-white  md:w-auto mr-28 ">

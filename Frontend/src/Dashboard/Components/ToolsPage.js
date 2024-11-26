@@ -1,72 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-// import { ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "../UI/button";
 import { Card } from "../UI/Card";
 import { CardContent } from "../UI/CardContent";
-import {
-  Settings,
-  Home,
-  Wrench,
-  Beaker,
-  GraduationCap,
-  User,
-  Expand,
-  Menu,
-  ChevronRight,
-  Terminal,
-  GitBranch,
-  Container,
-  Cloud,
-  Box,
-  FileCode,
-} from "lucide-react";
-
-const devOpsTools = [
-  {
-    name: "Linux Foundation",
-    description: "Master the fundamentals of Linux operating system",
-    longDescription:
-      "The Linux Foundation provides a comprehensive introduction to Linux, covering system architecture, installation, command line operations, and system administration. This foundational knowledge is crucial for any DevOps engineer.",
-    icon: Terminal,
-  },
-  {
-    name: "Git",
-    description: "Distributed version control system",
-    longDescription:
-      "Git is essential for version control in software development. It allows multiple developers to work on the same project simultaneously, tracking changes, managing branches, and facilitating collaboration across teams.",
-    icon: GitBranch,
-  },
-  {
-    name: "Docker",
-    description: "Containerization platform",
-    longDescription:
-      "Docker enables developers to package applications with all their dependencies into standardized units called containers. This ensures consistency across different development and production environments, simplifying deployment and scaling.",
-    icon: Container,
-  },
-  {
-    name: "Kubernetes",
-    description: "Container orchestration system",
-    longDescription:
-      "Kubernetes automates the deployment, scaling, and management of containerized applications. It provides a robust platform for managing clusters of containers, ensuring high availability and efficient resource utilization.",
-    icon: Cloud,
-  },
-  {
-    name: "Terraform",
-    description: "Infrastructure as Code tool",
-    longDescription:
-      "Terraform allows you to define and provide data center infrastructure using a declarative configuration language. It enables version control of your infrastructure and supports multiple cloud providers, facilitating consistent and repeatable deployments.",
-    icon: Box,
-  },
-  {
-    name: "Ansible",
-    description: "Automation tool",
-    longDescription:
-      "Ansible is an open-source automation tool that simplifies complex tasks like application deployment, configuration management, and orchestration. It uses simple YAML syntax and doesn't require agents on remote systems, making it easy to learn and use.",
-    icon: FileCode,
-  },
-];
+import { ChevronRight } from "lucide-react";
 
 const ToolsPage = () => {
   const [tools, setTools] = useState([]);
