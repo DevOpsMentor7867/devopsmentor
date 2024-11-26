@@ -45,7 +45,7 @@ const ToolsPage = () => {
 
   return (
     <div className=" w-full p-4 overflow-y-auto  mt-3">
-      <div className="bg-gradient-to-r from-[#09D1C7] to-[#80EE98]/70 p-6 text-black/70 ">
+      <div className="bg-gradient-to-r from-[#09D1C7] to-[#80EE98]/80 p-6 text-black/70 ">
         <h2 className="text-3xl font-bold mb-2">DevOps Tools and Concepts</h2>
         <p className="text-lg">
           Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex molestias
@@ -168,11 +168,6 @@ const ToolsPage = () => {
                 </Card>
               </div>
             ))}
-
-            {/* Timer */}
-            <div className="fixed bottom-3 right-3 bg-[#1A202C] border border-[#09D1C7]/20 rounded-lg px-3 py-1 font-mono text-[#09D1C7] text-sm">
-              01:55:58
-            </div>
           </div>
         </div>
       </div>

@@ -68,7 +68,7 @@ const Labs = () => {
   return (
     <div className="p-4 w-full mt-3 mx-auto">
       <div className="relative">
-        <div className="bg-gradient-to-r from-[#09D1C7] to-[#80EE98] p-6 text-[#1A202C]">
+        <div className="bg-gradient-to-r from-[#09D1C7] to-[#80EE98]/80 p-6 text-[#1A202C]">
           <div className="flex">
             <div className="flex-1">
               <h2 className="text-3xl font-bold mb-2 ">{toolName} Labs</h2>
@@ -76,7 +76,7 @@ const Labs = () => {
             </div>
             <img
               src={`/${toolName.toLowerCase()}.png`}
-              className="w-28 h-28 ml-4 flex-shrink-0"
+              className="w-20 h-20 ml-4 flex-shrink-0"
               alt={`${toolName} logo`}
             />
           </div>
@@ -151,11 +151,6 @@ const Labs = () => {
                   </Card>
                 </div>
               ))}
-
-              {/* Timer */}
-              <div className="fixed bottom-4 right-4 bg-[#1A202C] border border-[#09D1C7]/20 rounded-lg px-4 py-2 font-mono text-[#09D1C7]">
-                01:55:58
-              </div>
             </div>
           </div>
         </div>

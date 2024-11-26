@@ -549,7 +549,7 @@ function TerminalComponent({ isOpen }) {
                   <div className="flex items-center space-x-4">
                     <div className="text-center">
                       <div className="flex items-center mt-2 text-white">
-                        <Clock className="w-6 h-6 mr-2" />
+                        <Clock className="w-6 h-6 mr-2 " />
                         <span className="text-red-700 ml-2 font-mono text-lg">
                           {formatTime(time)}
                         </span>
@@ -652,14 +652,14 @@ function TerminalComponent({ isOpen }) {
                   <TerminalIcon className="w-4 h-4 text-red-700" />
                   <span className="text-cgrad font-mono text-sm">Terminal</span>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 ">
                   <motion.button
                     onClick={toggleFullScreen}
                     className="p-1 hover:bg-gray-700 rounded"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                   >
-                    <Maximize2 className="w-4 h-4 text-white" />
+                    <Maximize2 className="w-4 h-4 text-[#80EE98] hover:text-white transition-all duration-300" />
                   </motion.button>
                   <motion.button
                     onClick={() => setTerminalWidth(55)}
@@ -667,7 +667,7 @@ function TerminalComponent({ isOpen }) {
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                   >
-                    <X className="w-4 h-4 text-white" />
+                    <X className="w-4 h-4  text-[#80EE98] hover:text-white transition-all duration-300" />
                   </motion.button>
                 </div>
               </div>
