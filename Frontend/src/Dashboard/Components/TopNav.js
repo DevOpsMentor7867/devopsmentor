@@ -33,9 +33,9 @@ export default function TopNav({ isSidebarOpen }) {
           {/* <span className="">Dashboard</span> */}
         </div>
       </div>
-      <div className=" flex-1 text-2xl font-semibold uppercase text-white  md:w-auto mr-28 ">
+      <div className=" flex-1 text-2xl font-semibold uppercase text-white  md:w-auto mr-40 ">
         <div className=" ">
-          <span className="text-btg z-10">Devops Mentor</span>
+          <span className="text-btg z-10">DEV∞OPS Mentor</span>
         </div>
       </div>
 
