@@ -19,8 +19,8 @@ function LoadingScreen({ toolName = "", labName = "" }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0, delay: 0 }}
         >
-          <h2 className="text-6xl font-bold text-cyan-500 mb-4 mt-10">{toolName}</h2>
-          <h3 className="text-2xl text-gray-400">{labName}</h3>
+          <h2 className="text-4xl  text-btg mb-4 mt-10">{toolName}</h2>
+          <h3 className="text-2xl text-btg">{labName}</h3>
         </motion.div>
 
         {/* Fixed position container */}
@@ -51,7 +51,7 @@ function LoadingScreen({ toolName = "", labName = "" }) {
                 animate={{
                   backgroundColor: [
                     'rgb(31, 41, 55)', // gray-800
-                    'rgb(6, 182, 212)', // cyan-500
+                    '#80EE98', 
                     'rgb(31, 41, 55)' // gray-800
                   ],
                   filter: [
@@ -73,7 +73,7 @@ function LoadingScreen({ toolName = "", labName = "" }) {
 
           {/* Loading text */}
           <motion.div
-            className="absolute inset-0 flex items-center justify-center text-cyan-500 font-mono text-4xl"
+            className="absolute inset-0 flex items-center justify-center text-btg font-mono text-4xl"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1, repeat: Infinity, repeatType: "reverse" }}
@@ -84,7 +84,7 @@ function LoadingScreen({ toolName = "", labName = "" }) {
 
         {/* Status message */}
         <motion.div
-          className="mt-8 text-gray-400 text-4xl"
+          className="mt-8 text-white text-4xl"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 1 }}

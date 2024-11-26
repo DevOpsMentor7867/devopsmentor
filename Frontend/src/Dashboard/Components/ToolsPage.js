@@ -1,17 +1,84 @@
 import React, { useState, useEffect } from "react";
-import { FaArrowRight } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+// import { ChevronRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { Button } from "../UI/button";
+import { Card } from "../UI/Card";
+import { CardContent } from "../UI/CardContent";
+import {
+  Settings,
+  Home,
+  Wrench,
+  Beaker,
+  GraduationCap,
+  User,
+  Expand,
+  Menu,
+  ChevronRight,
+  Terminal,
+  GitBranch,
+  Container,
+  Cloud,
+  Box,
+  FileCode,
+} from "lucide-react";
 
-export default function DevOpsTools() {
-  const [hoveredTool, setHoveredTool] = useState(null);
+const devOpsTools = [
+  {
+    name: "Linux Foundation",
+    description: "Master the fundamentals of Linux operating system",
+    longDescription:
+      "The Linux Foundation provides a comprehensive introduction to Linux, covering system architecture, installation, command line operations, and system administration. This foundational knowledge is crucial for any DevOps engineer.",
+    icon: Terminal,
+  },
+  {
+    name: "Git",
+    description: "Distributed version control system",
+    longDescription:
+      "Git is essential for version control in software development. It allows multiple developers to work on the same project simultaneously, tracking changes, managing branches, and facilitating collaboration across teams.",
+    icon: GitBranch,
+  },
+  {
+    name: "Docker",
+    description: "Containerization platform",
+    longDescription:
+      "Docker enables developers to package applications with all their dependencies into standardized units called containers. This ensures consistency across different development and production environments, simplifying deployment and scaling.",
+    icon: Container,
+  },
+  {
+    name: "Kubernetes",
+    description: "Container orchestration system",
+    longDescription:
+      "Kubernetes automates the deployment, scaling, and management of containerized applications. It provides a robust platform for managing clusters of containers, ensuring high availability and efficient resource utilization.",
+    icon: Cloud,
+  },
+  {
+    name: "Terraform",
+    description: "Infrastructure as Code tool",
+    longDescription:
+      "Terraform allows you to define and provide data center infrastructure using a declarative configuration language. It enables version control of your infrastructure and supports multiple cloud providers, facilitating consistent and repeatable deployments.",
+    icon: Box,
+  },
+  {
+    name: "Ansible",
+    description: "Automation tool",
+    longDescription:
+      "Ansible is an open-source automation tool that simplifies complex tasks like application deployment, configuration management, and orchestration. It uses simple YAML syntax and doesn't require agents on remote systems, making it easy to learn and use.",
+    icon: FileCode,
+  },
+];
+
+const ToolsPage = () => {
   const [tools, setTools] = useState([]);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const handleToolClick = (toolId, toolName) => {
-    navigate(`/dashboard/${toolId}/labs`, { state: { toolName } });
+  const handleToolClick = (toolId, toolName, toolDescription) => {
+    navigate(`/dashboard/${toolId}/labs`, {
+      state: { toolName, toolDescription },
+    });
   };
-  
+
   useEffect(() => {
     fetchTools();
   }, []);
@@ -27,6 +94,7 @@ export default function DevOpsTools() {
         throw new Error("Tools data is not an array");
       }
       setTools(data.tools);
+      console.log(data.tools);
     } catch (error) {
       console.error("Error fetching tools:", error);
       setError(`Failed to load tools. Error: ${error.message}`);
@@ -38,89 +106,140 @@ export default function DevOpsTools() {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-6xl mx-auto">
-      <h1 className="text-3xl md:text-4xl mb-8 md:mb-12 text-center font-bold text-cyan-400">
-        DevOps Tools
-      </h1>
-      <div className="relative">
-        {/* Vertical Timeline Line - hidden on mobile */}
-        <div
-          className="absolute left-1/2 top-0 bottom-0 w-1 bg-cyan-400/20 transform -translate-x-1/2 hidden md:block"
-          style={{ zIndex: 0 }}
-        />
+    <div className=" w-full p-4 overflow-y-auto  mt-3">
+      <div className="bg-gradient-to-r from-[#09D1C7] to-[#80EE98]/70 p-6 text-black/70 ">
+        <h2 className="text-3xl font-bold mb-2">DevOps Tools and Concepts</h2>
+        <p className="text-lg">
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex molestias
+          deleniti aperiam totam minus neque voluptates aliquam quos dignissimos
+          et!
+        </p>
+      </div>
+      {/* <div className="absolute inset-0 opacity-5" /> */}
+      <div className="relative p-4 overflow-y-auto  ">
+        <div className="absolute inset-0 opacity-5 " />
+        <div className="relative max-w-4xl mx-auto">
+          {/* Timeline */}
+          <div className="space-y-16">
+            {/* Timeline Line */}
+            <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-[#09D1C7] transform -translate-x-1/2" />
 
-        {tools.map((tool, index) => {
-          const isEven = index % 2 === 0;
-
-          return (
-            <div key={tool._id} className="relative mb-8 md:mb-16">
-              {/* Timeline Content */}
-              <div className="flex flex-col md:flex-row justify-center items-center">
-                {/* Card Container */}
-                <div className={`w-full md:w-5/12 ${isEven ? "md:mr-auto" : "md:ml-auto"}`}>
-                  <div
-                    className="bg-gray-800 rounded-lg h-auto md:h-60 p-4 flex flex-col cursor-pointer transform transition-all duration-300 hover:scale-105 relative overflow-hidden"
-                    onClick={() => handleToolClick(tool._id, tool.name)}
-                    onMouseEnter={() => setHoveredTool(tool._id)}
-                    onMouseLeave={() => setHoveredTool(null)}
-                  >
-                    <div className="flex justify-between items-start mb-4 md:mb-auto">
-                      <h2 className="text-2xl md:text-4xl font-semibold pt-2 md:pt-6 text-cyan-400">
-                        {tool.name}
-                      </h2>
-                      <img 
-                        src={`/${tool.name.toLowerCase()}.png`} 
-                        className="w-32 h-32 " 
+            {tools.map((tool, index) => (
+              <div
+                key={tool.name}
+                className="relative flex items-center justify-between"
+              >
+                <Card
+                  className={`w-[calc(60%)] border-[#09D1C7]/20 transition-colors group
+                    ${
+                      index % 3 === 0
+                        ? "bg-[#1A202C]/50 hover:bg-[#09D1C7]/5"
+                        : index % 3 === 1
+                        ? "bg-[#1A202C]/50 hover:bg-[#80EE98]/5"
+                        : "bg-[#1A202C]/50 hover:bg-white/5"
+                    }
+                    ${index % 2 === 0 ? "mr-16" : "order-2 ml-16"}`}
+                >
+                  <CardContent className="pt-5">
+                    <div className="flex  ">
+                      <div className="flex-1">
+                        <h2
+                          className={`text-2xl font-bold mb-1
+                          ${
+                            index % 3 === 0
+                              ? "text-[#09D1C7]"
+                              : index % 3 === 1
+                              ? "text-[#80EE98]"
+                              : "text-white"
+                          }`}
+                        >
+                          {tool.name}
+                        </h2>
+                        <p className="text-white/70 text-sm mb-2">
+                          {tool.description}
+                        </p>
+                      </div>
+                      <img
+                        src={`/${tool.name.toLowerCase()}.png`}
+                        className="w-28 h-28 ml-4 flex-shrink-0"
                         alt={`${tool.name} logo`}
                       />
                     </div>
-                    <div className="mt-4 md:mt-auto flex justify-between items-end">
-                      <p className="text-cyan-400 text-xl md:text-2xl">
-                        Explore Now
-                      </p>
-                      <FaArrowRight className="text-cyan-400" />
-                    </div>
-
-                    {/* Hover Overlay */}
-                    <div
-                      className={`absolute inset-0 bg-gray-900/90 p-4 flex flex-col justify-between transform transition-all duration-500 ${
-                        hoveredTool === tool._id
-                          ? "translate-y-0"
-                          : "translate-y-full"
-                      }`}
+                    <Button
+                      onClick={() =>
+                        handleToolClick(tool._id, tool.name, tool.description)
+                      }
+                      className={`text-sm px-3 py-1 mt-3
+                            ${
+                              index % 3 === 0
+                                ? "bg-[#09D1C7]/10 text-[#09D1C7] hover:bg-[#09D1C7]/20"
+                                : index % 3 === 1
+                                ? "bg-[#80EE98]/10 text-[#80EE98] hover:bg-[#80EE98]/20"
+                                : "bg-white/10 text-white hover:bg-white/20"
+                            }`}
                     >
-                      <h2 className="text-2xl md:text-4xl font-semibold pt-2 md:pt-6 text-cyan-400">
-                        {tool.name}
-                      </h2>
-                      <p className="text-base md:text-lg text-gray-200">
-                        {tool.description}
-                      </p>
-                      <div className="mt-4 md:mt-auto flex justify-between items-end">
-                        <p className="text-cyan-400 text-xl md:text-2xl">
-                          Master {tool.name}
-                        </p>
-                        <FaArrowRight className="text-cyan-400" />
-                      </div>
-                    </div>
-                  </div>
+                      Explore Now <ChevronRight className="ml-1 h-3 w-3" />
+                    </Button>
+                  </CardContent>
+                </Card>
+                <div
+                  className={`absolute left-1/2 w-12 h-12 rounded-full bg-[#1A202C] border-2 flex items-center justify-center z-10 transform -translate-x-1/2
+                    ${
+                      index % 3 === 0
+                        ? "border-[#09D1C7] text-[#09D1C7]"
+                        : index % 3 === 1
+                        ? "border-[#80EE98] text-[#80EE98]"
+                        : "border-white text-white"
+                    }`}
+                >
+                  <motion.div
+                    className={`w-8 h-8 rounded-full ${
+                      index % 3 === 0
+                        ? "bg-[#09D1C7]"
+                        : index % 3 === 1
+                        ? "bg-[#80EE98]"
+                        : "bg-white"
+                    }`}
+                  />
                 </div>
-
-                {/* Timeline Dot - hidden on mobile */}
-                <div className="hidden md:block absolute left-1/2 transform -translate-x-1/2">
-                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gray-800 border-4 border-cyan-400 flex items-center justify-center overflow-hidden">
-                    <img 
-                      src={`/${tool.name.toLowerCase()}.png`} 
-                      className="w-8 h-8 md:w-12 md:h-12" 
-                      alt={`${tool.name} logo`}
-                    />
-                  </div>
-                </div>
+                <Card
+                  className={`w-[calc(62%)] border-[#09D1C7]/20 transition-colors group
+                    ${
+                      index % 3 === 0
+                        ? "bg-[#09D1C7]/5 hover:bg-[#09D1C7]/10"
+                        : index % 3 === 1
+                        ? "bg-[#80EE98]/5 hover:bg-[#80EE98]/10"
+                        : "bg-white/5 hover:bg-white/10"
+                    }
+                    ${index % 2 === 0 ? "order-2 ml-16" : "mr-16"}`}
+                >
+                  <CardContent className="p-4">
+                    <p
+                      className={`text-sm pt-4 pb-3
+                        ${
+                          index % 3 === 0
+                            ? "text-[#09D1C7]"
+                            : index % 3 === 1
+                            ? "text-[#80EE98]"
+                            : "text-white"
+                        }`}
+                    >
+                      {tool.intro}
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
+            ))}
+
+            {/* Timer */}
+            <div className="fixed bottom-3 right-3 bg-[#1A202C] border border-[#09D1C7]/20 rounded-lg px-3 py-1 font-mono text-[#09D1C7] text-sm">
+              01:55:58
             </div>
-          );
-        })}
+          </div>
+        </div>
       </div>
     </div>
   );
-}
+};
 
+export default ToolsPage;

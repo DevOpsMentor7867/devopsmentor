@@ -1,98 +1,148 @@
-useEffect(() => {
-  if (terminalRef.current) {
-    termInstanceRef.current = new Terminal({
-      theme: {
-        background: "#1F2937",
-        foreground: "#ffffff",
-        cursor: "#ffffff",
-        selection: "rgba(255, 255, 255, 0.3)",
-        black: "#000000",
-        red: "#e06c75",
-        green: "#98c379",
-        yellow: "#d19a66",
-        blue: "#61afef",
-        magenta: "#c678dd",
-        cyan: "#56b6c2",
-        white: "#ffffff",
-        brightBlack: "#5c6370",
-        brightRed: "#e06c75",
-        brightGreen: "#98c379",
-        brightYellow: "#d19a66",
-        brightBlue: "#61afef",
-        brightMagenta: "#c678dd",
-        brightCyan: "#56b6c2",
-        brightWhite: "#ffffff",
-      },
-      fontFamily: 'Menlo, Monaco, "Courier New", monospace',
-      fontSize: 14,
-      lineHeight: 1.2,
-      cursorBlink: true,
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { ChevronRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { Button } from "../UI/button";
+import { Card } from "../UI/Card";
+import { CardContent } from "../UI/CardContent";
+
+const ToolsPage = () => {
+  const [tools, setTools] = useState([]);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+
+  const handleToolClick = (toolId, toolName, toolDescription) => {
+    navigate(`/dashboard/${toolId}/labs`, {
+      state: { toolName, toolDescription },
     });
+  };
 
-    const fitAddon = new FitAddon();
-    termInstanceRef.current.loadAddon(fitAddon);
+  useEffect(() => {
+    fetchTools();
+  }, []);
 
-    termInstanceRef.current.open(terminalRef.current);
-    fitAddon.fit();
-
-    termInstanceRef.current.writeln("\x1b[34m");
-    termInstanceRef.current.writeln(
-      " ____              ___                 __  __            _             "
-    );
-    termInstanceRef.current.writeln(
-      "|  _ \\  _____   __/ _ \\ _ __  ___     |  \\/  | ___ _ __ | |_ ___  _ __ "
-    );
-    termInstanceRef.current.writeln(
-      "| | | |/ _ \\ \\ / / | | | '_ \\/ __|    | |\\/| |/ _ \\ '_ \\| __/ _ \\| '__|"
-    );
-    termInstanceRef.current.writeln(
-      "| |_| |  __/\\ V /| |_| | |_) \\__ \\    | |  | |  __/ | | | || (_) | |   "
-    );
-    termInstanceRef.current.writeln(
-      "|____/ \\___| \\_/  \\___/| .__/|___/    |_|  |_|\\___|_| |_|\\__\\___/|_|   "
-    );
-    termInstanceRef.current.writeln(
-      "                       |_|                                              "
-    );
-    termInstanceRef.current.writeln(
-      "\x1b[38;2;148;226;213m          ✨ Welcome to the Enhanced DevOps Mentor Terminal ✨"
-    );
-    termInstanceRef.current.writeln("\x1b[0m");
-    termInstanceRef.current.write("$ ");
-
-    termInstanceRef.current.onData(data => {
-      if (socketRef.current) {
-        socketRef.current.emit('user-input', data);
-      } else {
-        console.error('Socket connection not established');
+  const fetchTools = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/api/user/gettools");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    });
-    window.addEventListener('resize', () => fitAddon.fit());
+      const data = await response.json();
+      if (!Array.isArray(data.tools)) {
+        throw new Error("Tools data is not an array");
+      }
+      setTools(data.tools);
+    } catch (error) {
+      console.error("Error fetching tools:", error);
+      setError(`Failed to load tools. Error: ${error.message}`);
+    }
+  };
+
+  if (error) {
+    return <div className="text-red-500 text-center">{error}</div>;
   }
 
-  socketRef.current = io(process.env.REACT_APP_SOCKET_URL || "http://localhost:8000/terminal", {
-    path: "/socket.io",
-    transports: ["websocket", "polling"],
-  });
+  return (
+    <div className="relative w-full p-4 overflow-y-auto h-[calc(100vh-3rem)] mt-3">
+      <div className="bg-gradient-to-r from-[#09D1C7] to-[#80EE98]/70 p-6 text-black/70 ">
+        <h2 className="text-3xl font-bold mb-2">DevOps Tools and Concepts</h2>
+        <p className="text-lg">
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex molestias
+          deleniti aperiam totam minus neque voluptates aliquam quos dignissimos
+          et!
+        </p>
+      </div>
+      <div className="absolute inset-0 opacity-5" />
+      <div className="relative max-w-4xl mx-auto">
+        <div className="space-y-12">
+          <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-[#09D1C7]" />
 
-  socketRef.current.on("connect", () => {
-    console.log("Connected to socket server");
-  });
+          {tools.map((tool, index) => (
+            <div
+              key={tool.name}
+              className={`relative flex items-center ${
+                index % 2 === 0 ? "justify-start" : "justify-end"
+              }`}
+            >
+              <div
+                className={`absolute left-1/2 w-12 h-12 rounded-full bg-[#1A202C] border-2 flex items-center justify-center z-10 transform -translate-x-1/2
+                    ${
+                      index % 3 === 0
+                        ? "border-[#09D1C7] text-[#09D1C7]"
+                        : index % 3 === 1
+                        ? "border-[#80EE98] text-[#80EE98]"
+                        : "border-white text-white"
+                    }`}
+              >
+                <motion.div
+                  className={`w-8 h-8 rounded-full ${
+                    index % 3 === 0
+                      ? "bg-[#09D1C7]"
+                      : index % 3 === 1
+                      ? "bg-[#80EE98]"
+                      : "bg-white"
+                  }`}
+                />
+              </div>
+              <Card
+                className={`w-[calc(50%-32px)]  transition-colors group
+                    ${
+                      index % 3 === 0
+                        ? "bg-[#1A202C]/50 hover:bg-[#09D1C7]/5 border-[#09D1C7]/60"
+                        : index % 3 === 1
+                        ? "bg-[#1A202C]/50 hover:bg-[#80EE98]/5 border-[#80EE98]/40"
+                        : "bg-[#1A202C]/50 hover:bg-white/5 border-[#1A202C]/60"
+                    }
+                    ${index % 2 === 0 ? "mr-16" : "ml-16"}`}
+              >
+                <CardContent className="pt-5">
+                  <div className="flex  ">
+                    <div className="flex-1">
+                      <h2
+                        className={`text-2xl font-bold mb-1
+                          ${
+                            index % 3 === 0
+                              ? "text-[#09D1C7]"
+                              : index % 3 === 1
+                              ? "text-[#80EE98]"
+                              : "text-white"
+                          }`}
+                      >
+                        {tool.name}
+                      </h2>
+                      <p className="text-white/70 text-sm mb-2">
+                        {tool.description}
+                      </p>
+                    </div>
+                    <img
+                      src={`/${tool.name.toLowerCase()}.png`}
+                      className="w-28 h-28 ml-4 flex-shrink-0"
+                      alt={`${tool.name} logo`}
+                    />
+                  </div>
+                  <Button
+                    onClick={() =>
+                      handleToolClick(tool._id, tool.name, tool.description)
+                    }
+                    className={`text-sm px-3 py-1 mt-3
+                            ${
+                              index % 3 === 0
+                                ? "bg-[#09D1C7]/10 text-[#09D1C7] hover:bg-[#09D1C7]/20"
+                                : index % 3 === 1
+                                ? "bg-[#80EE98]/10 text-[#80EE98] hover:bg-[#80EE98]/20"
+                                : "bg-white/10 text-white hover:bg-white/20"
+                            }`}
+                  >
+                    Explore Now <ChevronRight className="ml-1 h-3 w-3" />
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
 
-  socketRef.current.on("terminal-output", (data) => {
-    termInstanceRef.current?.write(data);
-  });
-  socketRef.current.on("connect_error", (error) => {
-    console.error("Socket connection error:", error);
-  });
-
-  socketRef.current.on("disconnect", () => {
-    console.log("Disconnected from socket server");
-  });
-
-  return () => {
-    // if (socketRef.current) {
-    //   socketRef.current.disconnect();
-    // }
-  };
-}, []);
+export default ToolsPage;

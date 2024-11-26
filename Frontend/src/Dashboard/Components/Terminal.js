@@ -18,7 +18,6 @@ import {
   X,
 } from "lucide-react";
 
-
 const TerminalIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -35,6 +34,7 @@ const TerminalIcon = () => (
     <line x1="12" y1="19" x2="20" y2="19"></line>
   </svg>
 );
+
 
 function TerminalComponent({ isOpen }) {
   const [labQuestions, setLabQuestions] = useState([]);
@@ -188,7 +188,7 @@ function TerminalComponent({ isOpen }) {
     if (terminalRef.current) {
       newTerm.open(terminalRef.current);
 
-      const style = document.createElement('style');
+      const style = document.createElement("style");
       style.textContent = `
         .xterm-viewport::-webkit-scrollbar {
           width: 10px;
@@ -389,10 +389,10 @@ function TerminalComponent({ isOpen }) {
             console.log("Result:", result);
             // eslint-disable-next-line
             if (result == 0) {
-              setShowQuestionFailure(true)
+              setShowQuestionFailure(true);
               setIsChecked(false);
             } else {
-              setShowQuestionFailure(false)
+              setShowQuestionFailure(false);
               setIsChecked(true);
               setShowSucsess(true);
             }
@@ -440,9 +440,9 @@ function TerminalComponent({ isOpen }) {
   return (
     // ${
     //   isOpen ? "" : "ml-16 -mr-8"
-    // } 
+    // }
     <motion.div
-      className={` ${isFullScreen ? "fixed inset-0 z-50 bg-gray-900 " : ""}`}
+      className={` ${isFullScreen ? "fixed inset-0 z-50 bg-gray-900" : ""}`}
       initial="hidden"
       animate="visible"
       variants={containerVariants}
@@ -455,19 +455,19 @@ function TerminalComponent({ isOpen }) {
           <div className="flex items-center justify-between ">
             <div className="flex items-center space-x-4">
               <div className="text-white">
-                <h1 className="text-2xl font-bold text-cgrad">{toolName}</h1>
-                <p className="text-sm text-gray-400">{labName}</p>
+                <h1 className="text-2xl font-bold text-btg">{toolName}</h1>
+                <p className="text-sm text-white">{labName}</p>
               </div>
             </div>
 
             <div className="flex-1 flex justify-center ml-20">
               <div className="rounded-lg p-2 shadow-xl">
                 <div className="text-center">
-                  <p className="text-sm text-gray-400">Progress</p>
+                  <p className="text-xl text-btg">Progress</p>
                   <div className="flex items-center mt-2">
                     <div className="w-64 h-2 bg-gray-700 rounded-full">
                       <motion.div
-                        className="h-full bg-grad rounded-full"
+                        className="h-full bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C] hover:from-[#09D1C7] hover:to-[#80EE98] rounded-full"
                         style={{ width: `${progress}%` }}
                         initial={{ width: 0 }}
                         animate={{ width: `${progress}%` }}
@@ -482,20 +482,19 @@ function TerminalComponent({ isOpen }) {
               </div>
             </div>
 
-            <div className="flex items-center space-x-4">
-              <motion.
-button
+            <div className="flex items-center space-x-4 ">
+              <motion.button
                 onClick={() => setShowCollaboration(true)}
-                className="px-4 py-2 rounded-lg bg-grad text-white hover:opacity-90 transition-opacity flex items-center gap-2"
+                className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#80EE98] to-[#09D1C7]  hover:from-[#09D1C7] hover:to-[#80EE98] text-black hover:opacity-90 transition-opacity flex items-center gap-2 "
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Users className="w-4 h-4" />
+                <Users className="w-4 h-4 " />
                 Collaborate
               </motion.button>
               <motion.button
                 onClick={() => setShowAiAssistant(true)}
-                className="px-4 py-2 rounded-lg bg-grad text-white hover:opacity-90 transition-opacity flex items-center gap-2"
+                className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#80EE98] to-[#09D1C7] hover:from-[#09D1C7] hover:to-[#80EE98] hover:opacity-90 transition-opacity flex items-center gap-2 text-black"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -542,7 +541,7 @@ button
             <div className="p-6 h-full flex flex-col">
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-cgrad">
+                  <h2 className="text-xl font-bold text-btg">
                     Question {getCurrentQuestionNumber()} of{" "}
                     {getTotalQuestions()}
                   </h2>
@@ -550,15 +549,15 @@ button
                   <div className="flex items-center space-x-4">
                     <div className="text-center">
                       <div className="flex items-center mt-2 text-white">
-                        <Clock className="w-4 h-4 mr-2" />
-                        <span className="text-red-700 ml-2 font-mono">
+                        <Clock className="w-6 h-6 mr-2" />
+                        <span className="text-red-700 ml-2 font-mono text-lg">
                           {formatTime(time)}
                         </span>
                       </div>
                     </div>
                     <motion.button
                       onClick={() => setShowHint(true)}
-                      className="px-4 py-2 rounded-lg bg-gray-700 bg-grad hover:from-cyan-600 hover:to-blue-600 transition-colors text-white"
+                      className="px-4 py-2 rounded-lg bg-gray-700 bg-gradient-to-r from-[#80EE98] to-[#09D1C7]  hover:from-[#09D1C7] hover:to-[#80EE98] transition-colors text-black"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
@@ -568,7 +567,7 @@ button
                 </div>
 
                 <div className="prose prose-invert">
-                  <p className="text-lg text-gray-200">
+                  <p className="text-lg text-white">
                     {getCurrentQuestion().question}
                   </p>
                 </div>
@@ -592,23 +591,22 @@ button
                     transition={{ duration: 0.5 }}
                   >
                     <XCircle className="w-5 h-5 mr-2" />
-                    <span>You did not reach the desired output <br /> Please give it a retry!</span>
+                    <span>
+                      You did not reach the desired output <br /> Please give it
+                      a retry!
+                    </span>
                   </motion.div>
                 )}
               </div>
 
               <div className="space-y-4 mt-auto">
-              <motion.button
+                <motion.button
                   onClick={() =>
                     handleCheck(scripts[getCurrentQuestionNumber() - 1])
                   }
                   className={`
                     w-full py-3 rounded-lg font-medium
-                    ${
-                      isChecked
-                        ? ""
-                        : "bg-grad text-white"
-                    }
+                    ${isChecked ? "" : "bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C] hover:from-[#09D1C7] hover:to-[#80EE98] text-black"}
                     transition-all duration-300 hover:opacity-90
                   `}
                   whileHover={{ scale: 1.02 }}
@@ -619,7 +617,7 @@ button
                 {isChecked && (
                   <motion.button
                     onClick={handleNextQuestion}
-                    className="w-full py-3 rounded-lg font-medium bg-grad hover:from-cyan-600 hover:to-blue-600 text-white hover:opacity-90 transition-all duration-300"
+                    className="w-full py-3 rounded-lg font-medium bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C] hover:from-[#09D1C7] hover:to-[#80EE98] hover:from-cyan-600 transition-all duration-300"
                     initial={{ opacity: 0, y: 0 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2 }}
@@ -661,7 +659,7 @@ button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                   >
-                    <Maximize2 className="w-4 h-4 text-gray-400" />
+                    <Maximize2 className="w-4 h-4 text-white" />
                   </motion.button>
                   <motion.button
                     onClick={() => setTerminalWidth(55)}
@@ -669,7 +667,7 @@ button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                   >
-                    <X className="w-4 h-4 text-gray-400" />
+                    <X className="w-4 h-4 text-white" />
                   </motion.button>
                 </div>
               </div>
@@ -695,20 +693,20 @@ button
               transition={{ type: "spring", damping: 25, stiffness: 500 }}
             >
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold text-white">Hint</h3>
+                <h3 className="text-xl font-bold text-btg">Hint</h3>
                 <motion.button
                   onClick={() => {
                     setShowHint(false);
                     setCurrentHintIndex(0);
                   }}
-                  className="text-gray-400 hover:text-white"
+                  className="text-white hover:text-white"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                 >
                   <X className="w-6 h-6" />
                 </motion.button>
               </div>
-              <p className="text-gray-200">
+              <p className="text-white">
                 {getCurrentQuestion().hints &&
                   getCurrentQuestion().hints[currentHintIndex]}
               </p>
@@ -718,7 +716,7 @@ button
                     onClick={() =>
                       setCurrentHintIndex((prevIndex) => prevIndex + 1)
                     }
-                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                    className="mt-4 px-4 py-2 rounded bg-gradient-to-r from-[#80EE98] to-[#09D1C7]  hover:from-[#09D1C7] hover:to-[#80EE98] text-black hover:opacity-90 transition-opacity"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -734,4 +732,3 @@ button
 }
 
 export default TerminalComponent;
-

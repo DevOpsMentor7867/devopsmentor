@@ -15,6 +15,29 @@
   .bg-grad {
     background-image: linear-gradient(to right, #119cd6, #119cd6);
   }
+
+  .bg-gtb {
+    background-image: linear-gradient(to right, #80EE98, #09D1C7);
+  }
+
+  .hover-bg-gtb {
+    transition: all 0.3s ease-in-out;
+    &:hover {
+      background-image: linear-gradient(to right, #09D1C7, #80EE98);
+    }
+  }
+  .text-gtb {
+    background: linear-gradient(180deg, #09D1C7 0%, #80EE98 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .text-btg {
+    background: linear-gradient(280deg, #80EE98 0%, #09D1C7 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
 }
 
 body {
