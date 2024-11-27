@@ -58,9 +58,6 @@ code {
   width: 8px; 
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: #acacac; 
-}
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: #6b7280; 

@@ -160,7 +160,7 @@ function AiAssistant({ isOpen, onClose }) {
         >
           <div className="py-4 px-4">
             <div className="flex flex-col gap-6">
-              {messages.map((message) => (
+              {messages.map((message, index) => (
                 <div
                   key={message.id}
                   className={cn(
@@ -261,30 +261,7 @@ function AiAssistant({ isOpen, onClose }) {
           50% { opacity: 0.5; }
         }
 
-        .custom-scrollbar {
-          scrollbar-width: thin;
-          scrollbar-color: #0ea5e9 transparent;
-        }
 
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 2px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(0, 0, 0, 0.2);
-          border-radius: 1px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(to bottom, #0ea5e9, #3b82f6);
-          border-radius: 25px;
-          width: 2px;
-          height: 2px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to bottom, #0284c7, #2563eb);
-        }
 
         .glow {
           filter: drop-shadow(0 0 12px #0ea5e9);

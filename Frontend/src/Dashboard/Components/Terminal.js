@@ -184,8 +184,29 @@ function TerminalComponent({ isOpen }) {
       cursorBlink: true,
     });
 
+    
+
     if (terminalRef.current) {
       newTerm.open(terminalRef.current);
+
+      const gradientColors = [
+        '\x1b[38;2;9;209;199m',   // #09D1C7
+        '\x1b[38;2;33;217;185m',  // Interpolated color
+        '\x1b[38;2;57;225;171m',  // Interpolated color
+        '\x1b[38;2;81;233;157m',  // Interpolated color
+        '\x1b[38;2;105;238;144m', // #80EE98 at 80% opacity
+      ];
+
+      const asciiArt = [
+        " ____              ___                 __  __            _             ",
+        "|  _ \\  _____   __/ _ \\ _ __  ___     |  \\/  | ___ _ __ | |_ ___  _ __ ",
+        "| | | |/ _ \\ \\ / / | | | '_ \\/ __|    | |\\/| |/ _ \\ '_ \\| __/ _ \\| '__|",
+        "| |_| |  __/\\ V /| |_| | |_) \\__ \\    | |  | |  __/ | | | || (_) | |   ",
+        "|____/ \\___| \\_/  \\___/| .__/|___/    |_|  |_|\\___|_| |_|\\__\\___/|_|   ",
+        "                       |_|                                              "
+      ];
+
+      
 
       const style = document.createElement("style");
       style.textContent = `
@@ -202,25 +223,18 @@ function TerminalComponent({ isOpen }) {
         }
       `;
       document.head.appendChild(style);
-      newTerm.writeln("\x1b[34m");
-      newTerm.writeln(
-        " ____              ___                 __  __            _             "
-      );
-      newTerm.writeln(
-        "|  _ \\  _____   __/ _ \\ _ __  ___     |  \\/  | ___ _ __ | |_ ___  _ __ "
-      );
-      newTerm.writeln(
-        "| | | |/ _ \\ \\ / / | | | '_ \\/ __|    | |\\/| |/ _ \\ '_ \\| __/ _ \\| '__|"
-      );
-      newTerm.writeln(
-        "| |_| |  __/\\ V /| |_| | |_) \\__ \\    | |  | |  __/ | | | || (_) | |   "
-      );
-      newTerm.writeln(
-        "|____/ \\___| \\_/  \\___/| .__/|___/    |_|  |_|\\___|_| |_|\\__\\___/|_|   "
-      );
-      newTerm.writeln(
-        "                       |_|                                              "
-      );
+     asciiArt.forEach((line) => {
+        let gradientLine = '';
+        const segmentLength = Math.ceil(line.length / gradientColors.length);
+        
+        for (let i = 0; i < line.length; i++) {
+          const colorIndex = Math.floor(i / segmentLength);
+          gradientLine += gradientColors[colorIndex] + line[i];
+        }
+        
+        newTerm.writeln(gradientLine);
+      });
+
       newTerm.writeln(
         "\x1b[38;2;148;226;213m          ✨ Welcome to the Enhanced DevOps Mentor Terminal ✨"
       );

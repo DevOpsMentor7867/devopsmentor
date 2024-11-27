@@ -11,6 +11,7 @@ const setUpSocketServer = async (httpServer) => {
         cors: {
             origin: "*", // In production, set this to your frontend's URL
             methods: ["GET", "POST"],
+            withCredentials:true,
         },
         transports: ['websocket', 'polling'],
         allowEIO3: true, // Enable compatibility with older clients

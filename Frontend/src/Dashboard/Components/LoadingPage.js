@@ -87,7 +87,7 @@ function LoadingScreen({ toolName = "", labName = "" }) {
           className="mt-8 text-white text-4xl"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
         >
           Provisioning your lab environment...
         </motion.div>

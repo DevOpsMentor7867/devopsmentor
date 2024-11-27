@@ -43,7 +43,7 @@ const UserProfile = () => {
                 <h2 className="text-2xl font-semibold text-white">Profile</h2>
                 <button
                   onClick={toggleEdit}
-                  className="px-4 py-2 bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C] hover:from-[#09D1C7] hover:to-[#80EE98] transition-all font-medium rounded-md transition-all duration-300"
+                  className="px-4 py-2 bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C] hover:from-[#09D1C7] hover:to-[#80EE98] font-medium rounded-md transition-all duration-300"
                 >
                   {isEditing ? "Save" : "Edit Profile"}
                 </button>

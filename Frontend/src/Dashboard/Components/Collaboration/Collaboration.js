@@ -54,7 +54,7 @@ function Collaboration({ isOpen, onClose }) {
 
   return (
     <div className="z-50 fixed inset-0 bg-black/50 flex items-center justify-center">
-      <div className="bg-[#1A202C] rounded-lg p-6 w-[800px] max-h-[570px] overflow-y-auto custom-scrollbar">
+      <div className="bg-[#1A202C] rounded-lg p-6 w-[900px] max-h-[570px] overflow-y-auto custom-scrollbar">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-btg">Online Users</h2>
           <button 
@@ -81,8 +81,20 @@ function Collaboration({ isOpen, onClose }) {
               `}
             >
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-700 to-gray-600 flex items-center justify-center">
-                  <span className="text-lg text-white">{user.name[0]}</span>
+                <div className={`w-12 h-12 rounded-full  flex items-center justify-center  ${
+                    index % 3 === 0
+                      ? "bg-[#09D1C7]"
+                      : index % 3 === 1
+                      ? "bg-[#80EE98] text-black"
+                      : "bg-white"
+                  }`}>
+                  <span className={`text-lg ${
+                    index % 3 === 0
+                      ? ""
+                      : index % 3 === 1
+                      ? " text-black"
+                      : "text-black"
+                  } `}>{user.name[0]}</span>
                 </div>
                 
                 <div className="flex-1">
@@ -121,7 +133,7 @@ function Collaboration({ isOpen, onClose }) {
                   <button
                     onClick={() => handleInvite(user.id)}
                     className={`
-                      w-full py-2 rounded-md text-sm font-medium transition-colors
+                      w-50 pt-1 pb-1 pl-4 pr-4 rounded-md text-sm font-medium transition-colors
                       ${
                         index % 3 === 0
                           ? "bg-[#09D1C7]/10 text-[#09D1C7] hover:bg-[#09D1C7]/20"
@@ -131,7 +143,7 @@ function Collaboration({ isOpen, onClose }) {
                       }
                     `}
                   >
-                    Invite to Collaborate
+                    Invite
                   </button>
                 </div>
               </div>

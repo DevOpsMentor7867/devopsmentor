@@ -101,7 +101,7 @@ export default function Sidebar({ isOpen, onToggle }) {
               className="text-gray-400 hover:bg-opacity-10 hover:text-white"
             >
               {isOpen || isHovered ? (
-                <Menu className="h-6 w-6 " />
+                <Menu className={`h-6 w-6 text-[#80EE98] hover:text-white hover:bg-[#80EE98]/20 transition-all duration-300 ${isOpen? "": "ml-3"} `} />
               ) : (
                 <img
                   src="/project-logo.png"
