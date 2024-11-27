@@ -5,7 +5,7 @@ import { io } from "socket.io-client";
 import { Terminal } from "xterm";
 // import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
-import Collaboration from "./Collaboration";
+import Collaboration from "./Collaboration/Collaboration";
 import AiAssistant from "./AiAssistant";
 import {
   Users,
@@ -34,7 +34,6 @@ const TerminalIcon = () => (
     <line x1="12" y1="19" x2="20" y2="19"></line>
   </svg>
 );
-
 
 function TerminalComponent({ isOpen }) {
   const [labQuestions, setLabQuestions] = useState([]);
@@ -231,7 +230,10 @@ function TerminalComponent({ isOpen }) {
 
     setTerm(newTerm);
 
-    socketRef.current = io("http://localhost:8000/terminal");
+    socketRef.current = io("http://localhost:8000/terminal", {
+      withCredentials: true,
+      transports: ["websocket", "polling"],
+    });
 
     socketRef.current.on("connect", () => {
       setsocketId(socketRef.current.id);
@@ -606,7 +608,11 @@ function TerminalComponent({ isOpen }) {
                   }
                   className={`
                     w-full py-3 rounded-lg font-medium
-                    ${isChecked ? "" : "bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C] hover:from-[#09D1C7] hover:to-[#80EE98] text-black"}
+                    ${
+                      isChecked
+                        ? ""
+                        : "bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C] hover:from-[#09D1C7] hover:to-[#80EE98] text-black"
+                    }
                     transition-all duration-300 hover:opacity-90
                   `}
                   whileHover={{ scale: 1.02 }}

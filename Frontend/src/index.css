@@ -53,3 +53,16 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px; 
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #acacac; 
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #6b7280; 
+  border-radius: 6px;
+}
