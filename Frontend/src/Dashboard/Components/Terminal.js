@@ -184,17 +184,15 @@ function TerminalComponent({ isOpen }) {
       cursorBlink: true,
     });
 
-    
-
     if (terminalRef.current) {
       newTerm.open(terminalRef.current);
 
       const gradientColors = [
-        '\x1b[38;2;9;209;199m',   // #09D1C7
-        '\x1b[38;2;33;217;185m',  // Interpolated color
-        '\x1b[38;2;57;225;171m',  // Interpolated color
-        '\x1b[38;2;81;233;157m',  // Interpolated color
-        '\x1b[38;2;105;238;144m', // #80EE98 at 80% opacity
+        "\x1b[38;2;9;209;199m", // #09D1C7
+        "\x1b[38;2;33;217;185m", // Interpolated color
+        "\x1b[38;2;57;225;171m", // Interpolated color
+        "\x1b[38;2;81;233;157m", // Interpolated color
+        "\x1b[38;2;105;238;144m", // #80EE98 at 80% opacity
       ];
 
       const asciiArt = [
@@ -203,10 +201,8 @@ function TerminalComponent({ isOpen }) {
         "| | | |/ _ \\ \\ / / | | | '_ \\/ __|    | |\\/| |/ _ \\ '_ \\| __/ _ \\| '__|",
         "| |_| |  __/\\ V /| |_| | |_) \\__ \\    | |  | |  __/ | | | || (_) | |   ",
         "|____/ \\___| \\_/  \\___/| .__/|___/    |_|  |_|\\___|_| |_|\\__\\___/|_|   ",
-        "                       |_|                                              "
+        "                       |_|                                              ",
       ];
-
-      
 
       const style = document.createElement("style");
       style.textContent = `
@@ -223,15 +219,15 @@ function TerminalComponent({ isOpen }) {
         }
       `;
       document.head.appendChild(style);
-     asciiArt.forEach((line) => {
-        let gradientLine = '';
+      asciiArt.forEach((line) => {
+        let gradientLine = "";
         const segmentLength = Math.ceil(line.length / gradientColors.length);
-        
+
         for (let i = 0; i < line.length; i++) {
           const colorIndex = Math.floor(i / segmentLength);
           gradientLine += gradientColors[colorIndex] + line[i];
         }
-        
+
         newTerm.writeln(gradientLine);
       });
 
@@ -379,7 +375,7 @@ function TerminalComponent({ isOpen }) {
     return questionNumber + currentQuestionIndex;
   };
 
-  const progress = (getCurrentQuestionNumber() / getTotalQuestions()) * 100;
+  let progress = (((getCurrentQuestionNumber() / getTotalQuestions()) * 100));
 
   const toggleFullScreen = () => {
     setIsFullScreen(!isFullScreen);
@@ -482,7 +478,7 @@ function TerminalComponent({ isOpen }) {
                   <p className="text-xl text-btg">Progress</p>
                   <div className="flex items-center mt-2">
                     <div className="w-64 h-2 bg-gray-700 rounded-full">
-                      <motion.div
+                    <motion.div
                         className="h-full bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C] hover:from-[#09D1C7] hover:to-[#80EE98] rounded-full"
                         style={{ width: `${progress}%` }}
                         initial={{ width: 0 }}
@@ -491,7 +487,11 @@ function TerminalComponent({ isOpen }) {
                       />
                     </div>
                     <span className="ml-2 text-white">
-                      {Math.round(progress)}%
+                      {(getCurrentQuestionNumber() / getTotalQuestions()) *
+                        100 ===
+                      100
+                        ? `${Math.round(progress) }%`
+                        : `${Math.round(progress)}%`}
                     </span>
                   </div>
                 </div>
@@ -625,7 +625,7 @@ function TerminalComponent({ isOpen }) {
                     ${
                       isChecked
                         ? ""
-                        : "bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C] hover:from-[#09D1C7] hover:to-[#80EE98] text-black"
+                        : "bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C] hover:from-[#09D1C7] hover:to-[#80EE98] "
                     }
                     transition-all duration-300 hover:opacity-90
                   `}
@@ -637,7 +637,7 @@ function TerminalComponent({ isOpen }) {
                 {isChecked && (
                   <motion.button
                     onClick={handleNextQuestion}
-                    className="w-full py-3 rounded-lg font-medium bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C] hover:from-[#09D1C7] hover:to-[#80EE98] hover:from-cyan-600 transition-all duration-300"
+                    className="w-full py-3 rounded-lg font-medium bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C]  hover:to-[#80EE98] hover:from-cyan-600 transition-all duration-300"
                     initial={{ opacity: 0, y: 0 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2 }}
