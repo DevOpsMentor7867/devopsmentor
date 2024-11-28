@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "../UI/button";
 import { Input } from "../UI/input";
@@ -12,6 +10,7 @@ import DoodleComp from "../Core/DoodleComp";
 import { RegisterUser } from "../../API/RegisterUser";
 import { VerifyOTP } from "../../API/VerifyOTP";
 import { LoginUser } from "../../API/LoginUser";
+import LoadingSpinner from "../UI/LoadingSpinner";
 
 export default function AuthComponent() {
   // State variables
@@ -26,11 +25,12 @@ export default function AuthComponent() {
   const [otpError, setOtpError] = useState("");
   const [timeLeft, setTimeLeft] = useState(120);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Hooks
   const { signup, RegisterError, RegisterCheck } = RegisterUser();
   const { login, loginError } = LoginUser();
-  const { PostSignup, VerifyotpError, otpSuccess } = VerifyOTP();
+  const { PostSignup, VerifyotpError } = VerifyOTP();
 
   // Helper functions
   // const clearInputs = () => {
@@ -56,6 +56,7 @@ export default function AuthComponent() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
     if (activeForm === "signup") {
       if (password !== confirmPassword) {
         alert("Passwords don't match");
@@ -64,10 +65,12 @@ export default function AuthComponent() {
       await signup(email, password);
       setOtpError("");
       if (RegisterError == null) {
+        setIsLoading(false);
         setShowOTPDialog(true);
       }
     } else {
       await login(email, password);
+      setIsLoading(false);
     }
     // clearInputs();
   };
@@ -79,15 +82,20 @@ export default function AuthComponent() {
       setOtp(["", "", "", "", "", ""]);
     } else {
       setOtpError("");
-      await PostSignup(email, otpValue);
-      console.log("in auth", otpSuccess);
-      if (otpSuccess != null) {
-        console.log("in auth func", otpSuccess);
+      setIsLoading(true);
+      const { success, error } = await PostSignup(email, otpValue);
+      setIsLoading(false);
+
+      if (success) {
+        console.log("OTP verification successful:", success);
         setTimeLeft(120);
         setShowOTPDialog(false);
         setShowSuccessPopup(true);
         setActiveForm("login");
-        // clearInputs();
+      } else if (error) {
+        console.log("OTP verification failed:", error);
+        setOtpError(error);
+        setOtp(["", "", "", "", "", ""]);
       }
     }
   };
@@ -174,7 +182,7 @@ export default function AuthComponent() {
         return (
           <>
             <div>
-              <Label htmlFor="email" className="text-white">
+              <Label htmlFor="email" className="text-green-200">
                 Email
               </Label>
               <Input
@@ -184,7 +192,7 @@ export default function AuthComponent() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 className="bg-white bg-opacity-20 text-white placeholder-gray-300"
-                required
+                // required
               />
               {email && !isEmailValid(email) && (
                 <p className="text-red-500 text-sm mt-1">
@@ -193,7 +201,7 @@ export default function AuthComponent() {
               )}
             </div>
             <div>
-              <Label htmlFor="password" className="text-white">
+              <Label htmlFor="password" className="text-green-200">
                 Password
               </Label>
               <div className="relative">
@@ -209,7 +217,7 @@ export default function AuthComponent() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-white"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#80EE98]"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -220,7 +228,7 @@ export default function AuthComponent() {
             )}
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"
+              className="w-full bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C] hover:from-[#09D1C7] hover:to-[#80EE98]"
               disabled={!isEmailValid(email) || !password}
             >
               Log In
@@ -229,7 +237,7 @@ export default function AuthComponent() {
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-600"></div>
               </div>
-              <div className="relative flex justify-center text-sm">
+              <div className=" flex justify-center ">
                 <span className="text-white text-lg">or </span>
               </div>
             </div>
@@ -264,7 +272,7 @@ export default function AuthComponent() {
         return (
           <>
             <div>
-              <Label htmlFor="email" className="text-white">
+              <Label htmlFor="email" className="text-green-300">
                 Email
               </Label>
               <Input
@@ -283,7 +291,7 @@ export default function AuthComponent() {
               )}
             </div>
             <div>
-              <Label htmlFor="password" className="text-white">
+              <Label htmlFor="password" className="text-green-300">
                 Password
               </Label>
               <div className="relative">
@@ -299,7 +307,7 @@ export default function AuthComponent() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-white"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#80EE98]"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -313,7 +321,7 @@ export default function AuthComponent() {
               {password && renderPasswordStrength(password)}
             </div>
             <div>
-              <Label htmlFor="confirmPassword" className="text-white">
+              <Label htmlFor="confirmPassword" className="text-green-300">
                 Confirm Password
               </Label>
               <div className="relative">
@@ -329,10 +337,10 @@ export default function AuthComponent() {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-white"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#80EE98]"
                 >
                   {showConfirmPassword ? (
-                    <EyeOff size={20} />
+                    <EyeOff size={20}/>
                   ) : (
                     <Eye size={20} />
                   )}
@@ -349,7 +357,7 @@ export default function AuthComponent() {
             )}
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"
+              className="w-full bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C] hover:from-[#09D1C7] hover:to-[#80EE98] "
               disabled={
                 !isEmailValid(email) ||
                 !isPasswordValid(password) ||
@@ -400,39 +408,40 @@ export default function AuthComponent() {
 
   return (
     <>
-      <div className="min-h-screen flex flex-col  to-gray-800 overflow-hidden relative p-4 sm:p-6 md:p-8">
+      <div className="min-h-screen flex flex-col  overflow-hidden relative p-4 sm:p-6 md:p-8">
         <Link
           to="/"
-          className="absolute top-4 left-4 text-white hover:text-cyan-300 transition-colors flex items-center text-lg z-10"
+          className="absolute top-4 left-4 text-white hover:text-[#80EE98] transition-colors flex items-center text-lg z-10"
         >
           <ArrowLeft size={28} className="mr-2" />
           Go back
         </Link>
+        {isLoading && <LoadingSpinner />}
 
         <div className="flex-grow flex items-center justify-center">
           <div className="w-full max-w-md p-4 sm:p-6 md:p-8 rounded-lg bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg shadow-xl relative z-10">
-            <h2 className="text-3xl font-bold text-center mb-6 text-white">
+            <h2 className="text-3xl font-bold text-center mb-6 text-btg">
               {activeForm === "login" ? "Welcome Back" : "Create Account"}
             </h2>
             <div className="relative w-full h-14 bg-gray-700 rounded-full p-1 mb-8">
               <div
-                className={`absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-transform duration-300 ease-in-out ${
+                className={`absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-[#80EE98] to-[#09D1C7]  hover:from-[#09D1C7] hover:to-[#80EE98] rounded-full transition-transform duration-300 ease-in-out ${
                   activeForm === "signup" ? "transform translate-x-full" : ""
                 }`}
               ></div>
               <button
-                className={`absolute top-0 left-0 w-1/2 h-full flex items-center justify-center text-white font-semibold z-20 transition-colors duration-300 ${
-                  activeForm === "login" ? "text-gray-900" : ""
+                className={`absolute top-0 left-0 w-1/2 h-full flex items-center justify-center font-semibold z-20 transition-colors duration-300 ${
+                  activeForm === "login" ? "text-[#1A202C]" : "text-btg"
                 }`}
                 onClick={() => {
                   setActiveForm("login");
                 }}
               >
-                Login
+                Log In
               </button>
               <button
-                className={`absolute top-0 right-0 w-1/2 h-full flex items-center justify-center text-white font-semibold z-20 transition-colors duration-300 ${
-                  activeForm === "signup" ? "text-gray-900" : ""
+                className={`absolute top-0 right-0 w-1/2 h-full flex items-center justify-center font-semibold z-20 transition-colors duration-300 ${
+                  activeForm === "signup" ? "text-[#1A202C]" : "text-btg"
                 }`}
                 onClick={() => {
                   setActiveForm("signup");

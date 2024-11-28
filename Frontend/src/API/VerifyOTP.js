@@ -7,12 +7,10 @@ const api = axios.create({
 });
 
 export const VerifyOTP = () => {
-  const [VerifyotpError, setError] = useState(null);
-  const [otpSuccess, setotpSuccess] = useState(null);
+  const [verifyOtpError, setError] = useState(null);
 
   const PostSignup = async (email, otp) => {
     setError(null);  
-    setotpSuccess(null);  
     console.log("FE otp", email, otp);
 
     try {
@@ -20,21 +18,24 @@ export const VerifyOTP = () => {
 
       if (response.status >= 200 && response.status < 300) {
         console.log("Signup successful", response.data.message);
-        setotpSuccess(response.data.message);
+        return { success: response.data.message, error: null };
       } else {
         setError(response.data.message); 
         console.error("Signup failed", response.data);
+        return { success: null, error: response.data.message };
       }
     } catch (error) {
       if (error.response) {
         setError(error.response.data.message); 
         console.error("Error:", error.response.data.message);
+        return { success: null, error: error.response.data.message };
       } else {
         setError("An unexpected error occurred");
         console.error("Error:", error);
+        return { success: null, error: "An unexpected error occurred" };
       }
     }
   };
 
-  return { PostSignup, VerifyotpError, otpSuccess };  
+  return { PostSignup, verifyOtpError };  
 };
