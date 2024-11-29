@@ -53,7 +53,7 @@ function Collaboration({ isOpen, onClose }) {
   };
 
   return (
-    <div className="z-50 fixed inset-0 bg-black/50 flex items-center justify-center">
+    <div className="z-50 backdrop-blur-sm  fixed inset-0 bg-black/50 flex items-center justify-center">
       <div className="bg-[#1A202C] rounded-lg p-6 w-[900px] max-h-[570px] overflow-y-auto custom-scrollbar">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-btg">Online Users</h2>
