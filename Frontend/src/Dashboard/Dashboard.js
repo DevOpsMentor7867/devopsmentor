@@ -28,7 +28,7 @@ export default function DashboardLayout() {
         <Routes>      
           <Route path="/" element={<UserProfile />} />
           <Route path="/tools" element={<ToolData />} />
-          <Route path="/:toolId/labs" element={<Labs />} /> 
+          <Route path="/:toolId/labs" element={<Labs />} /> {/* Labs page route */}
           <Route path="/terminal" element={<TerminalQuiz />} />
           <Route path="/labs/:labId/questions" element={<TerminalQuiz sOpen={isSidebarOpen} />} />
           <Route path="/profile" element={<UserProfile />} />

@@ -7,6 +7,8 @@ import { Terminal } from "xterm";
 import "xterm/css/xterm.css";
 import Collaboration from "./Collaboration/Collaboration";
 import AiAssistant from "./AiAssistant";
+import CompletionPopup from "./CompletionPopup";
+
 import {
   Users,
   Brain,
@@ -49,6 +51,7 @@ function TerminalComponent({ isOpen }) {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [showCollaboration, setShowCollaboration] = useState(false);
   const [showAiAssistant, setShowAiAssistant] = useState(false);
+  const [showCompletionPopup, setShowCompletionPopup] = useState(false);
   const [scripts, setScripts] = useState([]);
   const [currentHintIndex, setCurrentHintIndex] = useState(0);
   const [socketId, setsocketId] = useState(null);
@@ -96,30 +99,6 @@ function TerminalComponent({ isOpen }) {
       window.removeEventListener("popstate", handlePopState);
     };
   }, [navigate]);
-
-  const handleEndLab = useCallback(() => {
-    const confirmEnd = window.confirm(
-      "Are you sure you want to end the lab? Your current progress will be lost."
-    );
-    if (confirmEnd) {
-      fetch("http://your-backend-url/end-lab", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ labId }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("Lab ended successfully", data);
-          // navigate(`/dashboard/${toolId}/labs`);
-        })
-        .catch((error) => {
-          console.error("Error ending lab:", error);
-        });
-    }
-    // navigate(`/dashboard/${toolId}/labs`);
-  }, [labId]);
 
   const fetchQuestions = useCallback(async () => {
     try {
@@ -349,9 +328,6 @@ function TerminalComponent({ isOpen }) {
       setCurrentLabIndex((prevIndex) => prevIndex + 1);
       setCurrentQuestionIndex(0);
       setIsChecked(false);
-    } else {
-      handleDoneLab();
-      alert("Congratulations! You've completed all questions for this lab!");
     }
   };
 
@@ -359,14 +335,14 @@ function TerminalComponent({ isOpen }) {
     const currentLab = labQuestions[currentLabIndex];
     return currentLab ? currentLab.questions_data[currentQuestionIndex] : {};
   };
-
+  // eslint-disable-next-line
   const getTotalQuestions = () => {
     return labQuestions.reduce(
       (total, lab) => total + lab.questions_data.length,
       0
     );
   };
-
+  // eslint-disable-next-line
   const getCurrentQuestionNumber = () => {
     let questionNumber = 1;
     for (let i = 0; i < currentLabIndex; i++) {
@@ -375,7 +351,7 @@ function TerminalComponent({ isOpen }) {
     return questionNumber + currentQuestionIndex;
   };
 
-  let progress = (((getCurrentQuestionNumber() / getTotalQuestions()) * 100));
+  let progress = (getCurrentQuestionNumber() / getTotalQuestions()) * 100;
 
   const toggleFullScreen = () => {
     setIsFullScreen(!isFullScreen);
@@ -419,12 +395,19 @@ function TerminalComponent({ isOpen }) {
     [socketId]
   );
 
-  const handleDoneLab = () => {
-    fetch("http://localhost:3000/done_lab", { method: "GET" })
-      .then((response) => response.text())
-      .then((data) => console.log("Lab status:", data))
-      .catch((error) => console.error("Error:", error));
+  const handleEndLab = () => {
+    
   };
+
+  const handleLabCompletion = useCallback(() => {
+    setShowCompletionPopup(true);
+  }, [setShowCompletionPopup]);
+
+  useEffect(() => {
+    if (isChecked && getCurrentQuestionNumber() === getTotalQuestions()) {
+      handleLabCompletion();
+    }
+  }, [isChecked, getCurrentQuestionNumber, getTotalQuestions, handleLabCompletion]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -478,7 +461,7 @@ function TerminalComponent({ isOpen }) {
                   <p className="text-xl text-btg">Progress</p>
                   <div className="flex items-center mt-2">
                     <div className="w-64 h-2 bg-gray-700 rounded-full">
-                    <motion.div
+                      <motion.div
                         className="h-full bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C] hover:from-[#09D1C7] hover:to-[#80EE98] rounded-full"
                         style={{ width: `${progress}%` }}
                         initial={{ width: 0 }}
@@ -490,7 +473,7 @@ function TerminalComponent({ isOpen }) {
                       {(getCurrentQuestionNumber() / getTotalQuestions()) *
                         100 ===
                       100
-                        ? `${Math.round(progress) }%`
+                        ? `${Math.round(progress)}%`
                         : `${Math.round(progress)}%`}
                     </span>
                   </div>
@@ -634,19 +617,20 @@ function TerminalComponent({ isOpen }) {
                 >
                   {isChecked ? "" : "Check Answer"}
                 </motion.button>
-                {isChecked && (
-                  <motion.button
-                    onClick={handleNextQuestion}
-                    className="w-full py-3 rounded-lg font-medium bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C]  hover:to-[#80EE98] hover:from-cyan-600 transition-all duration-300"
-                    initial={{ opacity: 0, y: 0 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2 }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    Next Question
-                  </motion.button>
-                )}
+                {isChecked &&
+                  getCurrentQuestionNumber() !== getTotalQuestions() && (
+                    <motion.button
+                      onClick={handleNextQuestion}
+                      className="w-full py-3 rounded-lg font-medium bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C]  hover:to-[#80EE98] hover:from-cyan-600 transition-all duration-300"
+                      initial={{ opacity: 0, y: 0 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.2 }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      Next Question
+                    </motion.button>
+                  )}
               </div>
             </div>
           </motion.div>
@@ -736,7 +720,7 @@ function TerminalComponent({ isOpen }) {
                     onClick={() =>
                       setCurrentHintIndex((prevIndex) => prevIndex + 1)
                     }
-                    className="mt-4 px-4 py-2 rounded bg-gradient-to-r from-[#80EE98] to-[#09D1C7]  hover:from-[#09D1C7] hover:to-[#80EE98] text-black hover:opacity-90 transition-opacity"
+                    className="mt-4 px-4 py-2 rounded-lg bg-gradient-to-r from-[#80EE98] to-[#09D1C7]  hover:from-[#09D1C7] hover:to-[#80EE98] text-black hover:opacity-90 transition-opacity"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -745,6 +729,16 @@ function TerminalComponent({ isOpen }) {
                 )}
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showCompletionPopup && (
+          <CompletionPopup
+            onEndLab={() => {
+              setShowCompletionPopup(false);
+              navigate(-1);
+            }}
+          />
         )}
       </AnimatePresence>
     </motion.div>

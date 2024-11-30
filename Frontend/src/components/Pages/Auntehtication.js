@@ -116,11 +116,12 @@ export default function AuthComponent() {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
-  const isPasswordValid = (password) => {
-    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
-      password
-    );
-  };
+ const isPasswordValid = (password) => {
+  return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/.test(
+    password
+  );
+};
+
 
   const getPasswordStrength = (password) => {
     const result = zxcvbn(password);
@@ -419,8 +420,11 @@ export default function AuthComponent() {
         {isLoading && <LoadingSpinner />}
 
         <div className="flex-grow flex items-center justify-center">
-          <div className="w-full max-w-md p-4 sm:p-6 md:p-8 rounded-lg bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg shadow-xl relative z-10">
-            <h2 className="text-3xl font-bold text-center mb-6 text-btg">
+          <div className="w-full max-w-md  p-4 sm:p-6 md:p-8 rounded-lg bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg shadow-xl relative z-10">
+          <div className=" text-center text-4xl mb-2 font-bold  ">
+          <span className="text-btg z-10">DEV∞OPS Mentor</span>
+        </div>
+            <h2 className="text-3xl text-center mb-6 text-btg">
               {activeForm === "login" ? "Welcome Back" : "Create Account"}
             </h2>
             <div className="relative w-full h-14 bg-gray-700 rounded-full p-1 mb-8">
