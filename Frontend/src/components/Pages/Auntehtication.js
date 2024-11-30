@@ -192,7 +192,7 @@ export default function AuthComponent() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
-                className="bg-white bg-opacity-20 text-white placeholder-gray-300"
+                className="bg-white bg-opacity-20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 "
                 // required
               />
               {email && !isEmailValid(email) && (
@@ -212,7 +212,7 @@ export default function AuthComponent() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="bg-white bg-opacity-20 text-white placeholder-gray-300 pr-10"
+                  className="bg-white bg-opacity-20 text-white placeholder-gray-300 pr-10 focus:outline-none focus:ring-2 focus:ring-green-500 "
                   required
                 />
                 <button
@@ -282,7 +282,7 @@ export default function AuthComponent() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
-                className="bg-white bg-opacity-20 text-white placeholder-gray-300"
+                className="bg-white bg-opacity-20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 "
                 required
               />
               {email && !isEmailValid(email) && (
@@ -302,7 +302,7 @@ export default function AuthComponent() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="bg-white bg-opacity-20 text-white placeholder-gray-300 pr-10"
+                  className="bg-white bg-opacity-20 text-white placeholder-gray-300 pr-10 focus:outline-none focus:ring-2 focus:ring-green-500 "
                   required
                 />
                 <button
@@ -332,7 +332,7 @@ export default function AuthComponent() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm your password"
-                  className="bg-white bg-opacity-20 text-white placeholder-gray-300 pr-10"
+                  className="bg-white bg-opacity-20 text-white placeholder-gray-300 pr-10 focus:outline-none focus:ring-2 focus:ring-green-500 "
                   required
                 />
                 <button

@@ -8,6 +8,8 @@ import "xterm/css/xterm.css";
 import Collaboration from "./Collaboration/Collaboration";
 import AiAssistant from "./AiAssistant";
 import CompletionPopup from "./CompletionPopup";
+import ConfirmationPopup from "./ConfirmationPopup";
+import confetti from "canvas-confetti";
 
 import {
   Users,
@@ -52,6 +54,7 @@ function TerminalComponent({ isOpen }) {
   const [showCollaboration, setShowCollaboration] = useState(false);
   const [showAiAssistant, setShowAiAssistant] = useState(false);
   const [showCompletionPopup, setShowCompletionPopup] = useState(false);
+  const [showConfirmationPopup, setShowConfirmationPopup] = useState(false);
   const [scripts, setScripts] = useState([]);
   const [currentHintIndex, setCurrentHintIndex] = useState(0);
   const [socketId, setsocketId] = useState(null);
@@ -66,6 +69,16 @@ function TerminalComponent({ isOpen }) {
   const terminalRef = useRef(null);
   const socketRef = useRef(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (ShowSucsess) {
+      confetti({
+        particleCount: 100,
+        spread: 170,
+        origin: { y: 0.6 },
+      });
+    }
+  }, [ShowSucsess]);
 
   useEffect(() => {
     const handleBeforeUnload = (event) => {
@@ -396,7 +409,16 @@ function TerminalComponent({ isOpen }) {
   );
 
   const handleEndLab = () => {
-    
+    setShowConfirmationPopup(true);
+  };
+
+  const confirmEndLab = () => {
+    setShowConfirmationPopup(false);
+    navigate(-1);
+  };
+
+  const cancelEndLab = () => {
+    setShowConfirmationPopup(false);
   };
 
   const handleLabCompletion = useCallback(() => {
@@ -407,7 +429,12 @@ function TerminalComponent({ isOpen }) {
     if (isChecked && getCurrentQuestionNumber() === getTotalQuestions()) {
       handleLabCompletion();
     }
-  }, [isChecked, getCurrentQuestionNumber, getTotalQuestions, handleLabCompletion]);
+  }, [
+    isChecked,
+    getCurrentQuestionNumber,
+    getTotalQuestions,
+    handleLabCompletion,
+  ]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -443,13 +470,13 @@ function TerminalComponent({ isOpen }) {
       variants={containerVariants}
     >
       <motion.div
-        className=" bg-gradient-to-r from-gray-800 to-gray-900 border-b border-gray-700 my-7"
+        className=" h-[calc(107vh-120px)] bg-gradient-to-r from-gray-800 to-gray-900 border-b border-gray-700 "
         variants={itemVariants}
       >
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 ">
           <div className="flex items-center justify-between ">
             <div className="flex items-center space-x-4">
-              <div className="text-white">
+              <div className="text-white mt-1">
                 <h1 className="text-2xl font-bold text-btg">{toolName}</h1>
                 <p className="text-sm text-white">{labName}</p>
               </div>
@@ -481,7 +508,7 @@ function TerminalComponent({ isOpen }) {
               </div>
             </div>
 
-            <div className="flex items-center space-x-4 ">
+            <div className="flex items-center space-x-4 mt-4">
               <motion.button
                 onClick={() => setShowCollaboration(true)}
                 className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#80EE98] to-[#09D1C7]  hover:from-[#09D1C7] hover:to-[#80EE98] text-black hover:opacity-90 transition-opacity flex items-center gap-2 "
@@ -512,98 +539,97 @@ function TerminalComponent({ isOpen }) {
             </div>
           </div>
         </div>
-      </motion.div>
 
-      {showCollaboration && (
-        <Collaboration
-          isOpen={showCollaboration}
-          onClose={() => setShowCollaboration(false)}
-        />
-      )}
-      {showAiAssistant && (
-        <AiAssistant
-          isOpen={showAiAssistant}
-          onClose={() => setShowAiAssistant(false)}
-        />
-      )}
+        {showCollaboration && (
+          <Collaboration
+            isOpen={showCollaboration}
+            onClose={() => setShowCollaboration(false)}
+          />
+        )}
+        {showAiAssistant && (
+          <AiAssistant
+            isOpen={showAiAssistant}
+            onClose={() => setShowAiAssistant(false)}
+          />
+        )}
 
-      <motion.div
-        className="container mx-auto p-4 -my-8"
-        variants={itemVariants}
-      >
-        <div className="flex flex-row h-[calc(90vh-120px)] gap-2">
-          <motion.div
-            className="relative rounded-xl overflow-hidden backdrop-blur-md bg-gray-800 border border-gray-700 transition-all duration-300"
-            style={{ width: `${100 - terminalWidth}%` }}
-            variants={itemVariants}
-          >
-            <div className="p-6 h-full flex flex-col">
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-btg">
-                    Question {getCurrentQuestionNumber()} of{" "}
-                    {getTotalQuestions()}
-                  </h2>
+        <motion.div
+          className="container mx-auto p-4 my-3"
+          variants={itemVariants}
+        >
+          <div className="flex flex-row h-[calc(90vh-120px)] gap-2">
+            <motion.div
+              className="relative rounded-xl overflow-hidden backdrop-blur-md bg-gray-800 border border-gray-700 transition-all duration-300"
+              style={{ width: `${100 - terminalWidth}%` }}
+              variants={itemVariants}
+            >
+              <div className="p-6 h-full flex flex-col">
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-bold text-btg">
+                      Question {getCurrentQuestionNumber()} of{" "}
+                      {getTotalQuestions()}
+                    </h2>
 
-                  <div className="flex items-center space-x-4">
-                    <div className="text-center">
-                      <div className="flex items-center mt-2 text-white">
-                        <Clock className="w-6 h-6 mr-2 " />
-                        <span className="text-red-700 ml-2 font-mono text-lg">
-                          {formatTime(time)}
-                        </span>
+                    <div className="flex items-center space-x-4">
+                      <div className="text-center">
+                        <div className="flex items-center mt-2 text-white">
+                          <Clock className="w-6 h-6 mr-2 " />
+                          <span className="text-red-700 ml-2 font-mono text-lg">
+                            {formatTime(time)}
+                          </span>
+                        </div>
                       </div>
+                      <motion.button
+                        onClick={() => setShowHint(true)}
+                        className="px-4 py-2 rounded-lg bg-gray-700 bg-gradient-to-r from-[#80EE98] to-[#09D1C7]  hover:from-[#09D1C7] hover:to-[#80EE98] transition-colors text-black"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        Hint
+                      </motion.button>
                     </div>
-                    <motion.button
-                      onClick={() => setShowHint(true)}
-                      className="px-4 py-2 rounded-lg bg-gray-700 bg-gradient-to-r from-[#80EE98] to-[#09D1C7]  hover:from-[#09D1C7] hover:to-[#80EE98] transition-colors text-black"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      Hint
-                    </motion.button>
                   </div>
+
+                  <div className="prose prose-invert">
+                    <p className="text-lg text-white">
+                      {getCurrentQuestion().question}
+                    </p>
+                  </div>
+
+                  {ShowSucsess && (
+                    <motion.div
+                      className="mt-4 flex items-center text-green-500"
+                      initial={{ opacity: 0, y: 0 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <CheckCircle2 className="w-5 h-5 mr-2" />
+                      <span>Success!</span>
+                    </motion.div>
+                  )}
+                  {ShowQuestionFailure && (
+                    <motion.div
+                      className="mt-4 flex items-center text-red-500"
+                      initial={{ opacity: 0, y: 0 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <XCircle className="w-5 h-5 mr-2" />
+                      <span>
+                        You did not reach the desired output <br /> Please give
+                        it a retry!
+                      </span>
+                    </motion.div>
+                  )}
                 </div>
 
-                <div className="prose prose-invert">
-                  <p className="text-lg text-white">
-                    {getCurrentQuestion().question}
-                  </p>
-                </div>
-
-                {ShowSucsess && (
-                  <motion.div
-                    className="mt-4 flex items-center text-green-500"
-                    initial={{ opacity: 0, y: 0 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    <CheckCircle2 className="w-5 h-5 mr-2" />
-                    <span>Success!</span>
-                  </motion.div>
-                )}
-                {ShowQuestionFailure && (
-                  <motion.div
-                    className="mt-4 flex items-center text-red-500"
-                    initial={{ opacity: 0, y: 0 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    <XCircle className="w-5 h-5 mr-2" />
-                    <span>
-                      You did not reach the desired output <br /> Please give it
-                      a retry!
-                    </span>
-                  </motion.div>
-                )}
-              </div>
-
-              <div className="space-y-4 mt-auto">
-                <motion.button
-                  onClick={() =>
-                    handleCheck(scripts[getCurrentQuestionNumber() - 1])
-                  }
-                  className={`
+                <div className="space-y-4 mt-auto">
+                  <motion.button
+                    onClick={() =>
+                      handleCheck(scripts[getCurrentQuestionNumber() - 1])
+                    }
+                    className={`
                     w-full py-3 rounded-lg font-medium
                     ${
                       isChecked
@@ -612,73 +638,74 @@ function TerminalComponent({ isOpen }) {
                     }
                     transition-all duration-300 hover:opacity-90
                   `}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  {isChecked ? "" : "Check Answer"}
-                </motion.button>
-                {isChecked &&
-                  getCurrentQuestionNumber() !== getTotalQuestions() && (
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {isChecked ? "" : "Check Answer"}
+                  </motion.button>
+                  {isChecked &&
+                    getCurrentQuestionNumber() !== getTotalQuestions() && (
+                      <motion.button
+                        onClick={handleNextQuestion}
+                        className="w-full py-3 rounded-lg font-medium bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C]  hover:to-[#80EE98] hover:from-cyan-600 transition-all duration-300"
+                        initial={{ opacity: 0, y: 0 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.2 }}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        Next Question
+                      </motion.button>
+                    )}
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              className="w-2 cursor-col-resize bg-gray-700 hover:bg-cyan-600 transition-colors duration-300 rounded-full"
+              onMouseDown={(e) => {
+                setIsDragging(true);
+                dragStartX.current = e.clientX;
+                dragStartWidth.current = terminalWidth;
+              }}
+              variants={itemVariants}
+            />
+
+            <motion.div
+              className="relative rounded-xl overflow-hidden backdrop-blur-md bg-gray-800/50 border border-gray-700 transition-all duration-300"
+              style={{ width: `${terminalWidth}%` }}
+              variants={itemVariants}
+            >
+              <div className="h-full flex flex-col">
+                <div className="flex items-center justify-between px-4 py-2 bg-gray-900/50 border-b border-gray-700">
+                  <div className="flex items-center space-x-2">
+                    <TerminalIcon className="w-4 h-4 text-red-700" />
+                    <span className="text-btg font-mono text-sm">Terminal</span>
+                  </div>
+                  <div className="flex items-center space-x-2 ">
                     <motion.button
-                      onClick={handleNextQuestion}
-                      className="w-full py-3 rounded-lg font-medium bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C]  hover:to-[#80EE98] hover:from-cyan-600 transition-all duration-300"
-                      initial={{ opacity: 0, y: 0 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.2 }}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                      onClick={toggleFullScreen}
+                      className="p-1 hover:bg-gray-700 rounded"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
                     >
-                      Next Question
+                      <Maximize2 className="w-4 h-4 text-[#80EE98] hover:text-white transition-all duration-300" />
                     </motion.button>
-                  )}
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            className="w-2 cursor-col-resize bg-gray-700 hover:bg-cyan-600 transition-colors duration-300 rounded-full"
-            onMouseDown={(e) => {
-              setIsDragging(true);
-              dragStartX.current = e.clientX;
-              dragStartWidth.current = terminalWidth;
-            }}
-            variants={itemVariants}
-          />
-
-          <motion.div
-            className="relative rounded-xl overflow-hidden backdrop-blur-md bg-gray-800/50 border border-gray-700 transition-all duration-300"
-            style={{ width: `${terminalWidth}%` }}
-            variants={itemVariants}
-          >
-            <div className="h-full flex flex-col">
-              <div className="flex items-center justify-between px-4 py-2 bg-gray-900/50 border-b border-gray-700">
-                <div className="flex items-center space-x-2">
-                  <TerminalIcon className="w-4 h-4 text-red-700" />
-                  <span className="text-cgrad font-mono text-sm">Terminal</span>
+                    <motion.button
+                      onClick={() => setTerminalWidth(55)}
+                      className="p-1 hover:bg-gray-700 rounded"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <X className="w-4 h-4  text-[#80EE98] hover:text-white transition-all duration-300" />
+                    </motion.button>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2 ">
-                  <motion.button
-                    onClick={toggleFullScreen}
-                    className="p-1 hover:bg-gray-700 rounded"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <Maximize2 className="w-4 h-4 text-[#80EE98] hover:text-white transition-all duration-300" />
-                  </motion.button>
-                  <motion.button
-                    onClick={() => setTerminalWidth(55)}
-                    className="p-1 hover:bg-gray-700 rounded"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <X className="w-4 h-4  text-[#80EE98] hover:text-white transition-all duration-300" />
-                  </motion.button>
-                </div>
+                <div ref={terminalRef} className="flex-1" />
               </div>
-              <div ref={terminalRef} className="flex-1" />
-            </div>
-          </motion.div>
-        </div>
+            </motion.div>
+          </div>
+        </motion.div>
       </motion.div>
 
       <AnimatePresence>
@@ -732,6 +759,22 @@ function TerminalComponent({ isOpen }) {
         )}
       </AnimatePresence>
       <AnimatePresence>
+        {showCompletionPopup && (
+          <CompletionPopup
+            onEndLab={() => {
+              setShowCompletionPopup(false);
+              navigate(-1);
+            }}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showConfirmationPopup && (
+          <ConfirmationPopup
+            onConfirm={confirmEndLab}
+            onCancel={cancelEndLab}
+          />
+        )}
         {showCompletionPopup && (
           <CompletionPopup
             onEndLab={() => {

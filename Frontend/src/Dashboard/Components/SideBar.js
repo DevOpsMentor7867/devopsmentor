@@ -19,7 +19,7 @@ export default function Sidebar({ isOpen, onToggle }) {
   const menuItems = [
     {
       icon: (
-        <Home className="h-5 w-5 text-[#80EE98] hover:text-white  transition-transform duration-300 ease-in-out hover:scale-110" />
+        <Home className="h-5 w-5 text-[#80EE98] hover:text-white transition-transform duration-300 ease-in-out hover:scale-110" />
       ),
       label: "Dashboard",
       to: "/dashboard",
@@ -68,27 +68,27 @@ export default function Sidebar({ isOpen, onToggle }) {
       {/* Mobile menu button */}
       <button
         onClick={toggleMobileMenu}
-        className="fixed top-4 left-4  md:hidden rounded-lg p-2 text-gray-400 hover:bg-opacity-10 hover:text-white"
+        className="fixed top-4 left-4 z-50 md:hidden rounded-lg p-2 text-[#80EE98] hover:text-white hover:bg-[#80EE98]/20 transition-all duration-300"
       >
         {isMobileMenuOpen ? (
-          <X className="h-6 w-6 z-[50]" />
+          <X className="h-6 w-6" />
         ) : (
-          <Menu className="h-6 w-6 z-[50]" />
+          <Menu className="h-6 w-6" />
         )}
         <span className="sr-only">Toggle Mobile Menu</span>
       </button>
 
       {/* Sidebar for desktop */}
-      <div className="fixed top-0 left-0 z-40 h-screen hidden md:block">
+      <div className="fixed top-0 left-0 z-40 h-screen hidden md:block bg-black/20">
         <div
           className={`h-screen transition-all duration-300 relative border-r border-transparent sidebar-gradient-border ${
             isOpen ? "w-[15rem]" : "w-14"
-          } bg-black/20  text-gray-100`}
+          } bg-black/20 text-gray-100`}
         >
           <div className="flex h-16 items-center justify-between pr-[12px]">
             {isOpen && (
               <div className="flex items-center pl-1">
-                <h5 className="text-2xl font-semibold uppercase text-btg ">
+                <h5 className="text-2xl font-semibold uppercase text-btg">
                   DevOps Mentor
                 </h5>
               </div>
@@ -101,7 +101,11 @@ export default function Sidebar({ isOpen, onToggle }) {
               className="text-gray-400 hover:bg-opacity-10 hover:text-white"
             >
               {isOpen || isHovered ? (
-                <Menu className={`h-6 w-6 text-[#80EE98] hover:text-white hover:bg-[#80EE98]/20 transition-all duration-300 ${isOpen? "": "ml-3"} `} />
+                <Menu
+                  className={`h-6 w-6 text-[#80EE98] hover:text-white hover:bg-[#80EE98]/20 transition-all duration-300 ${
+                    isOpen ? "" : "ml-3"
+                  }`}
+                />
               ) : (
                 <img
                   src="/project-logo.png"
@@ -114,9 +118,9 @@ export default function Sidebar({ isOpen, onToggle }) {
           </div>
 
           <div
-            className={`fixed  z-50 bg-white bg-opacity-5 px-4 py-0 transition-all duration-300 bottom-gradient-border ${
-              isOpen ? "w-60 " : "w-20"
-            } `}
+            className={`fixed z-50 bg-white bg-opacity-5 px-4 py-0 transition-all duration-300 bottom-gradient-border ${
+              isOpen ? "w-60" : "w-20"
+            }`}
           ></div>
 
           <div
@@ -132,14 +136,16 @@ export default function Sidebar({ isOpen, onToggle }) {
                   index % 2 === 0 ? "text-[#80EE98]" : "text-[#09D1C7]"
                 }`}
               >
-                <div className="h-8 w-8">{item.icon}</div>
-                {isOpen && (
-                  <span
-                    className={`ml-4 -mt-3 transition-transform duration-300 ease-in-out hover:scale-110 hover:text-white`}
-                  >
-                    {item.label}
-                  </span>
-                )}
+                <div className="flex flex-row">
+                  <div className="h-8 w-8">{item.icon}</div>
+                  {isOpen && (
+                    <span
+                      className={`ml-4 -mt-[3px] transition-transform duration-300 ease-in-out hover:scale-110 hover:text-white`}
+                    >
+                      {item.label}
+                    </span>
+                  )}
+                </div>
               </Link>
             ))}
           </div>
@@ -148,20 +154,28 @@ export default function Sidebar({ isOpen, onToggle }) {
 
       {/* Mobile menu */}
       <div
-        className={`fixed inset-0 z-40 bg-gray-900 bg-opacity-90 transition-opacity duration-300 md:hidden ${
+        className={`fixed inset-0 z-40 bg-black/90 transition-all duration-300 md:hidden ${
           isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       >
-        <div className="flex flex-col items-center justify-center h-full">
-          {menuItems.map((item) => (
+        <div className="flex flex-col items-center justify-center h-full space-y-8">
+          {menuItems.map((item, index) => (
             <Link
               key={item.label}
               to={item.to}
-              className="  "
+              className={`flex flex-col items-center justify-center space-y-2 ${
+                index % 2 === 0 ? "text-[#80EE98]" : "text-[#09D1C7]"
+              }`}
               onClick={toggleMobileMenu}
             >
-              <div className="">{item.icon}</div>
-              <span className="">{item.label}</span>
+              <div className="flex flex-row">
+                <div className="h-8 w-8">{item.icon}</div>
+                <span
+                  className={`ml-4 -mt-[3px] transition-transform duration-300 ease-in-out hover:scale-110 hover:text-white`}
+                >
+                  {item.label}
+                </span>
+              </div>
             </Link>
           ))}
         </div>

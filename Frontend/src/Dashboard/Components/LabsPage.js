@@ -4,6 +4,7 @@ import LoadingScreen from "./LoadingPage";
 import { Button } from "../UI/button";
 import { Card } from "../UI/Card";
 import { CardContent } from "../UI/CardContent";
+
 const Labs = () => {
   const [labs, setLabs] = useState([]);
   const [error, setError] = useState(null);
@@ -68,38 +69,38 @@ const Labs = () => {
   return (
     <div className="p-4 w-full mt-3 mx-auto">
       <div className="relative">
-        <div className="bg-gradient-to-r from-[#09D1C7] to-[#80EE98]/80 p-6 text-[#1A202C]">
-          <div className="flex">
-            <div className="flex-1">
-              <h2 className="text-3xl font-bold mb-2 ">{toolName} Labs</h2>
-              <p className="text-lg">{toolDescription}</p>
+        <div className="bg-gradient-to-r from-[#09D1C7] to-[#80EE98]/80 p-4 md:p-6 text-[#1A202C]">
+          <div className="flex flex-col md:flex-row items-center md:items-start">
+            <div className="flex-1 text-center md:text-left mb-4 md:mb-0">
+              <h2 className="text-2xl md:text-3xl font-bold mb-2">{toolName} Labs</h2>
+              <p className="text-base md:text-lg">{toolDescription}</p>
             </div>
             <img
               src={`/${toolName.toLowerCase()}.png`}
-              className="w-20 h-20 ml-4 flex-shrink-0"
+              className="w-16 h-16 md:w-20 md:h-20 md:ml-4 flex-shrink-0"
               alt={`${toolName} logo`}
             />
           </div>
         </div>
 
-        <div className="relative p-6">
+        <div className="relative p-4 md:p-6">
           <div className="absolute inset-0 opacity-5" />
           <div className="relative max-w-5xl mx-auto">
             {/* Timeline */}
-            <div className="space-y-8">
+            <div className="space-y-6 md:space-y-8">
               {/* Timeline Line */}
-              <div className="absolute left-[27px] top-0 bottom-0 w-0.5 bg-[#09D1C7]/20" />
+              <div className="md:absolute md:left-[27px] md:top-0 md:bottom-0 md:w-0.5 bg-[#09D1C7]/20" />
 
               {labs.map((lab, index) => (
-                <div key={lab.name} className="relative pl-14 ">
-                  <div className="absolute left-0 w-14 h-14 rounded-full bg-[#1A202C] border-4 border-[#09D1C7]/20 flex items-center justify-center">
+                <div key={lab.name} className="relative  md:pl-14">
+                  <div className="md:absolute md:left-0  md:w-14 md:h-14 md:rounded-full bg-[#1A202C] md:border-4 md:border-[#09D1C7]/20 md:flex md:items-center md:justify-center">
                     <div
-                      className={`w-8 h-8 rounded-full ${
+                      className={`md:w-8 md:h-8 rounded-full ${
                         index % 3 === 0
-                          ? "bg-[#09D1C7]"
+                          ? "md:bg-[#09D1C7]"
                           : index % 3 === 1
-                          ? "bg-[#80EE98]"
-                          : "bg-white"
+                          ? "md:bg-[#80EE98]"
+                          : "md:bg-white"
                       }`}
                     />
                   </div>
@@ -115,11 +116,11 @@ const Labs = () => {
                     transition-colors group
                   `}
                   >
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between">
-                        <div>
+                    <CardContent className="p-4 md:p-6">
+                      <div className="flex flex-col md:flex-row md:items-start md:justify-between">
+                        <div className="mb-4 md:mb-0">
                           <h2
-                            className={`text-2xl font-bold mb-2 pt-4 ${
+                            className={`text-xl md:text-2xl font-bold mb-2 pt-2 md:pt-4 ${
                               index % 3 === 0
                                 ? "text-[#09D1C7]"
                                 : index % 3 === 1
@@ -129,7 +130,7 @@ const Labs = () => {
                           >
                             {lab.name}
                           </h2>
-                          <p className="text-white/80">{lab.description}</p>
+                          <p className="text-white/80 text-sm md:text-base">{lab.description}</p>
                         </div>
                         <Button
                           className={`
@@ -140,7 +141,7 @@ const Labs = () => {
                                 ? "bg-[#80EE98]/10 text-[#80EE98] hover:bg-[#80EE98]/20"
                                 : "bg-white/10 text-white hover:bg-white/20"
                             }
-                            transition-colors mt-8 p-2 pl-6 pr-6
+                            transition-colors mt-2 md:mt-8 p-2 pl-4 pr-4 md:pl-6 md:pr-6 w-full md:w-auto
                           `}
                           onClick={() => handleLabClick(lab)}
                         >
@@ -160,3 +161,4 @@ const Labs = () => {
 };
 
 export default Labs;
+

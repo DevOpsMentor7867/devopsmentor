@@ -1,16 +1,7 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import confetti from 'canvas-confetti';
 
 const CompletionPopup = ({ onEndLab }) => {
-  useEffect(() => {
-    confetti({
-      particleCount: 100,
-      spread: 170,
-      origin: { y: 0.6 }
-    });
-  }, []);
-
   return (
     <motion.div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm"
