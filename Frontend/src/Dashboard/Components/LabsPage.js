@@ -117,7 +117,7 @@ const Labs = () => {
                   `}
                   >
                     <CardContent className="p-4 md:p-6">
-                      <div className="flex flex-col md:flex-row md:items-start md:justify-between">
+                      <div className="flex flex-col md:flex-row md:items-start md:justify-between ">
                         <div className="mb-4 md:mb-0">
                           <h2
                             className={`text-xl md:text-2xl font-bold mb-2 pt-2 md:pt-4 ${
@@ -130,7 +130,7 @@ const Labs = () => {
                           >
                             {lab.name}
                           </h2>
-                          <p className="text-white/80 text-sm md:text-base">{lab.description}</p>
+                          <p className="text-white/80 text-sm md:text-base ">{lab.description}</p>
                         </div>
                         <Button
                           className={`
@@ -141,7 +141,7 @@ const Labs = () => {
                                 ? "bg-[#80EE98]/10 text-[#80EE98] hover:bg-[#80EE98]/20"
                                 : "bg-white/10 text-white hover:bg-white/20"
                             }
-                            transition-colors mt-2 md:mt-8 p-2 pl-4 pr-4 md:pl-6 md:pr-6 w-full md:w-auto
+                            transition-colors mt-2 md:mt-8 p-2 pl-4 pr-4 md:pl-6 md:pr-6 w-28 md:w-auto
                           `}
                           onClick={() => handleLabClick(lab)}
                         >
