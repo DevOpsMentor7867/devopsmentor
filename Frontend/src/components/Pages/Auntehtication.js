@@ -524,7 +524,7 @@ export default function AuthComponent() {
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
-                  className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-20"
+                  className="fixed inset-0 flex items-center justify-center backdrop-blur-sm z-20"
                 >
                   <div className="bg-gray-800 p-8 rounded-lg shadow-2xl relative max-w-lg">
                     <button
@@ -536,7 +536,7 @@ export default function AuthComponent() {
                       <ArrowLeft size={24} />
                     </button>
                     {RegisterError}
-                    <h3 className="text-xl font-bold mb-4 text-white">
+                    <h3 className="text-3xl font-bold mb-4 text-gtb">
                       Verify Your Account
                     </h3>
                     <p className="text-sm text-gray-400 mb-4">
@@ -551,7 +551,7 @@ export default function AuthComponent() {
                           id={`otp-${index}`}
                           type="text"
                           maxLength={1}
-                          className="w-12 h-12 text-center bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                          className="w-12 h-12 text-center bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-white"
                           value={digit}
                           onChange={(e) =>
                             handleOtpChange(index, e.target.value)
@@ -575,7 +575,7 @@ export default function AuthComponent() {
                       </span>
                       <button
                         onClick={retryOTP}
-                        className="text-blue-500 hover:text-blue-600 transition-colors"
+                        className="text-green-300 transition-colors"
                       >
                         <RefreshCcw size={20} />
                       </button>
@@ -583,7 +583,7 @@ export default function AuthComponent() {
 
                     <Button
                       onClick={handleVerifyOTP}
-                      className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white mt-4"
+                      className="w-full bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C] hover:from-[#09D1C7] hover:to-[#80EE98] rounded-md mt-4 "
                       disabled={timeLeft === 0}
                     >
                       Verify OTP

@@ -154,7 +154,7 @@ export default function Sidebar({ isOpen, onToggle }) {
 
       {/* Mobile menu */}
       <div
-        className={`fixed inset-0 z-40 bg-black/90 transition-all duration-300 md:hidden ${
+        className={`fixed inset-0 z-40 backdrop-blur-md bg-black/40 transition-all duration-300 md:hidden ${
           isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       >
@@ -168,7 +168,7 @@ export default function Sidebar({ isOpen, onToggle }) {
               }`}
               onClick={toggleMobileMenu}
             >
-              <div className="flex flex-row">
+              <div className="flex flex-row ">
                 <div className="h-8 w-8">{item.icon}</div>
                 <span
                   className={`ml-4 -mt-[3px] transition-transform duration-300 ease-in-out hover:scale-110 hover:text-white`}

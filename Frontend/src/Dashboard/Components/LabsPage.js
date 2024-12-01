@@ -70,14 +70,14 @@ const Labs = () => {
     <div className="p-4 w-full mt-3 mx-auto">
       <div className="relative">
         <div className="bg-gradient-to-r from-[#09D1C7] to-[#80EE98]/80 p-4 md:p-6 text-[#1A202C]">
-          <div className="flex flex-col md:flex-row items-center md:items-start">
+          <div className="flex flex-row md:flex-row items-center md:items-start">
             <div className="flex-1 text-center md:text-left mb-4 md:mb-0">
               <h2 className="text-2xl md:text-3xl font-bold mb-2">{toolName} Labs</h2>
               <p className="text-base md:text-lg">{toolDescription}</p>
             </div>
             <img
               src={`/${toolName.toLowerCase()}.png`}
-              className="w-16 h-16 md:w-20 md:h-20 md:ml-4 flex-shrink-0"
+              className="w-36 h-36 md:w-20 md:h-20 md:ml-4 flex-shrink-0"
               alt={`${toolName} logo`}
             />
           </div>

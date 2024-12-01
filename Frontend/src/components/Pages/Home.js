@@ -35,7 +35,7 @@ export default function Home() {
           <div className="flex flex-col space-y-4 sm:flex-row sm:justify-center sm:space-y-0">
             <a
               href="/"
-              className="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-900"
+              className="inline-flex justify-center items-center py-3 px-5 text-base text-center bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C] hover:from-[#09D1C7] hover:to-[#80EE98] rounded-md font-bold"
             >
               Get started
               <ArrowRight className="ml-2 h-4 w-4" />
