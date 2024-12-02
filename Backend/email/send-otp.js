@@ -9,7 +9,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // Function to send OTP email
- sendOtpEmail = async (email, otp) => {
+const sendOtpEmail = async (email, otp) => {
   try {
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
@@ -22,6 +22,29 @@ const transporter = nodemailer.createTransport({
     console.error(`Failed to send OTP email to ${email}:`, error);
     throw error;
   }
-}
+};
 
-module.exports = sendOtpEmail;
+// Function to send reset password email
+const sendResetPasswordEmail = async (email, resetUrl) => {
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Password Reset Request',
+      html: `
+        <h1>Password Reset</h1>
+        <p>You have requested to reset your password. Click the link below to reset it:</p>
+        <a href="${resetUrl}">Reset Password</a>
+        <p>If you didn't request this, please ignore this email.</p>
+        <p>This link will expire in 1 hour.</p>
+      `
+    });
+    console.log(`Reset password email sent to ${email}`);
+  } catch (error) {
+    console.error(`Failed to send reset password email to ${email}:`, error);
+    throw error;
+  }
+};
+
+module.exports = { sendOtpEmail, sendResetPasswordEmail };
+

@@ -2,15 +2,16 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "../UI/button";
 import { Input } from "../UI/input";
 import { Label } from "../UI/label";
-import { ArrowLeft, Eye, EyeOff, RefreshCcw } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, RefreshCcw, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import zxcvbn from "zxcvbn";
 import DoodleComp from "../Core/DoodleComp";
+import LoadingSpinner from "../UI/LoadingSpinner";
 import { RegisterUser } from "../../API/RegisterUser";
 import { VerifyOTP } from "../../API/VerifyOTP";
 import { LoginUser } from "../../API/LoginUser";
-import LoadingSpinner from "../UI/LoadingSpinner";
+import { ForgotPassword } from "../../API/forgotPassword";
 
 export default function AuthComponent() {
   // State variables
@@ -26,7 +27,10 @@ export default function AuthComponent() {
   const [timeLeft, setTimeLeft] = useState(120);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [forgotPasswordStatus, setForgotPasswordStatus] = useState(null);
+  const [isForgotPasswordLoading, setIsForgotPasswordLoading] = useState(false);
   // Hooks
   const { signup, RegisterError, RegisterCheck } = RegisterUser();
   const { login, loginError } = LoginUser();
@@ -116,12 +120,12 @@ export default function AuthComponent() {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
- const isPasswordValid = (password) => {
-  return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/.test(
-    password
-  );
-};
-
+  const isPasswordValid = (password) => {
+    const regex =
+      // eslint-disable-next-line
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?`~])[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?`~]{8,}$/;
+    return regex.test(password);
+  };
 
   const getPasswordStrength = (password) => {
     const result = zxcvbn(password);
@@ -176,6 +180,31 @@ export default function AuthComponent() {
     return () => clearInterval(timerId);
   }, [timeLeft]);
 
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    if (!isEmailValid(forgotPasswordEmail)) {
+      setForgotPasswordStatus({
+        success: false,
+        message: "Please enter a valid email address",
+      });
+      return;
+    }
+
+    setIsForgotPasswordLoading(true);
+    const { forgotPassword } = ForgotPassword();
+    const result = await forgotPassword(forgotPasswordEmail);
+    setForgotPasswordStatus(result);
+    setIsForgotPasswordLoading(false);
+
+    if (result.success) {
+      setTimeout(() => {
+        setShowForgotPassword(false);
+        setForgotPasswordEmail("");
+        setForgotPasswordStatus(null);
+      }, 3000);
+    }
+  };
+
   // Render functions
   const renderForm = () => {
     switch (activeForm) {
@@ -227,6 +256,16 @@ export default function AuthComponent() {
             {loginError && (
               <p className="text-red-500 text-s mb-4">{loginError}</p>
             )}
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowForgotPassword(true)}
+                className="text-gtb hover:text-[#80EE98] transition-colors"
+              >
+                Forgot Password?
+              </button>
+            </div>
+
             <Button
               type="submit"
               className="w-full bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C] hover:from-[#09D1C7] hover:to-[#80EE98]"
@@ -273,7 +312,7 @@ export default function AuthComponent() {
         return (
           <>
             <div>
-              <Label htmlFor="email" className="text-green-300">
+              <Label htmlFor="email" className="text-gtb">
                 Email
               </Label>
               <Input
@@ -292,7 +331,7 @@ export default function AuthComponent() {
               )}
             </div>
             <div>
-              <Label htmlFor="password" className="text-green-300">
+              <Label htmlFor="password" className="text-gtb">
                 Password
               </Label>
               <div className="relative">
@@ -322,7 +361,7 @@ export default function AuthComponent() {
               {password && renderPasswordStrength(password)}
             </div>
             <div>
-              <Label htmlFor="confirmPassword" className="text-green-300">
+              <Label htmlFor="confirmPassword" className="text-gtb">
                 Confirm Password
               </Label>
               <div className="relative">
@@ -332,7 +371,7 @@ export default function AuthComponent() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm your password"
-                  className="bg-white bg-opacity-20 text-white placeholder-gray-300 pr-10 focus:outline-none focus:ring-2 focus:ring-green-500 "
+                  className="bg-white bg-opacity-20 text-white placeholder-gray-300 pr-10 focus:outline-none focus:ring-2 focus:ring-green-500 mb-2"
                   required
                 />
                 <button
@@ -341,7 +380,7 @@ export default function AuthComponent() {
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#80EE98]"
                 >
                   {showConfirmPassword ? (
-                    <EyeOff size={20}/>
+                    <EyeOff size={20} />
                   ) : (
                     <Eye size={20} />
                   )}
@@ -419,11 +458,11 @@ export default function AuthComponent() {
         </Link>
         {isLoading && <LoadingSpinner />}
 
-        <div className="flex-grow flex items-center justify-center">
+        <div className="flex-grow flex items-center justify-center mt-12 md:mt-0">
           <div className="w-full max-w-md  p-4 sm:p-6 md:p-8 rounded-lg bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg shadow-xl relative z-10">
-          <div className=" text-center text-4xl mb-2 font-bold  ">
-          <span className="text-btg z-10">DEV∞OPS Mentor</span>
-        </div>
+            <div className=" text-center text-4xl mb-2 font-bold  ">
+              <span className="text-btg z-10">DEV∞OPS Mentor</span>
+            </div>
             <h2 className="text-3xl text-center mb-6 text-btg">
               {activeForm === "login" ? "Welcome Back" : "Create Account"}
             </h2>
@@ -575,7 +614,7 @@ export default function AuthComponent() {
                       </span>
                       <button
                         onClick={retryOTP}
-                        className="text-green-300 transition-colors"
+                        className="text-gtb transition-colors"
                       >
                         <RefreshCcw size={20} />
                       </button>
@@ -591,6 +630,81 @@ export default function AuthComponent() {
                   </div>
                 </motion.div>
               )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {showForgotPassword && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="fixed inset-0 flex items-center justify-center backdrop-blur-sm z-20"
+            >
+              <div className="bg-gray-900 p-8 rounded-lg shadow-2xl relative max-w-md w-full mx-4">
+                <button
+                  onClick={() => {
+                    setShowForgotPassword(false);
+                    setForgotPasswordEmail("");
+                    setForgotPasswordStatus(null);
+                  }}
+                  className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+                >
+                  <X size={24} />
+                </button>
+
+                <h3 className="text-3xl font-bold mb-4 text-gtb">
+                  Password Reset
+                </h3>
+                <p className="text-sm text-gray-400 mb-6">
+                  To reset your password, enter the email address you use to
+                  sign in to your account
+                </p>
+
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <div>
+                    <Label htmlFor="reset-email" className="text-gtb">
+                      Email Address
+                    </Label>
+                    <Input
+                      id="reset-email"
+                      type="email"
+                      value={forgotPasswordEmail}
+                      onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                      placeholder="Enter your email"
+                      className="bg-white bg-opacity-20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
+                      disabled={isForgotPasswordLoading}
+                    />
+                  </div>
+
+                  {forgotPasswordStatus && (
+                    <p
+                      className={`text-sm ${
+                        forgotPasswordStatus.success
+                          ? "text-green-500"
+                          : "text-red-500"
+                      }`}
+                    >
+                      {forgotPasswordStatus.message}
+                    </p>
+                  )}
+
+                  <Button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C] hover:from-[#09D1C7] hover:to-[#80EE98]"
+                    disabled={!forgotPasswordEmail || isForgotPasswordLoading}
+                  >
+                    {isForgotPasswordLoading ? (
+                      <div className="flex items-center justify-center">
+                        <RefreshCcw size={20} className="animate-spin mr-2" />
+                        Sending...
+                      </div>
+                    ) : (
+                      "Send Reset Link"
+                    )}
+                  </Button>
+                </form>
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>
         <DoodleComp />
       </div>

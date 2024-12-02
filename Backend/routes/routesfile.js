@@ -15,6 +15,10 @@ routes.post('/user/register', userAuthController.register);
 routes.post('/user/verify', userAuthController.verifyOtp);
 routes.post('/user/login',userAuthController.login);
 routes.post('/user/logout', userAuthController.logout);
+routes.post('/user/delete-user',userAuthController.deleteUser);
+routes.post('/user/forgot-password', userAuthController.forgotPassword);
+routes.post('/user/reset-password', userAuthController.resetPassword);
+
 
 routes.post('/user/auth', authMiddleware, (req, res) => {
   try {
@@ -30,6 +34,12 @@ routes.post('/user/auth', authMiddleware, (req, res) => {
   }
 });
 
+routes.get('/user/verify-passwords', async (req, res) => {
+  await  userAuthController.verifyStoredPasswords;
+  res.status(200).json({ message: 'Password verification complete. Check server logs.' });
+});
+
+
 //routes.post('/user/dummy', authMiddleware, userAuthController.welcomeMessage);
 
 // linux terminal routes
@@ -41,5 +51,9 @@ routes.get('/user/gettools',getTools );
 routes.get('/user/:toolId/labs',getLabs );
 routes.get('/user/labs/:labId/questions',getLabQuestions);
 routes.post('/user/checkanswer',scriptExecute);
+
+
+
+
 
 module.exports =  routes; 

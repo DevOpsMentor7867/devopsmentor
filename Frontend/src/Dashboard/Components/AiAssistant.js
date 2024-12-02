@@ -97,9 +97,9 @@ function AiAssistant({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50">
-      <Card className="w-50 max-w-3xl bg-[#1A202C] border-0 flex flex-col h-[calc(100vh-12rem)] mt-16 shadow-xl relative">
-        <CardHeader className="flex items-center justify-between px-6 py-4 bg-[#1A202C] border-b border-[#0EA5E9]">
+    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center -mt-12 z-50">
+      <Card className="w-50 max-w-3xl bg-gray-900 border-0 flex flex-col h-[calc(100vh-12rem)] mt-16 shadow-xl relative">
+        <CardHeader className="flex items-center justify-between px-6 py-4 bg-gray-900 border-b border-green-300">
           <div className="flex items-center gap-4 w-full">
           <svg
               viewBox="0 0 240 240"
@@ -165,7 +165,7 @@ function AiAssistant({ isOpen, onClose }) {
                   key={message.id}
                   className={cn(
                     "w-full py-2",
-                    message.sender.isBot ? "bg-[#1A202C]" : "bg-transparent"
+                    message.sender.isBot ? "bg-gray-900" : "bg-transparent"
                   )}
                 >
                   <div className="max-w-3xl mx-auto">
@@ -223,18 +223,18 @@ function AiAssistant({ isOpen, onClose }) {
           </div>
         )}
 
-        <CardFooter className="p-4 pt-2 border-t border-gray-700 bg-[#1B2838]">
+        <CardFooter className="p-4 pt-2 border-t border-green-200 bg-gray-900">
           <form onSubmit={handleSubmit} className="flex gap-2 w-full">
             <Input
               placeholder="Type your message here..."
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              className="flex-grow border border-gray-600 bg-[#2A3F5A] text-gray-100 placeholder:text-gray-400 focus:ring-1 focus:ring-[#0EA5E9] rounded-lg"
+              className="flex-grow border border-gray-600 bg-[#2A3F5A] text-gray-100 placeholder:text-gray-400 focus:ring-2 focus:ring-gray-500  rounded-lg"
               aria-label="Message"
             />
             <button
               type="submit"
-              className="h-10 w-10 p-0 bg-[#0EA5E9] hover:bg-[#0284C7] rounded-lg flex items-center justify-center disabled:opacity-50"
+              className="h-10 w-10 p-0  bg-gradient-to-r from-[#80EE98] to-[#09D1C7]  hover:from-[#09D1C7] hover:to-[#80EE98] rounded-lg flex items-center justify-center disabled:opacity-50"
               disabled={isLoading}
             >
               <svg 
