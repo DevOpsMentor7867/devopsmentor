@@ -347,6 +347,7 @@ function TerminalComponent({ isOpen }) {
   const getCurrentQuestion = () => {
     const currentLab = labQuestions[currentLabIndex];
     return currentLab ? currentLab.questions_data[currentQuestionIndex] : {};
+    
   };
   // eslint-disable-next-line
   const getTotalQuestions = () => {

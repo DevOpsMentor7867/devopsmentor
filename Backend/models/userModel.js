@@ -21,6 +21,12 @@ userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
   
   try {
+    // Check if the password is already hashed
+    if (this.password.startsWith('$2b$')) {
+      console.log(`Debug: Password already hashed for ${this.email}, skipping hashing`);
+      return next();
+    }
+    
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
     console.log(`Debug: Password hashed in pre-save hook for ${this.email}: ${this.password.substring(0, 10)}...`);

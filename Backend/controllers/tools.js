@@ -6,7 +6,7 @@ const Tool = require('../models/toolsModel');
 
 const db = mongoose.connections;
 const getToolsQueue = new Bull("getTools", {
-    redis: { port: 6379, host: "localhost" },
+    redis: { port: 6379, host: "localhost" }, 
 });
 
 getToolsQueue.process(async (job) => {

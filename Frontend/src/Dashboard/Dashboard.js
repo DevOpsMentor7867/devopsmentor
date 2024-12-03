@@ -7,6 +7,7 @@ import UserProfile from "./Components/userProfile";
 import ToolData from "./Components/ToolsPage";
 import Labs from "./Components/LabsPage";
 import LoadingScreen from "./Components/LoadingPage";
+import HomePage from "./Components/HomePage";
 
 export default function DashboardLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -22,11 +23,10 @@ export default function DashboardLayout() {
       <main
         className={`transition-all duration-300 ${
           isSidebarOpen ? "md:ml-60 " : "ml-4 md:ml-14"
-          // isSidebarOpen ? "ml-44 mr-8" : "ml-8 mr-8"
         } pt-16`}
       >      
         <Routes>      
-          <Route path="/" element={<UserProfile />} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/tools" element={<ToolData />} />
           <Route path="/:toolId/labs" element={<Labs />} /> {/* Labs page route */}
           <Route path="/terminal" element={<TerminalQuiz />} />
