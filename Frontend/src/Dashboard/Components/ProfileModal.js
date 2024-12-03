@@ -36,7 +36,7 @@ const ProfileSetupModal = ({ email, onSave, apiMessage, onClose }) => {
   const isFormValid = formData.name && formData.username && formData.gender;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm">
       <div className="relative bg-[#1A202C] rounded-xl w-full max-w-md overflow-hidden">
         <div className="p-8">
           <h2 className="text-4xl font-bold text-btg mb-6 text-center">DEV∞OPS Mentor</h2>
