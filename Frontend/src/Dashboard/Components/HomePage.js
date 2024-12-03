@@ -12,17 +12,21 @@ export default function HomePage() {
       username: "",
       gender: ""
     });
+    const [apiMessage, setApiMessage] = useState({ type: '', content: '' });
 
     const SetUserInformation = async (profileData) => {
+        // setApiMessage({ type: '', content: '' })
       try {
         const response = await axios.post('/api/user/SetUserInformation', {
           ...profileData,
           email: user?.email || userData.email
         });
         console.log("API Response:", response.data);
+        setApiMessage({ type: 'success', content: 'Profile saved successfully!' });
         return true;
       } catch (error) {
         console.error("Error sending profile data:", error);
+        setApiMessage({ type: 'error', content: error.response?.data?.message || 'Failed to save profile data. Please try again.' });
         return false;
       }
     };
@@ -41,11 +45,15 @@ export default function HomePage() {
               console.log("Updated userData:", updatedUserData);
               return updatedUserData;
           });
-          setShowProfileSetup(false);
+          // Modal will be closed after a delay, handled in ProfileSetupModal
         } else {
-          // Handle error - you might want to show an error message to the user
-          console.log("Failed to save profile data. Please try again.");
+          // Error message is set in SetUserInformation function
         }
+    };
+
+    const handleCloseModal = () => {
+      setShowProfileSetup(false);
+      setApiMessage({ type: '', content: '' });
     };
 
     return (
@@ -55,6 +63,8 @@ export default function HomePage() {
                 <ProfileSetupModal
                     email={userData.email}
                     onSave={handleProfileSave}
+                    apiMessage={apiMessage}
+                    onClose={handleCloseModal}
                 />
             )}
             {!showProfileSetup && (
@@ -69,4 +79,3 @@ export default function HomePage() {
         </div>
     )
 }
-

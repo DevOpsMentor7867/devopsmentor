@@ -1,11 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const ProfileSetupModal = ({ email, onSave }) => {
+const ProfileSetupModal = ({ email, onSave, apiMessage, onClose }) => {
   const [formData, setFormData] = useState({
     name: '',
     username: '',
     gender: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (apiMessage.type === 'success') {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 2000); // Close the modal after 2 seconds on success
+      return () => clearTimeout(timer);
+    }
+  }, [apiMessage, onClose]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -15,11 +25,12 @@ const ProfileSetupModal = ({ email, onSave }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.username || !formData.gender) return;
-    console.log("Form Data:", formData);
-    onSave(formData);
+    setIsSubmitting(true);
+    await onSave(formData);
+    setIsSubmitting(false);
   };
 
   const isFormValid = formData.name && formData.username && formData.gender;
@@ -119,18 +130,24 @@ const ProfileSetupModal = ({ email, onSave }) => {
               <div className="absolute -bottom-1 left-24 right-0 h-px bg-gradient-to-r from-transparent via-[#80EE98]/20 to-transparent" />
             </div>
 
+            {apiMessage.content && (
+              <div className={`text-center ${apiMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+                {apiMessage.content}
+              </div>
+            )}
+
             <div className="relative pt-6">
               <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#80EE98]/20 to-transparent" />
               <button
                 type="submit"
-                disabled={!isFormValid}
+                disabled={!isFormValid || isSubmitting}
                 className={`w-full px-4 py-3 rounded-lg font-medium transition-all duration-300 ${
-                  isFormValid
+                  isFormValid && !isSubmitting
                     ? 'bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C] hover:from-[#09D1C7] hover:to-[#80EE98] transform hover:scale-[1.02]'
                     : 'bg-[#80EE98]/20 text-white/60 cursor-not-allowed'
                 }`}
               >
-                Save changes
+                {isSubmitting ? 'Saving...' : 'Save changes'}
               </button>
             </div>
           </form>
