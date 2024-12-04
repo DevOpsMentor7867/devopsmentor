@@ -21,22 +21,6 @@ routes.post('/user/reset-password', userAuthController.resetPassword);
 routes.post('/user/auth', authMiddleware, userAuthController.checkAuthentication);
 
 
-
-
-// routes.get('/user/auth', authMiddleware, (req, res) => {
-//   try {
-//     // Since authMiddleware will add the user data to the request, 
-//     // you can access it directly here if needed
-//     res.status(200).json({
-//       message: 'you are authenticated',
-//       // Optionally return user data if required
-//     });
-//   } catch (error) {
-//     console.error('Error in authentication route:', error);
-//     res.status(500).json({ message: 'Internal server error' });
-//   }
-// });  
-
 routes.get('/user/verify-passwords', async (req, res) => {
   await  userAuthController.verifyStoredPasswords;
   res.status(200).json({ message: 'Password verification complete. Check server logs.' });

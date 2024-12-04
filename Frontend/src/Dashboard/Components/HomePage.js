@@ -4,7 +4,7 @@ import ProfileSetupModal from './ProfileModal'
 import { useAuthContext } from "../../API/UseAuthContext";
 
 export default function HomePage() {
-    const [showProfileSetup, setShowProfileSetup] = useState(false);
+    const [showProfileSetup, setShowProfileSetup] = useState(true);
     const { user, loading } = useAuthContext();
     const [userData, setUserData] = useState({
       email: "",
