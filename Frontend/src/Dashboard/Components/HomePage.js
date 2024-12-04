@@ -1,21 +1,29 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import ProfileSetupModal from './ProfileModal'
 import { useAuthContext } from "../../API/UseAuthContext";
 
 export default function HomePage() {
-    const [showProfileSetup, setShowProfileSetup] = useState(true);
-    const { user } = useAuthContext();
+    const [showProfileSetup, setShowProfileSetup] = useState(false);
+    const { user, loading } = useAuthContext();
     const [userData, setUserData] = useState({
-      email: user?.email || "john.doe@devopsmentor.com",
+      email: "",
       name: "",
       username: "",
       gender: ""
     });
     const [apiMessage, setApiMessage] = useState({ type: '', content: '' });
 
+    useEffect(() => {
+      if (user) {
+        setUserData(prevData => ({
+          ...prevData,
+          email: user.email || ""
+        }));
+      }
+    }, [user]);
+
     const SetUserInformation = async (profileData) => {
-        // setApiMessage({ type: '', content: '' })
       try {
         const response = await axios.post('/api/user/SetUserInformation', {
           ...profileData,
@@ -45,9 +53,6 @@ export default function HomePage() {
               console.log("Updated userData:", updatedUserData);
               return updatedUserData;
           });
-          // Modal will be closed after a delay, handled in ProfileSetupModal
-        } else {
-          // Error message is set in SetUserInformation function
         }
     };
 
@@ -56,6 +61,10 @@ export default function HomePage() {
       setApiMessage({ type: '', content: '' });
     };
 
+    if (loading) {
+      return <div className="text-center mt-12">Loading...</div>;
+    }
+    
     return (
         <div className='text-center text-gtb mt-12'>
             <h1>This is the homepage</h1>
@@ -79,3 +88,4 @@ export default function HomePage() {
         </div>
     )
 }
+

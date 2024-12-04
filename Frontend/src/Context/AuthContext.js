@@ -1,5 +1,13 @@
-import { createContext, useReducer, useEffect } from "react";
-// import axios from 'axios';
+import React, { createContext, useReducer, useEffect, useState, useContext } from "react";
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: 'http://localhost:8000/api',
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 export const AuthContext = createContext();
 
@@ -18,20 +26,21 @@ export const AuthContextProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, {
     user: null,
   });
-  
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        // const response = await axios.get('http://localhost:8000/api/user/dummy', {
-        //   withCredentials: true
-        // });
-        // if (response.data.user) {
-        //   dispatch({ type: 'LOGIN', payload: response.data.user.email });
-        // }
+        const response = await api.post('/user/auth');
+        if (response.status === 200) {
+          dispatch({ type: 'LOGIN', payload: response.data.user });
+        }
       } catch (error) {
-        console.log("User is not Authenticated")
+        console.error("Authentication error:", error.response?.data || error.message);
+      } finally {
+        setLoading(false);
       }
-    };
+    };    
 
     checkAuthStatus();
   }, []);
@@ -39,8 +48,11 @@ export const AuthContextProvider = ({ children }) => {
   console.log("AuthContext state", state);
   
   return (
-    <AuthContext.Provider value={{ ...state, dispatch }}>
-        {children} 
+    <AuthContext.Provider value={{ ...state, dispatch, loading }}>
+      {children}
     </AuthContext.Provider>
-  )
+  );
 };
+
+export const useAuthContext = () => useContext(AuthContext);
+

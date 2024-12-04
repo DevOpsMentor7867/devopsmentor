@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const crypto = require("crypto");
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -46,5 +47,12 @@ const sendResetPasswordEmail = async (email, resetUrl) => {
   }
 };
 
-module.exports = { sendOtpEmail, sendResetPasswordEmail };
+// OTP generation
+const generateOtp = () => {
+  return crypto.randomInt(100000, 999999).toString();
+};
+
+
+
+module.exports = { sendOtpEmail, sendResetPasswordEmail,generateOtp };
 

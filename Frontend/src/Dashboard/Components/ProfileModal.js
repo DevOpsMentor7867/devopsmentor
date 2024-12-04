@@ -45,7 +45,7 @@ const ProfileSetupModal = ({ email, onSave, apiMessage, onClose }) => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="relative">
               <div className="flex items-center gap-4 group">
-                <label htmlFor="name" className="text-[#80EE98] text-sm font-medium w-24">
+                <label htmlFor="name" className="text-[#80EE98] text-lg font-medium w-24">
                   Name
                 </label>
                 <input
@@ -64,7 +64,7 @@ const ProfileSetupModal = ({ email, onSave, apiMessage, onClose }) => {
 
             <div className="relative">
               <div className="flex items-center gap-4 group">
-                <label htmlFor="email" className="text-[#09D1C7] text-sm font-medium w-24">
+                <label htmlFor="email" className="text-[#09D1C7] text-lg font-medium w-24">
                   Email
                 </label>
                 <input
@@ -80,7 +80,7 @@ const ProfileSetupModal = ({ email, onSave, apiMessage, onClose }) => {
 
             <div className="relative">
               <div className="flex items-center gap-4 group">
-                <label htmlFor="username" className="text-[#80EE98] text-sm font-medium w-24">
+                <label htmlFor="username" className="text-[#80EE98] text-lg font-medium w-24">
                   Username
                 </label>
                 <input
@@ -99,7 +99,7 @@ const ProfileSetupModal = ({ email, onSave, apiMessage, onClose }) => {
 
             <div className="relative">
               <div className="flex items-center gap-4 group">
-                <label className="text-[#80EE98] text-sm font-medium w-24">
+                <label className="text-[#09D1C7] text-lg font-medium w-24">
                   Gender
                 </label>
                 <div className="flex gap-4">
@@ -110,7 +110,7 @@ const ProfileSetupModal = ({ email, onSave, apiMessage, onClose }) => {
                       value="male"
                       checked={formData.gender === 'male'}
                       onChange={handleInputChange}
-                      className="mr-2 text-[#80EE98] focus:ring-[#80EE98]"
+                      className="mr-2 text-[#09D1C7] focus:ring-[#09D1C7]"
                     />
                     <span className="text-white">Male</span>
                   </label>
@@ -121,7 +121,7 @@ const ProfileSetupModal = ({ email, onSave, apiMessage, onClose }) => {
                       value="female"
                       checked={formData.gender === 'female'}
                       onChange={handleInputChange}
-                      className="mr-2 text-[#80EE98] focus:ring-[#80EE98]"
+                      className="mr-2 text-[#09D1C7] focus:ring-[#09D1C7]"
                     />
                     <span className="text-white">Female</span>
                   </label>

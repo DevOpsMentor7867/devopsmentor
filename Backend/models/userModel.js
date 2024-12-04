@@ -2,6 +2,16 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true
+  }, 
+  username: {
+    type: String,
+    required: true,
+    trim: true
+  }, 
   email: {
     type: String,
     required: true,
@@ -13,7 +23,19 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     select: false // Don't include password by default in queries
+  },
+  
+  gender: {
+    type: String,
+    required: true,
+    enum: ['male', 'female','*'],
+    lowercase: true
+  },
+  ProfilePic: {
+    type: String,
+    required: true
   }
+  
 }, { timestamps: true });
 
 // Pre-save middleware to hash password

@@ -4,51 +4,44 @@ const bcrypt = require('bcrypt');
 const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
 const redisClientPool = require('../redis/redis-server');
-const { sendOtpEmail, sendResetPasswordEmail } = require('../email/send-otp');
+const { sendOtpEmail, sendResetPasswordEmail,generateOtp } = require('../email/send-otp');
+const REDIS_PORT = process.env.REDIS_PORT ;
 require('dotenv').config();
-
-// OTP generation
-const generateOtp = () => {
-  return crypto.randomInt(100000, 999999).toString();
-};
-
-
 
 // Redis queues 
 const registration_queue = new Bull('registration', {
-  redis: { port: 6379, host: 'localhost' }
+  redis: { port: REDIS_PORT, host: 'localhost' }
 });
 
 const verification_queue = new Bull('verification', {
-  redis: { port: 6379, host: 'localhost' }
+  redis: { port: REDIS_PORT, host: 'localhost' }
 });
 
 const login_queue = new Bull('login', {
-  redis: { port: 6379, host: 'localhost' }
+  redis: { port: REDIS_PORT, host: 'localhost' }
 });
 
 const logout_queue = new Bull('logout', {
-  redis: { port: 6379, host: 'localhost' }
+  redis: { port: REDIS_PORT, host: 'localhost' }
 });
 
 const forgot_password_queue = new Bull('forgot_password', {
-  redis: { port: 6379, host: 'localhost' }
+  redis: { port: REDIS_PORT, host: 'localhost' }
 });
 
 const reset_password_queue = new Bull('reset_password', {
-  redis: { port: 6379, host: 'localhost' }
+  redis: { port: REDIS_PORT, host: 'localhost' }
 });
 
 
 // Registration queue process
 registration_queue.process(async (job) => {
-  const { email, password } = job.data;
+  const { email, password, username, gender } = job.data;
   let redisClient = await redisClientPool.borrowClient();
   try {
     console.log(`Debug: Starting registration process for email: ${email}`);
-    
-    
 
+    // Check if user exists by email only
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       console.log(`Debug: User already exists for email: ${email}`);
@@ -59,13 +52,16 @@ registration_queue.process(async (job) => {
       };
     }
 
+    const otp = generateOtp();
+    console.log(`Debug: Generated OTP for ${email}: ${otp}`);
+
     const registrationKey = `registration:${email}`;
     let retries = 5;
     while (retries > 0) {
       await redisClient.watch(registrationKey);
       const registrationExists = await redisClient.get(registrationKey);
 
-      if (registrationExsists) {
+      if (registrationExists) {
         await redisClient.unwatch();
         console.log(`Debug: Registration already in progress for ${email}`);
         return { 
@@ -75,12 +71,17 @@ registration_queue.process(async (job) => {
         };
       }
 
-      const otp = generateOtp();
       const hashedPassword = await bcrypt.hash(password, 12);
       console.log(`Debug: Storing hashed password for OTP verification: ${hashedPassword.substring(0, 10)}...`);
 
       const multi = redisClient.multi();
-      multi.set(registrationKey, JSON.stringify({ password: hashedPassword, otp }), {
+      multi.set(registrationKey, JSON.stringify({ 
+        name: '*', // Default name value
+        password: hashedPassword, 
+        otp,
+        username: username || email.split('@')[0], // Use provided username or default to email prefix
+        gender: gender || '*' // Use provided gender or default to '*'
+      }), {
         EX: parseInt(process.env.OTP_EXPIRY) || 300 // Default to 5 minutes
       });
       const results = await multi.exec();
@@ -101,14 +102,20 @@ registration_queue.process(async (job) => {
       }
     }
     
-    await sendOtpEmail(email, otp);
-    console.log(`Debug: OTP sent to ${email}`);
+    try {
+      await sendOtpEmail(email, otp);
+      console.log(`Debug: OTP sent to ${email}`);
+    } catch (emailError) {
+      console.error(`Error sending OTP email: ${emailError.message}`);
+      throw emailError;
+    }
     
     return { 
       success: true, 
-      message: 'OTP sent to email. Please verify within 5 minutes.',
+      message: 'OTP sent to email. Please verify within 2 minutes.',
       code: 'OTP_SENT'
     };
+
   } catch (error) {
     console.error(`Error in registration queue process: ${error.message}`);
     return { 
@@ -123,6 +130,49 @@ registration_queue.process(async (job) => {
     }
   }
 });
+
+
+
+// Controller functions
+const register = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    console.log(`Attempting to register user: ${email}`);
+    
+    const job = await registration_queue.add({ email, password }, {
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 2000
+      }
+    });
+    
+    const result = await job.finished();
+    console.log(`Registration job completed result: ${JSON.stringify(result)}`);
+    
+    if (result.success) {
+      res.status(200).json(result);
+    } else {
+      const statusCodes = {
+        'ALREADY_REGISTERED': 400,
+        'REGISTRATION_IN_PROGRESS': 409,
+        'REGISTRATION_ERROR': 500,
+        'INVALID_PASSWORD_FORMAT': 400,
+        'REGISTRATION_CONFLICT': 409
+      };
+      const statusCode = statusCodes[result.code] || 400;
+      res.status(statusCode).json(result);
+    }
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Registration failed', 
+      error: error.message,
+      code: 'SYSTEM_ERROR'
+    });
+  }
+};
 
 // Verification queue process
 verification_queue.process(async (job) => {
@@ -142,7 +192,7 @@ verification_queue.process(async (job) => {
       };
     }
 
-    const { password: storedHashedPassword, otp: storedOTP } = JSON.parse(stored_data);
+    const { name, password: storedHashedPassword, otp: storedOTP, username, gender } = JSON.parse(stored_data);
     
     if (otp !== storedOTP) {
       console.log(`Debug: Incorrect OTP for email: ${email}`);
@@ -154,8 +204,28 @@ verification_queue.process(async (job) => {
     }
 
     try {
-      // Create new user with hashed password from Redis
-      const newUser = new User({ email, password: storedHashedPassword });
+      // Check if user exists by email only
+      const existingUser = await User.findOne({ email }).select('+password');
+      if (existingUser) {
+        console.log(`Debug: User already exists for email: ${email}`);
+        await redisClient.del(stored_key);
+        return { 
+          success: false, 
+          message: 'This email is already registered. Please login instead of registering again.',
+          code: 'ALREADY_REGISTERED'
+        };
+      }
+
+      // Create new user with stored data
+      const newUser = new User({ 
+        name,
+        email,
+        password: storedHashedPassword,
+        username: username || email.split('@')[0], // Use stored username or default to email prefix
+        gender: gender || '*', // Use stored gender or default to '*'
+        ProfilePic: `https://avatar.iran.liara.run/public/user?username=${username || email.split('@')[0]}`
+      });
+
       await newUser.save();
       console.log(`Debug: User saved successfully for email: ${email}`);
       await redisClient.del(stored_key);
@@ -165,6 +235,7 @@ verification_queue.process(async (job) => {
         code: 'SUCCESS'
       };
     } catch (error) {
+      console.error(`Error saving user: ${error.message}`);
       if (error.code === 11000) {
         console.log(`Debug: Duplicate key error for email: ${email}`);
         await redisClient.del(stored_key);
@@ -174,7 +245,6 @@ verification_queue.process(async (job) => {
           code: 'ALREADY_REGISTERED'
         };
       }
-      console.error(`Error saving user: ${error.message}`);
       return { 
         success: false, 
         message: 'An error occurred during registration. Please try again.',
@@ -196,6 +266,46 @@ verification_queue.process(async (job) => {
     }
   }
 });
+
+
+
+const verifyOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const job = await verification_queue.add({ email, otp }, {
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 2000
+      }
+    });
+    const result = await job.finished();
+    
+    if (result.success) {
+      res.status(200).json({ message: result.message });
+    } else {
+      const statusCodes = {
+        'ALREADY_REGISTERED': 400,
+        'INVALID_OTP': 400,
+        'WRONG_OTP': 400,
+        'SAVE_ERROR': 500,
+        'SYSTEM_ERROR': 500
+      };
+      const statusCode = statusCodes[result.code] || 400;
+      res.status(statusCode).json({ 
+        message: result.message,
+        code: result.code 
+      });
+    }
+  } catch (error) {
+    console.error('OTP verification error:', error);
+    res.status(500).json({ 
+      message: 'OTP verification failed', 
+      error: error.message,
+      code: 'SYSTEM_ERROR'
+    });
+  }
+};
 
 // Login queue process
 login_queue.process(async (job) => {
@@ -273,113 +383,6 @@ login_queue.process(async (job) => {
   }
 });
 
-// Logout queue process
-logout_queue.process(async (job) => {
-  let redisClient = await redisClientPool.borrowClient();
-  const { sessionId, email } = job.data;
-  try {
-    console.log(`Debug: Starting logout process for email: ${email}`);
-    const sessionKey = `session:${sessionId}`;
-    const sessionData = await redisClient.get(sessionKey);
-    if (!sessionData) {
-      console.log(`Debug: Session not found for logout: ${sessionId}`);
-      return { success: false, message: 'Session not found', code: 'SESSION_NOT_FOUND' };
-    }
-
-    await redisClient.del(sessionKey);
-    
-    console.log(`Debug: Logout successful for email: ${email}`);
-    return { success: true, message: 'Logout successful', code: 'LOGOUT_SUCCESS' };
-  } catch (error) {
-    console.error(`Error in logout queue process: ${error.message}`);
-    return { success: false, message: 'Logout failed', error: error.message, code: 'LOGOUT_ERROR' };
-  } finally {
-    if (redisClient) {
-      await redisClientPool.returnClient(redisClient);
-    }
-  }
-});
-
-
-
-// Controller functions
-const register = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    console.log(`Attempting to register user: ${email}`);
-    
-    const job = await registration_queue.add({ email, password }, {
-      attempts: 3,
-      backoff: {
-        type: 'exponential',
-        delay: 2000
-      }
-    });
-    
-    const result = await job.finished();
-    console.log(`Registration job completed result: ${JSON.stringify(result)}`);
-    
-    if (result.success) {
-      res.status(200).json(result);
-    } else {
-      const statusCodes = {
-        'ALREADY_REGISTERED': 400,
-        'REGISTRATION_IN_PROGRESS': 409,
-        'REGISTRATION_ERROR': 500,
-        'INVALID_PASSWORD_FORMAT': 400,
-        'REGISTRATION_CONFLICT': 409
-      };
-      const statusCode = statusCodes[result.code] || 400;
-      res.status(statusCode).json(result);
-    }
-  } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Registration failed', 
-      error: error.message,
-      code: 'SYSTEM_ERROR'
-    });
-  }
-};
-
-const verifyOtp = async (req, res) => {
-  try {
-    const { email, otp } = req.body;
-    const job = await verification_queue.add({ email, otp }, {
-      attempts: 3,
-      backoff: {
-        type: 'exponential',
-        delay: 2000
-      }
-    });
-    const result = await job.finished();
-    
-    if (result.success) {
-      res.status(200).json({ message: result.message });
-    } else {
-      const statusCodes = {
-        'ALREADY_REGISTERED': 400,
-        'INVALID_OTP': 400,
-        'WRONG_OTP': 400,
-        'SAVE_ERROR': 500,
-        'SYSTEM_ERROR': 500
-      };
-      const statusCode = statusCodes[result.code] || 400;
-      res.status(statusCode).json({ 
-        message: result.message,
-        code: result.code 
-      });
-    }
-  } catch (error) {
-    console.error('OTP verification error:', error);
-    res.status(500).json({ 
-      message: 'OTP verification failed', 
-      error: error.message,
-      code: 'SYSTEM_ERROR'
-    });
-  }
-};
 
 const login = async (req, res) => {
   console.log("Request body in login:", req.body);
@@ -415,6 +418,36 @@ const login = async (req, res) => {
     res.status(500).json({ message: 'Login failed', error: error.message });
   }
 };
+
+
+// Logout queue process
+logout_queue.process(async (job) => {
+  let redisClient = await redisClientPool.borrowClient();
+  const { sessionId, email } = job.data;
+  try {
+    console.log(`Debug: Starting logout process for email: ${email}`);
+    const sessionKey = `session:${sessionId}`;
+    const sessionData = await redisClient.get(sessionKey);
+    if (!sessionData) {
+      console.log(`Debug: Session not found for logout: ${sessionId}`);
+      return { success: false, message: 'Session not found', code: 'SESSION_NOT_FOUND' };
+    }
+
+    await redisClient.del(sessionKey);
+    
+    console.log(`Debug: Logout successful for email: ${email}`);
+    return { success: true, message: 'Logout successful', code: 'LOGOUT_SUCCESS' };
+  } catch (error) {
+    console.error(`Error in logout queue process: ${error.message}`);
+    return { success: false, message: 'Logout failed', error: error.message, code: 'LOGOUT_ERROR' };
+  } finally {
+    if (redisClient) {
+      await redisClientPool.returnClient(redisClient);
+    }
+  }
+});
+
+
 
 const logout = async (req, res) => {
   try {
@@ -494,7 +527,7 @@ forgot_password_queue.process(async (job) => {
       userId: user._id.toString(),
       email: user.email,
       hashedToken,
-      expires: timestamp + 3600000, // 1 hour from now
+      expires: timestamp + 120000, 
       created: timestamp
     };
 
@@ -524,7 +557,7 @@ forgot_password_queue.process(async (job) => {
 
     return { 
       success: true, 
-      message: 'Password reset email sent', 
+      message: 'Password reset email sent reset your password within 2 minutes', 
       code: 'RESET_EMAIL_SENT',
       resetToken: process.env.NODE_ENV === 'development' ? resetToken : undefined,
       debug: {
@@ -787,6 +820,18 @@ const welcomeMessage = (req, res) => {
   }
 };
 
+const checkAuthentication = async (req, res) => {
+  try {
+    // Optionally access `req.user` if added by the authMiddleware
+    res.status(200).json({
+      user: req.user
+    });
+  } catch (error) {
+    console.error('Error in checkAuthentication:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
 
 module.exports = { 
   register, 
@@ -797,5 +842,7 @@ module.exports = {
   welcomeMessage, 
   forgotPassword,
   resetPassword,
+  checkAuthentication,
+ 
 };
 

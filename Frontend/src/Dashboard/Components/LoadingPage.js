@@ -1,102 +1,111 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 
-function LoadingScreen({ toolName = "", labName = "" }) {
-  const segments = Array.from({ length: 33 });
+const LoadingAnimation = () => {
+  // CSS variables
+  const vars = {
+    duration: '1.5s',
+    containerSize: '250px',
+    boxSize: '33px',
+    boxBorderRadius: '15%',
+  };
+
+  // Keyframe animations
+  const keyframes = {
+    slide: `
+      @keyframes slide {
+        0% { background-color: #09D1C7; transform: translatex(0vw); }
+        100% { background-color: #80EE98; transform: translatex(calc(${vars.containerSize} - (${vars.boxSize} * 1.25))); }
+      }
+    `,
+    colorChange: `
+      @keyframes colorChange {
+        0% { background-color: #09D1C7; }
+        100% { background-color: #80EE98; }
+      }
+    `,
+    ...Array.from({ length: 4 }, (_, i) => ({
+      [`flip${i + 1}`]: `
+        @keyframes flip${i + 1} {
+          0%, ${(i + 1) * 15}% { transform: rotate(0); }  
+          ${(i + 1) * 15 + 20}%, 100% { transform: rotate(-180deg); }
+        }
+      `,
+      [`squidge${i + 1}`]: `
+        @keyframes squidge${i + 1} {
+          ${(i + 1) * 15 - 10}% { transform-origin: center bottom; transform: scalex(1) scaley(1);}
+          ${(i + 1) * 15}% { transform-origin: center bottom; transform: scalex(1.3) scaley(0.7);}
+          ${(i + 1) * 15 + 10}%, ${(i + 1) * 15 + 5}% { transform-origin: center bottom; transform: scalex(0.8) scaley(1.4);}
+          ${(i + 1) * 15 + 40}%, 100% { transform-origin: center top; transform: scalex(1) scaley(1);}
+          ${(i + 1) * 15 + 25}% { transform-origin: center top; transform: scalex(1.3) scaley(0.7);}
+        }
+      `,
+    })).reduce((acc, curr) => ({ ...acc, ...curr }), {}),
+  };
+
+  // Styles
+  const styles = {
+    wrapper: {
+      width: '100%',
+      height: '100vh',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#1A202C',
+    },
+    container: {
+      width: vars.containerSize,
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      position: 'relative',
+    },
+    box: {
+      width: vars.boxSize,
+      height: vars.boxSize,
+      position: 'relative',
+      display: 'block',
+      transformOrigin: '-50% center',
+      borderRadius: vars.boxBorderRadius,
+    },
+    boxAfter: {
+      content: "''",
+      width: '100%',
+      height: '100%',
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      backgroundColor: '#09D1C7',
+      borderRadius: vars.boxBorderRadius,
+      boxShadow: '0px 0px 10px 0px rgba(9, 209, 199, 0.4)',
+    },
+  };
+
+  // Generate box styles
+  const boxStyles = Array.from({ length: 5 }, (_, i) => ({
+    ...styles.box,
+    animation: i === 0 ? `slide ${vars.duration} ease-in-out infinite alternate` : `flip${i} ${vars.duration} ease-in-out infinite alternate`,
+    '&:after': {
+      ...styles.boxAfter,
+      animation: i === 0 ? `colorChange ${vars.duration} ease-in-out infinite alternate` : `squidge${i} ${vars.duration} ease-in-out infinite alternate`,
+      backgroundColor: ['#09D1C7', '#1FB1FD', '#22C7FB', '#23D3FB', '#80EE98'][i],
+    },
+  }));
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center ">
-      {/* Glowing line */}
-      <div className="absolute w-full h-px top-1/2 bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent">
-        <div className="absolute inset-0 blur-sm bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent" />
-      </div>
-
-      <div className="relative flex flex-col items-center">
-        {/* Tool and Lab names */}
-        <motion.div
-          className="text-center mb-8"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0, delay: 0 }}
-        >
-          <h2 className="text-4xl  text-btg mb-4 mt-10">{toolName}</h2>
-          <h3 className="text-2xl text-btg">{labName}</h3>
-        </motion.div>
-
-        {/* Fixed position container */}
-        <div className="relative w-96 h-96">
-          {/* Rotating container */}
-          <motion.div
-            className="w-full h-full absolute"
-            animate={{ rotate: 360 }}
-            transition={{
-              duration: 8,
-              repeat: Infinity,
-              ease: "linear"
-            }}
-          >
-            {/* Individual segments */}
-            {segments.map((_, index) => (
-              <motion.div
-                key={index}
-                className="absolute w-2 h-8 bg-gray-700 rounded-full"
-                style={{
-                  top: '50%',
-                  left: '50%',
-                  marginLeft: '-1px',
-                  marginTop: '-10rem',
-                  transformOrigin: '50% 10rem',
-                  rotate: `${(360 / segments.length) * index}deg`,
-                }}
-                animate={{
-                  backgroundColor: [
-                    'rgb(31, 41, 55)', // gray-800
-                    '#80EE98', 
-                    'rgb(31, 41, 55)' // gray-800
-                  ],
-                  filter: [
-                    'brightness(1) drop-shadow(0 0 0 rgb(6, 182, 212))',
-                    'brightness(1.5) drop-shadow(0 0 12px rgb(6, 182, 212))',
-                    'brightness(1) drop-shadow(0 0 0 rgb(6, 182, 212))'
-                  ]
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  delay: index * (2 / segments.length),
-                  ease: "easeInOut",
-                  
-                }}
-              />
-            ))}
-          </motion.div>
-
-          {/* Loading text */}
-          <motion.div
-            className="absolute inset-0 flex items-center justify-center text-btg font-mono text-4xl"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, repeat: Infinity, repeatType: "reverse" }}
-          >
-            Loading...
-          </motion.div>
-        </div>
-
-        {/* Status message */}
-        <motion.div
-          className="mt-8 text-white text-4xl"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-        >
-          Provisioning your lab environment...
-        </motion.div>
-
-        {/* Outer glow */}
-        <div className="absolute inset-0 rounded-full bg-cyan-500/5 blur-3xl" />
+    <div style={styles.wrapper}>
+      <style>
+        {Object.values(keyframes).join('\n')}
+      </style>
+      <div style={styles.container}>
+        {boxStyles.map((style, index) => (
+          <div key={index} style={style}>
+            <div style={style['&:after']} />
+          </div>
+        ))}
       </div>
     </div>
   );
-}
+};
 
-export default LoadingScreen;
+export default LoadingAnimation;
+
