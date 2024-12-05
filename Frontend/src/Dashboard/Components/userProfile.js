@@ -1,23 +1,41 @@
 import React, { useState, useEffect } from "react";
+import { useAuthContext } from "../../API/UseAuthContext";
+import LoadingPage from './LoadingPage'
+import axios from "axios";
+
+const api = axios.create({
+  baseURL: "http://localhost:8000/api",
+  withCredentials: true,
+});
 
 const UserProfile = () => {
-  const [user, setUser] = useState({
-    name: "John Doe",
-    role: "DevOps Enthusiast",
-    email: "john.doe@devopsmentor.com",
-    labs: 15,
-    quizzes: 42,
-    tools: 28,
+  const { user } = useAuthContext();
+  const [user2, setUser] = useState({
+    name: user.name,
+    username: user.username,
+    gender: user.gender,
+    email: user.email,
+    profilePicture: "https://github.com/shadcn.png", // Placeholder image
   });
 
   const [isEditing, setIsEditing] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [apiMessage, setApiMessage] = useState({ type: "", content: "" });
 
   useEffect(() => {
-    // Simulate loading user data
-    const timer = setTimeout(() => setIsLoaded(true), 500); // Delay for better UX
+    const timer = setTimeout(() => setIsLoaded(true), 500);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (apiMessage.content) {
+      const timer = setTimeout(() => {
+        setApiMessage({ type: "", content: "" });
+      }, 3000); // Clear message after 3 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [apiMessage]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -27,96 +45,166 @@ const UserProfile = () => {
     }));
   };
 
-  const toggleEdit = () => {
+  const handleGenderChange = (e) => {
+    setUser((prevUser) => ({
+      ...prevUser,
+      gender: e.target.value,
+    }));
+  };
+
+  const toggleEdit = async () => {
+    if (isEditing) {
+      try {
+        const response = await api.post("/user/SetUserInformation", {
+          email: user2.email,
+          name: user2.name,
+          username: user2.username,
+          gender: user2.gender,
+        });
+    
+        console.log("API Response:", response.data);
+    
+        setApiMessage({
+          type: "success",
+          content: "Profile saved successfully!",
+        });
+
+        // Update the user state with the response data
+        setUser(prevUser => ({
+          ...prevUser,
+          ...response.data
+        }));
+      } catch (error) {
+        console.error("API Error:", error);
+        setApiMessage({
+          type: "error",
+          content: "Failed to save profile. Please try again.",
+        });
+      }
+    } else {
+      // Clear the API message when entering edit mode
+      setApiMessage({ type: "", content: "" });
+    }
     setIsEditing(!isEditing);
   };
 
+  if (!isLoaded) {
+    return <LoadingPage/>;
+  }
+
   return (
-    <div className="flex-1">
-      {/* Profile Section */}
-      <div className="relative p-6">
-        <div className="absolute inset-0 opacity-5" />
-        <div className="relative">
-          {isLoaded ? (
-            <>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-semibold text-white">Profile</h2>
-                <button
-                  onClick={toggleEdit}
-                  className="px-4 py-2 bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C] hover:from-[#09D1C7] hover:to-[#80EE98] font-medium rounded-md transition-all duration-300"
-                >
-                  {isEditing ? "Save" : "Edit Profile"}
-                </button>
-              </div>
+    <div className="max-w-xl mx-auto p-6 border border-[#09D1C7]/20 rounded-xl mt-16 relative">
+      <div className={`flex ${apiMessage.content? "justify-between" : "justify-end"}  mb-4`}>
+      {apiMessage.content && (
+          <div
+            className={`px-4 py-2 rounded-md text-sm font-medium ${
+              apiMessage.type === "success"
+                ? "bg-[#80EE98]/20 text-[#80EE98]"
+                : "bg-red-500/20 text-red-500"
+            }`}
+          >
+            {apiMessage.content}
+          </div>
+        )}
+        <button
+          onClick={toggleEdit}
+          className="px-4 py-2 bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C] hover:from-[#09D1C7] hover:to-[#80EE98] font-medium rounded-md transition-all duration-300"
+        >
+          {isEditing ? "Save Profile" : "Edit Profile"}
+        </button>
+      </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div className="bg-[#1A202C]/50 border border-[#80EE98]/20 hover:bg-[#80EE98]/10 transition-colors rounded-lg">
-                  <div className="p-6">
-                    <h3 className="text-[#80EE98] text-sm font-medium mb-2">Name</h3>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="name"
-                        value={user.name}
-                        onChange={handleInputChange}
-                        className="bg-transparent border-b border-[#80EE98] text-white text-lg focus:outline-none w-full"
-                      />
-                    ) : (
-                      <p className="text-white text-lg">{user.name}</p>
-                    )}
-                  </div>
-                </div>
-                <div className="bg-[#1A202C]/50 border border-[#09D1C7]/20 hover:bg-[#09D1C7]/10 transition-colors rounded-lg">
-                  <div className="p-6">
-                    <h3 className="text-[#09D1C7] text-sm font-medium mb-2">Email</h3>
-                    {isEditing ? (
-                      <input
-                        type="email"
-                        name="email"
-                        value={user.email}
-                        onChange={handleInputChange}
-                        className="bg-transparent border-b border-[#09D1C7] text-white text-lg focus:outline-none w-full"
-                      />
-                    ) : (
-                      <p className="text-white text-lg">{user.email}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
+      <div className="flex flex-row items-center text-center">
+        <div className="w-32 h-32 relative ml-2">
+          <img
+            src={user2.profilePicture}
+            alt={user2.name}
+            className="rounded-full w-full h-full object-cover border-4 border-[#80EE98]/20"
+          />
+        </div>
+        <div className="flex flex-col ml-4">
+          <h1 className="text-3xl font-bold text-white">{user2.name}</h1>
+          <p className="text-[#09D1C7]">@{user2.username}</p>
+        </div>
+      </div>
 
-              <div className="grid grid-cols-3 gap-6">
-                {[
-                  { label: "Labs", key: "labs", color: "#80EE98" },
-                  { label: "Quizzes", key: "quizzes", color: "#09D1C7" },
-                  { label: "Tools", key: "tools", color: "#80EE98" },
-                ].map((item) => (
-                  <div
-                    key={item.key}
-                    className={`bg-[${item.color}]/5 border border-[${item.color}]/20 hover:bg-[${item.color}]/15 transition-colors group rounded-lg`}
-                  >
-                    <div className="p-6 text-center">
-                      {isEditing ? (
-                        <input
-                          type="number"
-                          name={item.key}
-                          value={user[item.key]}
-                          onChange={handleInputChange}
-                          className={`text-4xl font-bold text-[${item.color}] bg-transparent text-center w-full focus:outline-none`}
-                        />
-                      ) : (
-                        <p className={`text-4xl font-bold text-[${item.color}] mb-2`}>
-                          {user[item.key]}
-                        </p>
-                      )}
-                      <h3 className="text-white/80 text-sm font-medium">{item.label}</h3>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
+      <div className="space-y-6 mt-3">
+        <div className="space-y-2">
+          <label className="block text-[#09D1C7] text-sm font-medium">
+            Name
+          </label>
+          {isEditing ? (
+            <input
+              type="text"
+              name="name"
+              value={user2.name}
+              onChange={handleInputChange}
+              className="flex-1 bg-transparent border border-[#80EE98]/20 group-hover:border-[#09D1C7]/40 focus:border-[#09D1C7] text-white rounded-lg px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-[#09D1C7] transition-colors w-full"
+            />
           ) : (
-            <div className="text-white text-center py-10">Loading...</div>
+            <div className="w-full bg-[#1A202C]/50 border border-[#09D1C7]/20 rounded-md px-4 py-2 text-white hover:bg-[#09D1C7]/20">
+              {user2.name}
+            </div>
           )}
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-[#80EE98] text-sm font-medium">
+            Username
+          </label>
+          {isEditing ? (
+            <input
+              type="text"
+              name="username"
+              value={user2.username}
+              onChange={handleInputChange}
+              className="flex-1 bg-transparent border border-[#80EE98]/20 group-hover:border-[#80EE98]/40 focus:border-[#80EE98] text-white rounded-lg px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-[#80EE98] transition-colors w-full"
+            />
+          ) : (
+            <div className="w-full bg-[#1A202C]/50 border border-[#80EE98]/20 rounded-md px-4 py-2 text-white hover:bg-[#80EE98]/20">
+              {user2.username}
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-[#09D1C7] text-sm font-medium">
+            Gender
+          </label>
+          {isEditing ? (
+            <select
+              name="gender"
+              value={user2.gender}
+              onChange={handleGenderChange}
+              className="flex-1 bg-transparent border border-[#80EE98]/20 group-hover:border-[#09D1C7]/40 focus:border-[#09D1C7] text-white rounded-lg px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-[#09D1C7] transition-colors w-full"
+            >
+              <option
+                value="Male"
+                className="bg-[#1A202C] hover:bg-[#09D1C7]/80 text-white"
+              >
+                Male
+              </option>
+              <option
+                value="Female"
+                className="bg-[#1A202C] hover:bg-[#80EE98]/80 text-white"
+              >
+                Female
+              </option>
+            </select>
+          ) : (
+            <div className="w-full bg-[#1A202C]/50 border border-[#09D1C7]/20 rounded-md px-4 py-2 text-white hover:bg-[#09D1C7]/20">
+              {user2.gender}
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-[#80EE98] text-sm font-medium">
+            Email
+          </label>
+          <div className="w-full bg-[#1A202C]/50 border border-[#80EE98]/20 rounded-md px-4 py-2 text-white hover:bg-[#80EE98]/20">
+            {user2.email}
+          </div>
         </div>
       </div>
     </div>
@@ -124,3 +212,4 @@ const UserProfile = () => {
 };
 
 export default UserProfile;
+

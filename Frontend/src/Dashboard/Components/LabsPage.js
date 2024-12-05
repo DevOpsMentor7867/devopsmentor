@@ -22,6 +22,7 @@ const Labs = () => {
       state: {
         toolName: toolName,
         labName: lab.name,
+        docker_image: lab.docker_image
       },
     });
   };
@@ -41,6 +42,7 @@ const Labs = () => {
         throw new Error("Labs data is not an array");
       }
       setLabs(data.labs);
+      console.log(data.labs)
     } catch (error) {
       console.error("Error fetching labs:", error);
       setError(`Failed to load labs. Please try again later.`);

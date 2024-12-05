@@ -839,8 +839,7 @@ const checkAuthentication = async (req, res) => {
 };
 const SetUserInformation = async (req, res) => {
   try {
-    const { email, name, username, gender} = req.body;
-    console.log("backend req body", name, email, username, gender)
+    const { name, email, username, gender} = req.body;
 
     // Validate input
     if (!email) {

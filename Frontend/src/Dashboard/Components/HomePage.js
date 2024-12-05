@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import ProfileSetupModal from "./ProfileModal";
 import { useAuthContext } from "../../API/UseAuthContext";
+import LoadingPage from "./LoadingPage";
 
 const api = axios.create({
   baseURL: "http://localhost:8000/api",
@@ -9,44 +10,31 @@ const api = axios.create({
 });
 
 export default function HomePage() {
-  const [showProfileSetup, setShowProfileSetup] = useState(true);
-  const { user, loading } = useAuthContext();
-  const [userData, setUserData] = useState({
-    email: "",
-    name: "",
-    username: "",
-    gender: "",
-  });
+  const { user, loading, updateUser } = useAuthContext();
+  const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [apiMessage, setApiMessage] = useState({ type: "", content: "" });
 
   useEffect(() => {
-    if (user) {
-      setUserData((prevData) => ({
-        ...prevData,
-        email: user.email || "",
-      }));
+    if (user && user.name === "*") {
+      setShowProfileSetup(true);
     }
   }, [user]);
 
   const SetUserInformation = async (profileData) => {
     try {
-      setUserData((prevUserData) => {
-        const updatedUserData = {
-          ...prevUserData,
-          ...profileData,
-        };
-        console.log("Updated userData:", updatedUserData);
-        return updatedUserData;
-      });
       const response = await api.post("/user/SetUserInformation", {
         ...profileData,
-        email: user?.email || userData.email,
+        email: user?.email || profileData.email,
       });
       console.log("API Response:", response.data);
       setApiMessage({
         type: "success",
         content: "Profile saved successfully!",
       });
+      
+      // Update the user context with the new data
+      updateUser(profileData);
+      
       return true;
     } catch (error) {
       console.error("Error sending profile data:", error);
@@ -62,18 +50,9 @@ export default function HomePage() {
 
   const handleProfileSave = async (profileData) => {
     console.log("Form Data:", profileData);
-
     const success = await SetUserInformation(profileData);
-
     if (success) {
-      setUserData((prevUserData) => {
-        const updatedUserData = {
-          ...prevUserData,
-          ...profileData,
-        };
-        console.log("Updated userData:", updatedUserData);
-        return updatedUserData;
-      });
+      setShowProfileSetup(false);
     }
   };
 
@@ -83,29 +62,30 @@ export default function HomePage() {
   };
 
   if (loading) {
-    return <div className="text-center mt-12">Loading...</div>;
+    return <LoadingPage/>
   }
 
   return (
     <div className="text-center text-gtb mt-12">
       <h1>This is the homepage</h1>
-      {showProfileSetup && (
+      {showProfileSetup && user && (
         <ProfileSetupModal
-          email={userData.email}
+          email={user.email || ""}
           onSave={handleProfileSave}
           apiMessage={apiMessage}
           onClose={handleCloseModal}
         />
       )}
-      {!showProfileSetup && (
+      {!showProfileSetup && user && (
         <div>
           <h2>Profile Information:</h2>
-          <p>Name: {userData.name}</p>
-          <p>Username: {userData.username}</p>
-          <p>Email: {userData.email}</p>
-          <p>Gender: {userData.gender}</p>
+          <p>Name: {user.name}</p>
+          <p>Username: {user.username}</p>
+          <p>Email: {user.email}</p>
+          <p>Gender: {user.gender}</p>
         </div>
       )}
     </div>
   );
 }
+

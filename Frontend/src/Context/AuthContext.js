@@ -1,4 +1,4 @@
-import React, { createContext, useReducer, useEffect, useState, useContext } from "react";
+import React, { createContext, useReducer, useEffect, useContext } from "react";
 import axios from 'axios';
 
 const api = axios.create({
@@ -14,9 +14,13 @@ export const AuthContext = createContext();
 export const authReducer = (state, action) => {
   switch (action.type) {
     case "LOGIN":
-      return { ...state, user: action.payload };
+      return { ...state, user: action.payload, loading: false };
     case "LOGOUT":
-      return { ...state, user: null };
+      return { ...state, user: null, loading: false };
+    case "UPDATE_USER":
+      return { ...state, user: { ...state.user, ...action.payload } };
+    case "SET_LOADING":
+      return { ...state, loading: action.payload };
     default:
       return state;
   }
@@ -25,8 +29,12 @@ export const authReducer = (state, action) => {
 export const AuthContextProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, {
     user: null,
+    loading: true,
   });
-  const [loading, setLoading] = useState(true);
+
+  const updateUser = (newUserData) => {
+    dispatch({ type: 'UPDATE_USER', payload: newUserData });
+  };
 
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -37,8 +45,7 @@ export const AuthContextProvider = ({ children }) => {
         }
       } catch (error) {
         console.error("Authentication error:", error.response?.data || error.message);
-      } finally {
-        setLoading(false);
+        dispatch({ type: 'SET_LOADING', payload: false });
       }
     };    
 
@@ -48,11 +55,17 @@ export const AuthContextProvider = ({ children }) => {
   console.log("AuthContext state", state);
   
   return (
-    <AuthContext.Provider value={{ ...state, dispatch, loading }}>
+    <AuthContext.Provider value={{ ...state, dispatch, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuthContext = () => useContext(AuthContext);
+export const useAuthContext = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuthContext must be used within an AuthContextProvider');
+  }
+  return context;
+};
 

@@ -62,7 +62,7 @@ function TerminalComponent({ isOpen }) {
   const [currentHintIndex, setCurrentHintIndex] = useState(0);
   const [socketId, setsocketId] = useState(null);
   const location = useLocation();
-  const { toolName, labName } = location.state || {};
+  const { toolName, labName, docker_image } = location.state || {};
   // eslint-disable-next-line
   const [term, setTerm] = useState(null);
 
@@ -241,9 +241,13 @@ function TerminalComponent({ isOpen }) {
       setTerm(newTerm);
 
       // Initialize socket
+      console.log("dockerimg", docker_image)
       const socket = io("http://localhost:8000/terminal", {
         withCredentials: true,
         transports: ["websocket", "polling"],
+        auth: {
+          docker_image: docker_image
+        }
       });
       socketRef.current = socket;
 
@@ -263,7 +267,7 @@ function TerminalComponent({ isOpen }) {
     if (terminalRef.current) {
       initializeTerminal();
     }
-  }, []);
+  }, );
 
   useEffect(() => {
     const handleMouseMove = (e) => {

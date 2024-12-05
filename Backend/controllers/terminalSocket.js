@@ -393,7 +393,8 @@ const setupTerminalNamespace = async () => {
   const terminalNamespace = io.of('/terminal');
 
   terminalNamespace.on('connection', async (socket) => {
-    console.log(`User connected to terminal: ${socket.id}`);
+    const docker_image = socket.handshake.auth.docker_image;
+    console.log(`User connected to terminal: ${socket.id}, docker: ${docker_image}`);
     let dockerClient = await dockerClientPool.borrowClient();
     let redisClient = await redisClientPool.borrowClient();
 

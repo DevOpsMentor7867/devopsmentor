@@ -35,10 +35,10 @@ routes.get('/user/verify-passwords', async (req, res) => {
 //routes.post('/user/stopterminal',authMiddleware, stopAndDeleteContainer );
 
 
-//routes.get('/user/gettools',getTools );
-//routes.get('/user/:toolId/labs',getLabs );
-//routes.get('/user/labs/:labId/questions',getLabQuestions);
-//routes.post('/user/checkanswer',scriptExecute);
+routes.get('/user/gettools',getTools );
+routes.get('/user/:toolId/labs',getLabs );
+routes.get('/user/labs/:labId/questions',getLabQuestions);
+routes.post('/user/checkanswer',scriptExecute);
 
 
 

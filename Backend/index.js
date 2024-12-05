@@ -43,7 +43,7 @@ const initializeApp = async () => {
     await redisClientPool.initialize(); 
 
     //await dockerClientPool.initialize();
-   // setupTerminalNamespace();
+   setupTerminalNamespace();
     //await execInstancePool.initialize();
      //await setupTerminalNamespace();
     const port = process.env.PORT || 3000;
