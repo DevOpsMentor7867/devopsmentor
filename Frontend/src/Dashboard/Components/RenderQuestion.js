@@ -4,7 +4,7 @@ import * as CustomComponents from '../UI/Card';
 import { Lightbulb } from 'lucide-react';
 
 const styles = {
-  container: "-mt-5",
+  container: "",
   card: "max-w-4xl mx-auto border-none p-4",
   title: "text-2xl text-emerald-400",
   link: "text-emerald-400 hover:text-emerald-300 transition-colors",

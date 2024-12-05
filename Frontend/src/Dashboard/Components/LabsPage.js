@@ -68,6 +68,7 @@ const Labs = () => {
 
   return (
     <div className="p-4 w-full mt-3 mx-auto">
+      
       <div className="relative">
         <div className="bg-gradient-to-r from-[#09D1C7] to-[#80EE98]/80 p-4 md:p-6 text-[#1A202C]">
           <div className="flex flex-row md:flex-row items-center md:items-start">

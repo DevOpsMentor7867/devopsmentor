@@ -45,6 +45,7 @@ const ToolsPage = () => {
 
   return (
     <div className="w-full pr-4 pt-4 pb-4 md:p-4 overflow-y-auto mt-10 md:mt-3 ">
+      
       <div className="bg-gradient-to-r from-[#09D1C7] to-[#80EE98]/80 p-4 md:p-6 text-black/70">
         <h2 className="text-2xl md:text-3xl font-bold mb-2">DevOps Tools and Concepts</h2>
         <p className="text-base md:text-lg">
@@ -53,6 +54,7 @@ const ToolsPage = () => {
           cloud-native technologies.
         </p>
       </div>
+      
       <div className="relative p-4 overflow-y-auto">
         <div className="absolute inset-0 opacity-5" />
         <div className="relative max-w-4xl mx-auto">

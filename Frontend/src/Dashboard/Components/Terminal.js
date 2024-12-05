@@ -10,7 +10,9 @@ import AiAssistant from "./AiAssistant";
 import CompletionPopup from "./CompletionPopup";
 import ConfirmationPopup from "./ConfirmationPopup";
 import confetti from "canvas-confetti";
-import RenderQuestion from './RenderQuestion';
+import RenderQuestion from "./RenderQuestion";
+import { FitAddon } from "@xterm/addon-fit";
+import "xterm/css/xterm.css";
 
 import {
   Users,
@@ -69,6 +71,9 @@ function TerminalComponent({ isOpen }) {
   const dragStartWidth = useRef(0);
   const terminalRef = useRef(null);
   const socketRef = useRef(null);
+  const fitAddonRef = useRef(null);
+  const terminalInitialized = useRef(false); // Prevent re-initialization
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -146,45 +151,49 @@ function TerminalComponent({ isOpen }) {
   }, []);
 
   useEffect(() => {
-    const newTerm = new Terminal({
-      theme: {
-        background: "#1F2937",
-        foreground: "#ffffff",
-        cursor: "#ffffff",
-        selection: "rgba(255, 255, 255, 0.3)",
-        black: "#000000",
-        red: "#e06c75",
-        green: "#98c379",
-        yellow: "#d19a66",
-        blue: "#61afef",
-        magenta: "#c678dd",
-        cyan: "#56b6c2",
-        white: "#ffffff",
-        brightBlack: "#5c6370",
-        brightRed: "#e06c75",
-        brightGreen: "#98c379",
-        brightYellow: "#d19a66",
-        brightBlue: "#61afef",
-        brightMagenta: "#c678dd",
-        brightCyan: "#56b6c2",
-        brightWhite: "#ffffff",
-      },
-      fontFamily: 'Menlo, Monaco, "Courier New", monospace',
-      fontSize: 14,
-      lineHeight: 1,
-      rows: 35,
-      cols: 90,
-      cursorBlink: true,
-    });
+    if (terminalInitialized.current) return; // Skip if already initialized
+    terminalInitialized.current = true;
+    const initializeTerminal = () => {
+      if (!terminalRef.current) return;
 
-    if (terminalRef.current) {
+      const newTerm = new Terminal({
+        theme: {
+          background: "#1F2937",
+          foreground: "#ffffff",
+          cursor: "#ffffff",
+          selection: "rgba(255, 255, 255, 0.3)",
+        },
+        fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+        fontSize: 14,
+        // rows: 135,
+        // cols: 290,
+        cursorBlink: true,
+      });
+
+      const fitAddon = new FitAddon();
+      fitAddonRef.current = fitAddon; // Store the FitAddon instance
+      newTerm.loadAddon(fitAddon);
+
+      // Open terminal in the container
       newTerm.open(terminalRef.current);
 
+      // Delay fitAddon fitting to ensure container has dimensions
+      setTimeout(() => {
+        fitAddon.fit();
+      }, 100);
+
+      // Handle window resize
+      const handleResize = () => {
+        fitAddon.fit();
+      };
+      window.addEventListener("resize", handleResize);
+
+      // Add the gradient and ASCII art (as per original logic)
       const gradientColors = [
         "\x1b[38;2;9;209;199m", // #09D1C7
-        "\x1b[38;2;33;217;185m", // Interpolated color
-        "\x1b[38;2;57;225;171m", // Interpolated color
-        "\x1b[38;2;81;233;157m", // Interpolated color
+        "\x1b[38;2;33;217;185m",
+        "\x1b[38;2;57;225;171m",
+        "\x1b[38;2;81;233;157m",
         "\x1b[38;2;105;238;144m", // #80EE98 at 80% opacity
       ];
 
@@ -209,17 +218,17 @@ function TerminalComponent({ isOpen }) {
           background-color: #4B5563;
           border-radius: 6px;
           border: 3px solid #1F2937;
-        }
-      `;
-      document.head.appendChild(style);
-      asciiArt.forEach((line) => {
-        let gradientLine = "";
-        const segmentLength = Math.ceil(line.length / gradientColors.length);
-
-        for (let i = 0; i < line.length; i++) {
-          const colorIndex = Math.floor(i / segmentLength);
-          gradientLine += gradientColors[colorIndex] + line[i];
-        }
+        } `
+        document.head.appendChild(style);
+        asciiArt.forEach((line) => {
+          let gradientLine = "";
+          const segmentLength = Math.ceil(line.length / gradientColors.length);
+  
+          for (let i = 0; i < line.length; i++) {
+            const colorIndex = Math.floor(i / segmentLength);
+            gradientLine += gradientColors[colorIndex] + line[i];
+          }
+  
 
         newTerm.writeln(gradientLine);
       });
@@ -229,57 +238,32 @@ function TerminalComponent({ isOpen }) {
       );
       newTerm.writeln("\x1b[0m");
       newTerm.write("$ ");
-    }
 
-    setTerm(newTerm);
+      setTerm(newTerm);
 
-    socketRef.current = io("http://localhost:8000/terminal", {
-      withCredentials: true,
-      transports: ["websocket", "polling"],
-    });
-
-    socketRef.current.on("connect", () => {
-      setsocketId(socketRef.current.id);
-    });
-
-    const init = () => {
-      if (newTerm._initialized) {
-        return;
-      }
-
-      newTerm._initialized = true;
-
-      newTerm.prompt = () => {
-        runCommand("\n");
-      };
-
-      setTimeout(() => {
-        newTerm.prompt();
-      }, 300);
-
-      newTerm.onKey((keyObj) => {
-        runCommand(keyObj.key);
+      // Initialize socket
+      const socket = io("http://localhost:8000/terminal", {
+        withCredentials: true,
+        transports: ["websocket", "polling"],
       });
+      socketRef.current = socket;
 
-      socketRef.current.on("output", (data) => {
-        newTerm.write(data);
-      });
-    };
+      socket.on("connect", () => setsocketId(socket.id));
+      socket.on("output", (data) => newTerm.write(data));
 
-    const runCommand = (command) => {
-      socketRef.current.emit("command", command);
-    };
+      newTerm.onKey(({ key }) => socket.emit("command", key));
 
-    init();
-
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-      }
-      if (newTerm) {
+      // Cleanup
+      return () => {
+        window.removeEventListener("resize", handleResize);
         newTerm.dispose();
-      }
+        socket.disconnect();
+      };
     };
+
+    if (terminalRef.current) {
+      initializeTerminal();
+    }
   }, []);
 
   useEffect(() => {
@@ -348,7 +332,6 @@ function TerminalComponent({ isOpen }) {
   const getCurrentQuestion = () => {
     const currentLab = labQuestions[currentLabIndex];
     return currentLab ? currentLab.questions_data[currentQuestionIndex] : {};
-    
   };
   // eslint-disable-next-line
   const getTotalQuestions = () => {
@@ -592,14 +575,6 @@ function TerminalComponent({ isOpen }) {
                       </motion.button>
                     </div>
                   </div>
-
-                  <div className="prose prose-invert overflow-auto h-96 custom-scrollbar pr-2">
-                    <p className="text-lg text-white">
-                      {/* {getCurrentQuestion().question} */}
-                      <RenderQuestion questionString={getCurrentQuestion().question} />
-                    </p>
-                  </div>
-
                   {ShowSucsess && (
                     <motion.div
                       className="mt-4 flex items-center text-green-500"
@@ -613,7 +588,7 @@ function TerminalComponent({ isOpen }) {
                   )}
                   {ShowQuestionFailure && (
                     <motion.div
-                      className="mt-4 flex items-center text-red-500"
+                      className="mt-4 flex items-center text-red-500 mb-2"
                       initial={{ opacity: 0, y: 0 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5 }}
@@ -625,6 +600,15 @@ function TerminalComponent({ isOpen }) {
                       </span>
                     </motion.div>
                   )}
+
+                  <div className="prose prose-invert overflow-auto h-96 custom-scrollbar pr-2">
+                    <p className="text-lg text-white">
+                      {/* {getCurrentQuestion().question} */}
+                      <RenderQuestion
+                        questionString={getCurrentQuestion().question}
+                      />
+                    </p>
+                  </div>
                 </div>
 
                 <div className="space-y-4 mt-auto">
@@ -675,7 +659,7 @@ function TerminalComponent({ isOpen }) {
             />
 
             <motion.div
-              className="relative rounded-xl overflow-hidden backdrop-blur-md bg-gray-800/50 border border-gray-700 transition-all duration-300"
+              className="relative rounded-xl overflow-hidden backdrop-blur-md bg-gray-800/50 border border-gray-700 transition-all duration-300 "
               style={{ width: `${terminalWidth}%` }}
               variants={itemVariants}
             >
@@ -704,7 +688,10 @@ function TerminalComponent({ isOpen }) {
                     </motion.button>
                   </div>
                 </div>
-                <div ref={terminalRef} className="flex-1 overflow-auto custom-scrollbar" />
+                <div
+                  ref={terminalRef}
+                  className="flex-1 overflow-auto custom-scrollbar"
+                />
               </div>
             </motion.div>
           </div>

@@ -449,14 +449,14 @@ export default function AuthComponent() {
   return (
     <>
       <div className="min-h-screen flex flex-col  overflow-hidden relative p-4 sm:p-6 md:p-8">
-      <div className="fixed inset-0 z-0">
-        <img
-          src="/homebgc.jpg"
-          alt="Background"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-black/60" />
-      </div>
+        <div className="fixed inset-0 z-0">
+          <img
+            src="/homebgc.jpg"
+            alt="Background"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/60" />
+        </div>
         <Link
           to="/"
           className="absolute top-4 left-4 text-white hover:text-[#80EE98] transition-colors flex items-center text-lg z-10"
