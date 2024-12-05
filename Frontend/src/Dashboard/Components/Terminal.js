@@ -10,6 +10,7 @@ import AiAssistant from "./AiAssistant";
 import CompletionPopup from "./CompletionPopup";
 import ConfirmationPopup from "./ConfirmationPopup";
 import confetti from "canvas-confetti";
+import RenderQuestion from './RenderQuestion';
 
 import {
   Users,
@@ -564,7 +565,7 @@ function TerminalComponent({ isOpen }) {
               style={{ width: `${100 - terminalWidth}%` }}
               variants={itemVariants}
             >
-              <div className="p-6 h-full flex flex-col">
+              <div className="p-3 h-full flex flex-col">
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-bold text-btg">
@@ -592,9 +593,10 @@ function TerminalComponent({ isOpen }) {
                     </div>
                   </div>
 
-                  <div className="prose prose-invert">
+                  <div className="prose prose-invert overflow-auto h-96 custom-scrollbar pr-2">
                     <p className="text-lg text-white">
-                      {getCurrentQuestion().question}
+                      {/* {getCurrentQuestion().question} */}
+                      <RenderQuestion questionString={getCurrentQuestion().question} />
                     </p>
                   </div>
 
@@ -702,7 +704,7 @@ function TerminalComponent({ isOpen }) {
                     </motion.button>
                   </div>
                 </div>
-                <div ref={terminalRef} className="flex-1" />
+                <div ref={terminalRef} className="flex-1 overflow-auto custom-scrollbar" />
               </div>
             </motion.div>
           </div>

@@ -1,66 +1,54 @@
-import React, { useState } from "react";
-// import { Globe, ShoppingCart, Mail, Share2, Maximize2, MoreVertical, Settings } from 'lucide-react';
-import { Expand, Settings } from "lucide-react";
-import "./SideBar.css";
+import React from "react";
+// import { Link } from "react-router-dom";
+import NavBar from "../Core/NavBar";
+import DoodleComp from "../Core/DoodleComp";
+import { ArrowRight } from "lucide-react"
 
-export default function TopNav({ isSidebarOpen }) {
-  // eslint-disable-next-line
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
-    }
-  };
-
+export default function Home() {
   return (
-    <nav
-      className={`fixed top-0 right-0 z-50 flex items-center bg-[#1A202C] px-4 py-0 transition-all duration-300 bottom-gradient-border w-full pt-4 pb-4 ${
-        isSidebarOpen ? "left-60" : "left-14"
-      }`}
-    >
-      <div className="relative flex-1 text-2xl font-semibold uppercase text-white  md:w-auto ">
-        <div className="flex items-center gap-2 justify-center md:justify-start ">
-          {/* <img
-            src="/project-logo.png"
-            alt=""
-            className="object-cover h-16 w-16 md:h-20 md:w-20"
-          /> */}
-          {/* <span className="">Dashboard</span> */}
-        </div>
-      </div>
-      <div className=" flex-1 text-2xl font-semibold uppercase text-white  md:w-auto mr-40 ">
-        <div className=" ">
-          <span className="text-btg z-10">DEV∞OPS Mentor</span>
-        </div>
-      </div>
+    <>
+      <NavBar />
+      <DoodleComp />
 
-      <div
-        className={`hidden md:flex items-center gap-2 mr-12 gap-8 ${
-          isSidebarOpen ? "mr-64" : "mr-14"
-        }`}
-      >
-        <button
-          variant="ghost"
-          size="icon"
-          className="text-[#80EE98] hover:text-white  transition-all duration-300"
-          onClick={toggleFullscreen}
+      <section className="relative bg-gray-700 bg-blend-multiply">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          poster="/placeholder.svg?height=600&width=800"
+          className="absolute inset-0 w-full h-full object-cover"
+          aria-hidden="true"
         >
-          <Expand className="h-5 w-5" />
-        </button>
-
-        <button
-          variant="ghost"
-          size="icon"
-          className="text-[#80EE98] hover:text-white hover:bg-[#80EE98]/20 transition-all duration-300"
-        >
-          <Settings className="h-5 w-5" />
-        </button>
-      </div>
-    </nav>
+          <source src="devops.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+        <div className="px-4 mx-auto max-w-screen-xl text-center py-24 lg:py-56 relative">
+          <h1 className="mb-4 text-4xl font-extrabold tracking-tight leading-none text-white md:text-5xl lg:text-8xl text-green-500">
+            . <br /> .
+          </h1>
+          <p className="mb-8 text-lg font-normal text-gray-300 lg:text-xl sm:px-16 lg:px-48">
+            {/* Here at Flowbite we focus on markets where technology, innovation,
+            and capital can unlock long-term value and drive economic growth. */}
+          </p>
+          <div className="flex flex-col space-y-4 sm:flex-row sm:justify-center sm:space-y-0">
+            <a
+              href="/"
+              className="inline-flex justify-center items-center py-3 px-5 text-base text-center bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C] hover:from-[#09D1C7] hover:to-[#80EE98] rounded-md font-bold"
+            >
+              Get started
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </a>
+            <a
+              href="/"
+              className="inline-flex justify-center hover:text-gray-900 items-center py-3 px-5 sm:ms-4 text-base font-medium text-center text-white rounded-lg border border-white hover:bg-gray-100 focus:ring-4 focus:ring-gray-400"
+            >
+              Learn more
+            </a>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }
