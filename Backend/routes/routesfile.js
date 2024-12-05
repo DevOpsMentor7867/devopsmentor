@@ -19,6 +19,7 @@ routes.post('/user/delete-user',userAuthController.deleteUser);
 routes.post('/user/forgot-password', userAuthController.forgotPassword);
 routes.post('/user/reset-password', userAuthController.resetPassword);
 routes.post('/user/auth', authMiddleware, userAuthController.checkAuthentication);
+routes.post('/user/SetUserInformation',userAuthController.SetUserInformation);
 
 
 routes.get('/user/verify-passwords', async (req, res) => {
@@ -34,10 +35,10 @@ routes.get('/user/verify-passwords', async (req, res) => {
 //routes.post('/user/stopterminal',authMiddleware, stopAndDeleteContainer );
 
 
-routes.get('/user/gettools',getTools );
-routes.get('/user/:toolId/labs',getLabs );
-routes.get('/user/labs/:labId/questions',getLabQuestions);
-routes.post('/user/checkanswer',scriptExecute);
+//routes.get('/user/gettools',getTools );
+//routes.get('/user/:toolId/labs',getLabs );
+//routes.get('/user/labs/:labId/questions',getLabQuestions);
+//routes.post('/user/checkanswer',scriptExecute);
 
 
 

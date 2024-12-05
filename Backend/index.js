@@ -5,7 +5,6 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const routes = require("./routes/routesfile");
 const { createServer } = require('http');
-//const connectToDatabase = require('./db/mongoose');
 const { connectToDatabase, mongoose } = require('./db/mongoose');
 const redisClientPool = require('./redis/redis-server');  
 const dockerClientPool =  require('./docker/docker_connection');
@@ -43,8 +42,8 @@ const initializeApp = async () => {
 
     await redisClientPool.initialize(); 
 
-    await dockerClientPool.initialize();
-    setupTerminalNamespace();
+    //await dockerClientPool.initialize();
+   // setupTerminalNamespace();
     //await execInstancePool.initialize();
      //await setupTerminalNamespace();
     const port = process.env.PORT || 3000;

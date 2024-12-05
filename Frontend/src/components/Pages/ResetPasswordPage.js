@@ -90,6 +90,14 @@ export default function ResetPasswordComponent() {
 
   return (
     <div className="min-h-screen flex flex-col overflow-hidden relative p-4 sm:p-6 md:p-8">
+      <div className="fixed inset-0 z-0">
+          <img
+            src="/homebgc.jpg"
+            alt="Background"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/60" />
+        </div>
       <div className="flex-grow flex items-center justify-center mt-12 md:mt-0">
         <div className="w-full max-w-md p-4 sm:p-6 md:p-8 rounded-lg bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg shadow-xl relative z-10">
           <div className="text-center text-4xl mb-2 font-bold">

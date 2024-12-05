@@ -218,17 +218,16 @@ function TerminalComponent({ isOpen }) {
           background-color: #4B5563;
           border-radius: 6px;
           border: 3px solid #1F2937;
-        } `
-        document.head.appendChild(style);
-        asciiArt.forEach((line) => {
-          let gradientLine = "";
-          const segmentLength = Math.ceil(line.length / gradientColors.length);
-  
-          for (let i = 0; i < line.length; i++) {
-            const colorIndex = Math.floor(i / segmentLength);
-            gradientLine += gradientColors[colorIndex] + line[i];
-          }
-  
+        } `;
+      document.head.appendChild(style);
+      asciiArt.forEach((line) => {
+        let gradientLine = "";
+        const segmentLength = Math.ceil(line.length / gradientColors.length);
+
+        for (let i = 0; i < line.length; i++) {
+          const colorIndex = Math.floor(i / segmentLength);
+          gradientLine += gradientColors[colorIndex] + line[i];
+        }
 
         newTerm.writeln(gradientLine);
       });

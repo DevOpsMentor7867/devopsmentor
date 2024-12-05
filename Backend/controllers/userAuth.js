@@ -5,6 +5,7 @@ const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
 const redisClientPool = require('../redis/redis-server');
 const { sendOtpEmail, sendResetPasswordEmail,generateOtp } = require('../email/send-otp');
+const { Namespace } = require("socket.io");
 const REDIS_PORT = process.env.REDIS_PORT ;
 require('dotenv').config();
 
@@ -79,8 +80,8 @@ registration_queue.process(async (job) => {
         name: '*', // Default name value
         password: hashedPassword, 
         otp,
-        username: username || email.split('@')[0], // Use provided username or default to email prefix
-        gender: gender || '*' // Use provided gender or default to '*'
+        username: username || email.split('@')[0], // User provided username or default to email prefix
+        gender: gender || '*' // User provided gender or default to '*'
       }), {
         EX: parseInt(process.env.OTP_EXPIRY) || 300 // Default to 5 minutes
       });
@@ -176,7 +177,7 @@ const register = async (req, res) => {
 
 // Verification queue process
 verification_queue.process(async (job) => {
-  const { email, otp } = job.data;
+  const { email, otp, } = job.data;
   let redisClient = await redisClientPool.borrowClient();
   try {
     console.log(`Debug: Starting OTP verification for email: ${email}`);
@@ -216,18 +217,23 @@ verification_queue.process(async (job) => {
         };
       }
 
+      const boyProfilePic = `https://avatar.iran.liara.run/public/boy?username=${username}`;
+      const girlProfilePic = `https://avatar.iran.liara.run/public/girl?username=${username}`;
+      const defaultProfilePic = `https://avatar.iran.liara.run/public/girl?username=${username}`;
+      
       // Create new user with stored data
       const newUser = new User({ 
         name,
         email,
         password: storedHashedPassword,
-        username: username || email.split('@')[0], // Use stored username or default to email prefix
-        gender: gender || '*', // Use stored gender or default to '*'
-        ProfilePic: `https://avatar.iran.liara.run/public/user?username=${username || email.split('@')[0]}`
+        username: username || email.split('@')[0], // User provided username or default to email prefix
+        gender: gender || '*' ,// User provided gender or default to '*'
+        ProfilePic: gender === 'male' ? boyProfilePic : (gender === 'female' ? girlProfilePic : defaultProfilePic)
       });
-
+      console.log(`Debug: Decided ProfilePic for ${email}: ${newUser.ProfilePic}`);
       await newUser.save();
       console.log(`Debug: User saved successfully for email: ${email}`);
+     
       await redisClient.del(stored_key);
       return { 
         success: true, 
@@ -831,7 +837,66 @@ const checkAuthentication = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+const SetUserInformation = async (req, res) => {
+  try {
+    const { email, name, username, gender} = req.body;
+    console.log("backend req body", name, email, username, gender)
 
+    // Validate input
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+
+    // Find user by email
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update user information
+    if (name) user.name = name;
+
+    if (username) {
+      // Check if the new username is already taken
+      const existingUser = await User.findOne({ username });
+      if (existingUser && existingUser.email !== email) {
+        return res.status(400).json({ message: 'Username is already taken' });
+      }
+      user.username = username;
+    }
+
+    if (gender) {
+      // Validate gender
+      if (!['male', 'female', '*'].includes(gender.toLowerCase())) {
+        return res.status(400).json({ message: 'Invalid gender value' });
+      }
+      user.gender = gender.toLowerCase();
+    }
+
+    const boyProfilePic = `https://avatar.iran.liara.run/public/boy?username=${name}`;
+    const girlProfilePic = `https://avatar.iran.liara.run/public/girl?username=${name}`;
+    user.ProfilePic= gender === 'male' ? boyProfilePic : girlProfilePic ;
+    // Save the updated user
+    await user.save();
+
+    res.status(200).json({
+      message: 'User information updated successfully',
+      user: {
+        name: user.name,
+        email: user.email,
+        username: user.username,
+        gender: user.gender
+      }
+    });
+  } catch (error) {
+    console.error('Error in SetUserInformation:', error);
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ message: 'Validation error', details: error.message });
+    }
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
 
 module.exports = { 
   register, 
@@ -843,6 +908,7 @@ module.exports = {
   forgotPassword,
   resetPassword,
   checkAuthentication,
+  SetUserInformation,
  
 };
 
