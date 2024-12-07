@@ -448,14 +448,14 @@ export default function AuthComponent() {
 
   return (
     <>
-      <div className="min-h-screen flex flex-col  overflow-hidden relative p-4 sm:p-6 md:p-8">
+      <div className="min-h-screen flex flex-col  overflow-hidden relative p-4 sm:p-6 md:p-8 ">
         <div className="fixed inset-0 z-0">
           <img
             src="/homebgc.jpg"
             alt="Background"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-black/60" />
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
         </div>
         <Link
           to="/"

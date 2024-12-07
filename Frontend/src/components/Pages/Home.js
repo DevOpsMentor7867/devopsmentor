@@ -116,10 +116,10 @@ const ToolsGrid = ({ tools }) => {
             className={` border-2 transition-colors group p-6
             ${
               index % 3 === 0
-                ? "border-[#09D1C7]/20  hover:bg-[#1A202C]/50 bg-[#09D1C7]/5"
+                ? "border-[#09D1C7]/20  hover:bg-[#1A202C]/50 bg-[#09D1C7]/10"
                 : index % 3 === 1
-                ? "border-[#80EE98]/20 hover:bg-[#1A202C]/50 bg-[#80EE98]/5"
-                : "border-white/20 hover:bg-[#1A202C]/50 bg-white/5"
+                ? "border-[#80EE98]/20 hover:bg-[#1A202C]/50 bg-[#80EE98]/10"
+                : "border-white/20 hover:bg-[#1A202C]/50 bg-white/10"
             }`}
           >
             <CardContent className="p-6">
@@ -152,7 +152,7 @@ export default function LandingPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="relative min-h-screen overflow-y-auto">
+    <div className="relative min-h-screen overflow-y-auto h-96 custom-scrollbar ">
       {/* Fixed Background Image */}
       <div className="fixed inset-0 z-0">
         <img
@@ -160,7 +160,7 @@ export default function LandingPage() {
           alt="Background"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-black/60" />
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       </div>
 
       <div className="relative z-10">

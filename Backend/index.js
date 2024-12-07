@@ -42,10 +42,9 @@ const initializeApp = async () => {
 
     await redisClientPool.initialize(); 
 
-    //await dockerClientPool.initialize();
+    await dockerClientPool.initialize();
    setupTerminalNamespace();
-    //await execInstancePool.initialize();
-     //await setupTerminalNamespace();
+  
     const port = process.env.PORT || 3000;
     httpServer.listen(port, () => {
       console.log(`Server running on port: ${port}`);

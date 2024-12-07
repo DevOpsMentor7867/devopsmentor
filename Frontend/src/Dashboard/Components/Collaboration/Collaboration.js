@@ -53,8 +53,8 @@ function Collaboration({ isOpen, onClose }) {
   };
 
   return (
-    <div className="z-50 backdrop-blur-sm  fixed inset-0 bg-black/50 flex items-center justify-center">
-      <div className="bg-[#1A202C] rounded-lg p-6 w-[900px] max-h-[570px] overflow-y-auto custom-scrollbar">
+    <div className="z-50 backdrop-blur-sm  fixed inset-0 bg-black/50 flex items-center justify-center ">
+      <div className="bg-[#1A202C] rounded-lg p-6 w-[900px] max-h-[570px] overflow-y-auto custom-scrollbar mr-10">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-btg">Online Users</h2>
           <button 
@@ -65,7 +65,7 @@ function Collaboration({ isOpen, onClose }) {
           </button>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ">
           {dummyUsers.map((user, index) => (
             <div
               key={user.id}

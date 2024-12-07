@@ -46,11 +46,10 @@ const LoadingAnimation = () => {
   const styles = {
     wrapper: {
       width: '100%',
-      height: '100vh',
+      height: '90vh',
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: '#1A202C',
     },
     container: {
       width: vars.containerSize,
@@ -92,7 +91,16 @@ const LoadingAnimation = () => {
   }));
 
   return (
-    <div style={styles.wrapper}>
+    <>
+    <div className="fixed inset-0 z-0">
+        <img
+          src="/homebgc.jpg"
+          alt="Background"
+          className="w-full h-full object-cover mt-12"
+        />
+        <div className="absolute  inset-0 bg-black/70" />
+      </div>
+    <div style={styles.wrapper} className='backdrop-blur-sm'>
       <style>
         {Object.values(keyframes).join('\n')}
       </style>
@@ -104,6 +112,7 @@ const LoadingAnimation = () => {
         ))}
       </div>
     </div>
+        </>
   );
 };
 

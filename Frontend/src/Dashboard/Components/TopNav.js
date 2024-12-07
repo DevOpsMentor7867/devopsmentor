@@ -59,7 +59,8 @@ export default function TopNav({ isSidebarOpen }) {
 
   return (
     <nav
-      className={`fixed top-0 right-0 z-50 flex items-center justify-between bg-[#1A202C] px-4 py-4 transition-all duration-300 bottom-gradient-border w-full ${
+    // bg-[#1A202C]
+      className={`fixed top-0 right-0 z-50 flex items-center justify-between px-4 py-4 transition-all duration-300 bottom-gradient-border w-full  bg-gray-950 ${
         isSidebarOpen ? "left-60" : "md:left-14"
       }`}
     >

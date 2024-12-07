@@ -44,18 +44,27 @@ const ToolsPage = () => {
   }
 
   return (
-    <div className="w-full pr-4 pt-4 pb-4 md:p-4 overflow-y-auto mt-10 md:mt-3 ">
-      
-      <div className="bg-gradient-to-r from-[#09D1C7] to-[#80EE98]/80 p-4 md:p-6 text-black/70">
-        <h2 className="text-2xl md:text-3xl font-bold mb-2">DevOps Tools and Concepts</h2>
-        <p className="text-base md:text-lg">
+    <>
+     <div className="fixed inset-0 z-0">
+        <img
+          src="/homebgc.jpg"
+          alt="Background"
+          className="w-full h-full object-cover mt-12"
+        />
+        <div className="absolute  inset-0 bg-black/70" />
+      </div>
+
+
+    <div className="w-full pr-4 pt-4 pb-4 md:p-4 overflow-y-auto mt-10 md:mt-3 backdrop-blur-sm  "> 
+      <div className="relative p-4 overflow-y-auto">
+      <div className="  p-4 md:p-6  border-gray-400 bg-white/10">
+        <h2 className="text-2xl md:text-3xl font-bold mb-2 text-gtb">DevOps Tools and Concepts</h2>
+        <p className="text-base md:text-lg text-btg">
           Providing hands-on experience with industry-standard DevOps Tools, fostering
           expertise in areas like containerization, CI/CD pipelines, and
           cloud-native technologies.
         </p>
       </div>
-      
-      <div className="relative p-4 overflow-y-auto">
         <div className="absolute inset-0 opacity-5" />
         <div className="relative max-w-4xl mx-auto">
           {/* Timeline */}
@@ -69,13 +78,13 @@ const ToolsPage = () => {
                 className="relative flex flex-col md:flex-row md:items-center md:justify-between"
               >
                 <Card
-                  className={`w-full md:w-[calc(60%)] border-[#09D1C7]/20 transition-colors group mb-4 md:mb-0
+                  className={`w-full md:w-[calc(60%)]  transition-colors group mb-4 md:mb-0
                     ${
                       index % 3 === 0
-                        ? "bg-[#1A202C]/50 hover:bg-[#09D1C7]/5"
+                        ? "bg-[#1A202C]/60 hover:bg-[#09D1C7]/5 border-[#09D1C7]/70"
                         : index % 3 === 1
-                        ? "bg-[#1A202C]/50 hover:bg-[#80EE98]/5"
-                        : "bg-[#1A202C]/50 hover:bg-white/5"
+                        ? "bg-[#1A202C]/60 hover:bg-[#80EE98]/5 border-[#80EE98]/70"
+                        : "bg-[#1A202C]/60 hover:bg-white/5 border-white/70"
                     }
                     ${index % 2 === 0 ? "md:mr-16" : "md:order-2 md:ml-16"}`}
                 >
@@ -145,10 +154,10 @@ const ToolsPage = () => {
                   className={`w-full md:w-[calc(62%)] border-[#09D1C7]/20 transition-colors group mt-4 md:mt-0
                     ${
                       index % 3 === 0
-                        ? "bg-[#09D1C7]/5 hover:bg-[#09D1C7]/10"
+                        ? "bg-[#09D1C7]/15 hover:bg-[#09D1C7]/10"
                         : index % 3 === 1
-                        ? "bg-[#80EE98]/5 hover:bg-[#80EE98]/10"
-                        : "bg-white/5 hover:bg-white/10"
+                        ? "bg-[#80EE98]/10 hover:bg-[#80EE98]/10"
+                        : "bg-white/15 hover:bg-white/10"
                     }
                     ${index % 2 === 0 ? "md:order-2 md:ml-16" : "md:mr-16"}`}
                 >
@@ -173,6 +182,7 @@ const ToolsPage = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

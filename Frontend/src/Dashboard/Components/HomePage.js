@@ -66,16 +66,26 @@ export default function HomePage() {
   }
 
   return (
-    <div className="text-center text-gtb mt-12">
+    <>
+    <div className="fixed inset-0 z-0">
+        <img
+          src="/homebgc.jpg"
+          alt="Background"
+          className="w-full h-full object-cover mt-12"
+        />
+        <div className="absolute  inset-0 bg-black/70" />
+      </div>
+      
+    <div className="relative text-btg text-center mt-12  backdrop-blur-sm h-[41rem] ">
       <h1>This is the homepage</h1>
       {showProfileSetup && user && (
         <ProfileSetupModal
-          email={user.email || ""}
-          onSave={handleProfileSave}
-          apiMessage={apiMessage}
+        email={user.email || ""}
+        onSave={handleProfileSave}
+        apiMessage={apiMessage}
           onClose={handleCloseModal}
-        />
-      )}
+          />
+        )}
       {!showProfileSetup && user && (
         <div>
           <h2>Profile Information:</h2>
@@ -86,6 +96,7 @@ export default function HomePage() {
         </div>
       )}
     </div>
+      </>
   );
 }
 

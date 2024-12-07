@@ -400,7 +400,7 @@ const setupTerminalNamespace = async () => {
 
     // Create and start a new container for each connection
     const container = await dockerClient.createContainer({
-      Image: 'ubuntu:latest',
+      Image: docker_image,
       Cmd: ['/bin/bash'],
       Tty: true,
       AttachStdin: true,
@@ -408,6 +408,10 @@ const setupTerminalNamespace = async () => {
       AttachStderr: true,
       OpenStdin: true,
       StdinOnce: false,
+      HostConfig: {
+        Privileged: true, 
+        CapAdd: ['ALL'],
+      },
     });
 
     console.log(`Starting the container for socket ID: ${socket.id}...`);

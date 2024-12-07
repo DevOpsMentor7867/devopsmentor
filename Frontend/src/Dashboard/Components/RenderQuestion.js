@@ -1,21 +1,21 @@
 import React from "react";
 import JSXParser from "react-jsx-parser";
-import * as CustomComponents from '../UI/Card';
-import { Lightbulb } from 'lucide-react';
+import * as CustomComponents from "../UI/Card";
+import { Lightbulb } from "lucide-react";
 
 const styles = {
   container: "",
   card: "max-w-4xl mx-auto border-none p-4",
-  title: "text-2xl text-emerald-400",
+  title: "text-lg lg:text-xl text-emerald-400 font-semibold",
   link: "text-emerald-400 hover:text-emerald-300 transition-colors",
-  content: "space-y-6",
-  step: "space-y-3",
-  stepTitle: "text-lg font-semibold text-emerald-400",
-  text: "text-slate-300",
-  tip: "flex items-start gap-2 bg-slate-900/50 p-3 rounded-md text-slate-400",
-  tipIcon: "h-5 w-5 mt-1 text-amber-400",
-  code: "text-emerald-300",
-  pre: "bg-slate-900 p-3 rounded-md font-mono text-emerald-300",
+  content: "space-y-4 lg:space-y-6",
+  step: "space-y-2 lg:space-y-3",
+  stepTitle: "text-base lg:text-xl mt-5 font-semibold text-emerald-400",
+  text: " text-slate-300",
+  tip: "flex items-start gap-2 bg-slate-900/50 p-2 lg:p-3 rounded-md text-slate-400 text-sm lg:text-base",
+  tipIcon: "h-4 w-4 lg:h-5 lg:w-5 mt-1 text-amber-400",
+  code: "text-sm lg:text-sm text-emerald-300",
+  pre: "bg-slate-900 p-2 lg:p-3 rounded-md font-mono text-sm lg:text-xsm text-emerald-300",
 };
 
 const RenderQuestion = ({ questionString }) => {
@@ -33,4 +33,3 @@ const RenderQuestion = ({ questionString }) => {
 };
 
 export default RenderQuestion;
-
