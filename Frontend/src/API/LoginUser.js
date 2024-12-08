@@ -18,7 +18,9 @@ export const LoginUser = () => {
     try {
       const response = await api.post("/user/login", { email, password });
       if (response.status >= 200 && response.status < 300) {
-        console.log(response.data.user);
+        // eslint-disable-next-line
+        const {token} = response.token;
+
         dispatch({ type: "LOGIN", payload: response.data.user });
         navigate("/Dashboard");
       } else {

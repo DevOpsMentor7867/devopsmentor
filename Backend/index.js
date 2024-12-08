@@ -3,7 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
-const routes = require("./routes/routesfile");
+const routes = require('./routes');
 const { createServer } = require('http');
 const { connectToDatabase, mongoose } = require('./db/mongoose');
 const redisClientPool = require('./redis/redis-server');  
@@ -31,7 +31,9 @@ const httpServer = createServer(app);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use('/api', routes);
+// Use the combined routes
+app.use('/', routes);
+
 
 const initializeApp = async () => {
   try {
@@ -42,7 +44,7 @@ const initializeApp = async () => {
 
     await redisClientPool.initialize(); 
 
-    await dockerClientPool.initialize();
+   await dockerClientPool.initialize();
    setupTerminalNamespace();
   
     const port = process.env.PORT || 3000;

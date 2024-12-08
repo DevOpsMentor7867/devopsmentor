@@ -55,7 +55,7 @@ const ToolsPage = () => {
       </div>
 
 
-    <div className="w-full pr-4 pt-4 pb-4 md:p-4 overflow-y-auto mt-10 md:mt-3 backdrop-blur-sm  "> 
+    <div className="w-full pr-4 pt-4 pb-4 md:p-4 overflow-y-auto mt-10 md:mt-0 backdrop-blur-sm  "> 
       <div className="relative p-4 overflow-y-auto">
       <div className="  p-4 md:p-6  border-gray-400 bg-white/10">
         <h2 className="text-2xl md:text-3xl font-bold mb-2 text-gtb">DevOps Tools and Concepts</h2>

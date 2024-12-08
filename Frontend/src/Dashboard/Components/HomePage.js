@@ -3,6 +3,7 @@ import axios from "axios";
 import ProfileSetupModal from "./ProfileModal";
 import { useAuthContext } from "../../API/UseAuthContext";
 import LoadingPage from "./LoadingPage";
+import DashboardOverview from "./DashboardOverview";
 
 const api = axios.create({
   baseURL: "http://localhost:8000/api",
@@ -31,10 +32,10 @@ export default function HomePage() {
         type: "success",
         content: "Profile saved successfully!",
       });
-      
+
       // Update the user context with the new data
       updateUser(profileData);
-      
+
       return true;
     } catch (error) {
       console.error("Error sending profile data:", error);
@@ -62,31 +63,33 @@ export default function HomePage() {
   };
 
   if (loading) {
-    return <LoadingPage/>
+    return <LoadingPage />;
   }
 
   return (
     <>
-    <div className="fixed inset-0 z-0">
+      {/* <div className="fixed inset-0 z-0">
         <img
           src="/homebgc.jpg"
           alt="Background"
           className="w-full h-full object-cover mt-12"
         />
-        <div className="absolute  inset-0 bg-black/70" />
-      </div>
-      
-    <div className="relative text-btg text-center mt-12  backdrop-blur-sm h-[41rem] ">
-      <h1>This is the homepage</h1>
-      {showProfileSetup && user && (
-        <ProfileSetupModal
-        email={user.email || ""}
-        onSave={handleProfileSave}
-        apiMessage={apiMessage}
-          onClose={handleCloseModal}
+        <div className="absolute backdrop-blur-sm  inset-0 bg-black/70" />
+      </div> */}
+
+      <div className="relative text-btg text-center  backdrop-blur-sm h-[41rem] ">
+        {showProfileSetup && user && (
+          <ProfileSetupModal
+            email={user.email || ""}
+            onSave={handleProfileSave}
+            apiMessage={apiMessage}
+            onClose={handleCloseModal}
           />
         )}
-      {!showProfileSetup && user && (
+
+        <DashboardOverview />
+
+        {/* {!showProfileSetup && user && (
         <div>
           <h2>Profile Information:</h2>
           <p>Name: {user.name}</p>
@@ -94,9 +97,8 @@ export default function HomePage() {
           <p>Email: {user.email}</p>
           <p>Gender: {user.gender}</p>
         </div>
-      )}
-    </div>
-      </>
+      )} */}
+      </div>
+    </>
   );
 }
-
