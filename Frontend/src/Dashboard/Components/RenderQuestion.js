@@ -15,7 +15,7 @@ const styles = {
   tip: "flex items-start gap-2 bg-slate-900/50 p-2 lg:p-3 rounded-md text-slate-400 text-sm lg:text-base",
   tipIcon: "h-4 w-4 lg:h-5 lg:w-5 mt-1 text-amber-400",
   code: "text-sm lg:text-sm text-emerald-300",
-  pre: "bg-slate-900 p-2 lg:p-3 rounded-md font-mono text-sm lg:text-xsm text-emerald-300",
+  pre:  " bg-slate-900 p-2 lg:p-3 rounded-md font-mono text-sm lg:text-xsm text-emerald-300 overflow-auto custom-scrollbar",
 };
 
 const RenderQuestion = ({ questionString }) => {

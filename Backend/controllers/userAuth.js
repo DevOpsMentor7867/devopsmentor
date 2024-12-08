@@ -170,7 +170,7 @@ const register = async (req, res) => {
     } else {
       const statusCodes = {
         ALREADY_REGISTERED: 400,
-        REGISTRATION_IN_PROGRESS: 409,
+        REGISTRATION_IN_PROGRESS: 209,
         REGISTRATION_ERROR: 500,
         INVALID_PASSWORD_FORMAT: 400,
         REGISTRATION_CONFLICT: 409,

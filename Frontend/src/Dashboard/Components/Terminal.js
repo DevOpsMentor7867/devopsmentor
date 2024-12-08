@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { io } from "socket.io-client";
+import { useSocket } from '../hooks/useSocket';
 import { Terminal } from "xterm";
 // import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
@@ -49,7 +49,6 @@ function TerminalComponent({ isOpen }) {
   const [isChecked, setIsChecked] = useState(false);
   const [ShowSucsess, setShowSucsess] = useState(false);
   const [ShowQuestionFailure, setShowQuestionFailure] = useState(false);
-  const [time, setTime] = useState(3600);
   const [isDragging, setIsDragging] = useState(false);
   const [terminalWidth, setTerminalWidth] = useState(55);
   const [showHint, setShowHint] = useState(false);
@@ -60,21 +59,25 @@ function TerminalComponent({ isOpen }) {
   const [showConfirmationPopup, setShowConfirmationPopup] = useState(false);
   const [scripts, setScripts] = useState([]);
   const [currentHintIndex, setCurrentHintIndex] = useState(0);
-  const [socketId, setsocketId] = useState(null);
   const location = useLocation();
   const { toolName, labName, docker_image } = location.state || {};
+  const { socket, isConnected, socketId, emit } = useSocket(docker_image);
   // eslint-disable-next-line
   const [term, setTerm] = useState(null);
+
 
   const { labId } = useParams();
   const dragStartX = useRef(0);
   const dragStartWidth = useRef(0);
   const terminalRef = useRef(null);
-  const socketRef = useRef(null);
   const fitAddonRef = useRef(null);
-  const terminalInitialized = useRef(false); // Prevent re-initialization
-
+  const terminalInitialized = useRef(false); 
   const navigate = useNavigate();
+
+  const timerRef = useRef(null); 
+  const timeRef = useRef(3600);
+  const containerRef = useRef(null);
+
 
   useEffect(() => {
     if (ShowSucsess) {
@@ -86,38 +89,64 @@ function TerminalComponent({ isOpen }) {
     }
   }, [ShowSucsess]);
 
+
+  // page reload check
   useEffect(() => {
     const handleBeforeUnload = (event) => {
       event.preventDefault();
       event.returnValue =
         "Are you sure you want to leave? Your current progress will be lost.";
     };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, []);
 
-  useEffect(() => {
+    // Intercept the browser's back button press
     const handlePopState = (event) => {
       event.preventDefault();
-      if (
-        window.confirm(
-          "Are you sure you want to leave? Your current progress will be lost."
-        )
-      ) {
-        navigate(-1);
+
+      // Show custom confirmation dialog when trying to go back
+      const userConfirmed = window.confirm("Are you sure you want to leave?");
+
+      if (userConfirmed) {
+        // If the user confirms, we can proceed with the navigation
+        navigate(-1);  // Go back in the history (same as back button)
       } else {
-        window.history.pushState(null, "", window.location.pathname);
+        // Optionally, you can push a new state to the history to stay on the page
+        window.history.pushState(null, "", window.location.href);
       }
     };
 
+    // Adding event listeners
+    window.addEventListener("beforeunload", handleBeforeUnload);
     window.addEventListener("popstate", handlePopState);
 
+    // Push a new state to history to intercept back navigation
+    window.history.pushState(null, "", window.location.href);
+
     return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
       window.removeEventListener("popstate", handlePopState);
     };
   }, [navigate]);
+
+  // useEffect(() => {
+  //   const handlePopState = (event) => {
+  //     event.preventDefault();
+  //     if (
+  //       window.confirm(
+  //         "Are you sure you want to leave? Your current progress will be lost."
+  //       )
+  //     ) {
+  //       navigate(-1);
+  //     } else {
+  //       window.history.pushState(null, "", window.location.pathname);
+  //     }
+  //   };
+
+  //   window.addEventListener("popstate", handlePopState);
+
+  //   return () => {
+  //     window.removeEventListener("popstate", handlePopState);
+  //   };
+  // }, [navigate]);
 
   const fetchQuestions = useCallback(async () => {
     try {
@@ -129,6 +158,7 @@ function TerminalComponent({ isOpen }) {
       }
       const data = await response.json();
       setLabQuestions(data.labQuestions);
+      console.log(data.labQuestions);
       const allScripts = data.labQuestions.flatMap((lab) =>
         lab.questions_data.map((question) => question.script)
       );
@@ -142,59 +172,49 @@ function TerminalComponent({ isOpen }) {
     fetchQuestions();
   }, [fetchQuestions]);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTime((prevTime) => (prevTime > 0 ? prevTime - 1 : 0));
-    }, 1000);
 
-    return () => clearInterval(timer);
-  }, []);
+
 
   useEffect(() => {
-    if (terminalInitialized.current) return; // Skip if already initialized
-    terminalInitialized.current = true;
+    if (terminalInitialized.current) return;
+
     const initializeTerminal = () => {
-      if (!terminalRef.current) return;
+      if (!terminalRef.current || terminalInitialized.current) return;
 
       const newTerm = new Terminal({
         theme: {
           background: "#1F2937",
-          foreground: "#ffffff",
+          // foreground: "#ffffff",
           cursor: "#ffffff",
           selection: "rgba(255, 255, 255, 0.3)",
         },
         fontFamily: 'Menlo, Monaco, "Courier New", monospace',
         fontSize: 14,
-        // rows: 135,
-        // cols: 290,
         cursorBlink: true,
       });
 
       const fitAddon = new FitAddon();
-      fitAddonRef.current = fitAddon; // Store the FitAddon instance
+      fitAddonRef.current = fitAddon;
       newTerm.loadAddon(fitAddon);
 
-      // Open terminal in the container
       newTerm.open(terminalRef.current);
 
-      // Delay fitAddon fitting to ensure container has dimensions
       setTimeout(() => {
         fitAddon.fit();
       }, 100);
 
-      // Handle window resize
       const handleResize = () => {
         fitAddon.fit();
       };
       window.addEventListener("resize", handleResize);
 
-      // Add the gradient and ASCII art (as per original logic)
+      // ASCII art and welcome message
       const gradientColors = [
-        "\x1b[38;2;9;209;199m", // #09D1C7
+        "\x1b[38;2;9;209;199m",
         "\x1b[38;2;33;217;185m",
         "\x1b[38;2;57;225;171m",
         "\x1b[38;2;81;233;157m",
-        "\x1b[38;2;105;238;144m", // #80EE98 at 80% opacity
+        "\x1b[38;2;105;238;144m",
       ];
 
       const asciiArt = [
@@ -205,22 +225,23 @@ function TerminalComponent({ isOpen }) {
         "|____/ \\___| \\_/  \\___/| .__/|___/    |_|  |_|\\___|_| |_|\\__\\___/|_|   ",
         "                       |_|                                              ",
       ];
-
+      
       const style = document.createElement("style");
-      style.textContent = `
-        .xterm-viewport::-webkit-scrollbar {
-          width: 10px;
-        }
-        .xterm-viewport::-webkit-scrollbar-track {
-          background: #1F2937;
-        }
-        .xterm-viewport::-webkit-scrollbar-thumb {
-          background-color: #4B5563;
-          border-radius: 6px;
-          border: 3px solid #1F2937;
-        } `;
-      document.head.appendChild(style);
-      asciiArt.forEach((line) => {
+    style.textContent = `
+      .xterm-viewport::-webkit-scrollbar {
+        width: 10px;
+      }
+      .xterm-viewport::-webkit-scrollbar-track {
+        background: #1F2937;
+      }
+      .xterm-viewport::-webkit-scrollbar-thumb {
+        background-color: #4B5563;
+        border-radius: 6px;
+        border: 3px solid #1F2937;
+      } `;
+    document.head.appendChild(style);
+
+      asciiArt.forEach((line, index) => {
         let gradientLine = "";
         const segmentLength = Math.ceil(line.length / gradientColors.length);
 
@@ -239,36 +260,43 @@ function TerminalComponent({ isOpen }) {
       newTerm.write("$ ");
 
       setTerm(newTerm);
+      terminalInitialized.current = true;
 
-      // Initialize socket
-      console.log("dockerimg", docker_image);
-      const socket = io("http://localhost:8000/terminal", {
-        withCredentials: true,
-        transports: ["websocket", "polling"],
-        auth: {
-          docker_image: docker_image,
-          labId: labId,
-        },
+      newTerm.onKey(({ key }) => {
+        emit("command", key);
       });
-      socketRef.current = socket;
 
-      socket.on("connect", () => setsocketId(socket.id));
-      socket.on("output", (data) => newTerm.write(data));
-
-      newTerm.onKey(({ key }) => socket.emit("command", key));
-
-      // Cleanup
       return () => {
         window.removeEventListener("resize", handleResize);
         newTerm.dispose();
-        socket.disconnect();
       };
     };
 
-    if (terminalRef.current) {
-      initializeTerminal();
+    initializeTerminal();
+  }, [emit]);
+
+  useEffect(() => {
+    if (socket && term) {
+      const handleOutput = (data) => {
+        term.write(data);
+      };
+
+      socket.on('output', handleOutput);
+
+      return () => {
+        socket.off('output', handleOutput);
+      };
     }
-  });
+  }, [socket, term]);
+
+  useEffect(() => {
+    if (isConnected) {
+      console.log('Socket connected, ready to use terminal');
+    } else {
+      console.log('Socket disconnected, terminal may not be usable');
+    }
+  }, [isConnected]);
+
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -311,6 +339,29 @@ function TerminalComponent({ isOpen }) {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [terminalWidth]);
+
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      // Capture the current scroll position
+      const currentScrollPos = containerRef.current ? containerRef.current.scrollLeft : 0;
+
+      // Decrease time by 1 second
+      timeRef.current = Math.max(timeRef.current - 1, 0); // Prevent going below 0
+
+      // Update the timer content without triggering re-render
+      if (timerRef.current) {
+        timerRef.current.textContent = formatTime(timeRef.current);
+      }
+
+      // Restore the scroll position after time update
+      if (containerRef.current) {
+        containerRef.current.scrollLeft = currentScrollPos;
+      }
+    }, 1000);
+
+    return () => clearInterval(intervalId); // Cleanup on unmount
+  }, []);
 
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
@@ -465,7 +516,7 @@ function TerminalComponent({ isOpen }) {
         >
           <div className="container mx-auto px-4 ">
             <div className="flex items-center justify-between ">
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-4 ">
                 <div className="text-white mt-1">
                   <h1 className="text-2xl font-bold text-btg">{toolName}</h1>
                   <p className="text-sm text-white">{labName}</p>
@@ -477,7 +528,7 @@ function TerminalComponent({ isOpen }) {
                   <div className="text-center">
                     <p className="text-xl text-btg">Progress</p>
                     <div className="flex items-center mt-2">
-                      <div className="w-64 h-2 bg-gray-700 rounded-full">
+                      <div className="w-64 h-2 bg-gray-700 rounded-full shadow-xl ">
                         <motion.div
                           className="h-full bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C] hover:from-[#09D1C7] hover:to-[#80EE98] rounded-full"
                           style={{ width: `${progress}%` }}
@@ -565,8 +616,8 @@ function TerminalComponent({ isOpen }) {
                         <div className="text-center">
                           <div className="flex items-center mt-2 text-white">
                             <Clock className="w-6 h-6 mr-2 " />
-                            <span className="text-red-700 ml-2 font-mono text-lg">
-                              {formatTime(time)}
+                            <span className="text-red-700 ml-2 font-mono text-lg"  ref={timerRef}>
+                            {formatTime(timeRef.current)}
                             </span>
                           </div>
                         </div>
@@ -581,14 +632,12 @@ function TerminalComponent({ isOpen }) {
                       </div>
                     </div>
 
-                    <div
-                      className="prose prose-invert overflow-y-auto custom-scrollbar pr-2 max-h-[40vh] md:max-h-[50vh] lg:max-h-[49vh] xl:max-h-[56vh]"
-                    >
-                      <p className="text-lg">
-                        <RenderQuestion
+                    <div className="prose prose-invert overflow-y-auto custom-scrollbar pr-2 max-h-[40vh] md:max-h-[50vh] lg:max-h-[49vh] xl:max-h-[56vh]" ref={containerRef}>
+                      <div className="text-lg "  >
+                        <RenderQuestion 
                           questionString={getCurrentQuestion().question}
                         />
-                      </p>
+                      </div>
                     </div>
 
                     {ShowSucsess && (
@@ -665,12 +714,12 @@ function TerminalComponent({ isOpen }) {
               />
 
               <motion.div
-                className="relative rounded-xl overflow-hidden backdrop-blur-md bg-gray-800/50 border border-gray-700 transition-all duration-300 "
+                className="relative rounded-xl overflow-hidden backdrop-blur-md border border-gray-700 transition-all duration-300 "
                 style={{ width: `${terminalWidth}%` }}
                 variants={itemVariants}
               >
                 <div className="h-full flex flex-col">
-                  <div className="flex items-center justify-between px-4 py-2 bg-gray-900/50 border-b border-gray-700">
+                  <div className="flex items-center justify-between px-4 py-2  border-b border-gray-700">
                     <div className="flex items-center space-x-2">
                       <TerminalIcon className="w-4 h-4 text-red-700" />
                       <span className="text-btg font-mono text-sm">
@@ -698,7 +747,7 @@ function TerminalComponent({ isOpen }) {
                   </div>
                   <div
                     ref={terminalRef}
-                    className="flex-1 overflow-auto custom-scrollbar"
+                    className="flex-1 overflow-y-hidden custom-scrollbar"
                   />
                 </div>
               </motion.div>

@@ -69,6 +69,7 @@ export default function AuthComponent() {
       await signup(email, password);
       setOtpError("");
       if (RegisterError == null) {
+        console.log("REGCHECK", RegisterCheck)
         setIsLoading(false);
         setShowOTPDialog(true);
       }
