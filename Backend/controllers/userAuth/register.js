@@ -16,7 +16,7 @@ registration_queue.process(async (job) => {
       console.log(`Debug: User already exists for email: ${email}`);
       return { 
         success: false, 
-        message: 'This email is already registered. Please login instead of registering again.',
+        message: 'An account with this email already exists. Please login or register with a different email.',
         code: 'ALREADY_REGISTERED'
       };
     }

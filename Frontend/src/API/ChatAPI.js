@@ -1,39 +1,90 @@
-class ChatAPI {
-    static async getMessages() {
-      try {
-        const response = await fetch('http://localhost:5000/api/messages');
-        if (!response.ok) {
-          throw new Error('Failed to fetch messages');
-        }
-        return await response.json();
-      } catch (error) {
-        console.error("Error fetching messages:", error);
-        return [];
-      }
+import axios from 'axios';
+import { useAuthContext } from '../Context/AuthContext';
+
+const BASE_URL = 'http://localhost:8000/api';
+
+export const useChatAPI = () => {
+  const { token } = useAuthContext();
+
+  const api = axios.create({
+    baseURL: BASE_URL,
+    withCredentials: true
+  });
+
+  // Add request interceptor to add token to all requests
+  api.interceptors.request.use((config) => {
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-  
-    static async sendMessage(message) {
-      try {
-        const response = await fetch('http://localhost:5000/api/chat', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+    return config;
+  }, (error) => {
+    return Promise.reject(error);
+  });
+
+  // Add response interceptor to handle common errors
+  api.interceptors.response.use((response) => {
+    return response;
+  }, (error) => {
+    if (error.response?.status === 429) {
+      throw new Error('I apologize, but I\'m currently unable to process your request due to high demand. Please try again later.');
+    }
+    if (error.response?.status === 401) {
+      // Handle unauthorized access (you might want to dispatch a logout action here)
+      throw new Error('Unauthorized access. Please log in again.');
+    }
+    return Promise.reject(error);
+  });
+
+  const getConversationHistory = async () => {
+    try {
+      const response = await api.get('/user/conversation');
+      const data = response.data;
+
+      if (data.success && data.conversation && data.conversation.messages) {
+        return data.conversation.messages.map(msg => ({
+          id: msg._id || Date.now(),
+          content: msg.content,
+          sender: {
+            name: msg.sender === 'USER' ? 'You' : 'AI Assistant',
+            isBot: msg.sender === 'AI_ASSISTANT'
           },
-          body: JSON.stringify({ message }),
-        });
-        
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        
-        return await response.json();
-      } catch (error) {
-        console.error("Error sending message:", error);
-        throw error;
+          timestamp: new Date(msg.timestamp).toLocaleTimeString([], { 
+            hour: "2-digit", 
+            minute: "2-digit" 
+          })
+        }));
       }
+
+      return [];
+    } catch (error) {
+      console.error('Error fetching conversation history:', error);
+      throw new Error(error.response?.data?.error || 'Failed to fetch conversation history');
     }
-  }
-  
-  export { ChatAPI };
-  
-  
+  };
+
+  const sendMessage = async (message) => {
+    try {
+      const response = await api.post('/user/chat', { message });
+      const data = response.data;
+
+      if (data.data?.botMessage) {
+        return {
+          success: true,
+          response: data.data.botMessage.content,
+          botMessage: data.data.botMessage
+        };
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error sending message:', error);
+      throw new Error(error.response?.data?.error || 'Failed to send message');
+    }
+  };
+
+  return {
+    getConversationHistory,
+    sendMessage
+  };
+};
+

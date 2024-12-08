@@ -2,24 +2,17 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardFooter } from "../../components/UI/card";
 import { Input } from "../../components/UI/input";
-import { ChatAPI } from "../../API/ChatAPI";
+import { useChatAPI } from "../../API/ChatAPI";
 
 const cn = (...classes) => classes.filter(Boolean).join(' ');
 
 function AiAssistant({ isOpen, onClose }) {
-  const [messages, setMessages] = useState(() => {
-    const savedMessages = localStorage.getItem('aiAssistantMessages');
-    return savedMessages ? JSON.parse(savedMessages) : [
-      {
-        id: 1,
-        content: "Hello! How can I assist you today?",
-        sender: { name: "AI Assistant", isBot: true },
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-      }
-    ];
-  });
+  const { getConversationHistory, sendMessage } = useChatAPI();
+  const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
+  const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasLoadedHistory, setHasLoadedHistory] = useState(false); // Added state for history loading
   const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
 
@@ -28,80 +21,86 @@ function AiAssistant({ isOpen, onClose }) {
   }, [messagesEndRef]);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !hasLoadedHistory) { 
       fetchMessages();
     }
-  }, [isOpen]);
+    // eslint-disable-next-line
+  }, [isOpen, hasLoadedHistory, ]);
 
   useEffect(() => {
     scrollToBottom();
-    localStorage.setItem('aiAssistantMessages', JSON.stringify(messages));
   }, [messages, scrollToBottom]);
 
   const fetchMessages = async () => {
     try {
-      const data = await ChatAPI.getMessages();
-      if (data && data.length > 0) {
-        setMessages(prevMessages => {
-          const newMessages = [...prevMessages];
-          data.forEach(message => {
-            if (!newMessages.some(m => m.id === message.id)) {
-              newMessages.push(message);
-            }
-          });
-          return newMessages;
-        });
+      setIsLoading(true);
+      setError(null);
+      const fetchedMessages = await getConversationHistory();
+      if (fetchedMessages.length > 0) {
+        setMessages(fetchedMessages);
       }
+      setHasLoadedHistory(true);
     } catch (error) {
-      console.error("Error fetching messages:", error);
+      console.error("Error fetching conversation history:", error);
+      setError(error.message || "Failed to load conversation history");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (newMessage.trim()) {
-      setIsLoading(true);
-      const userMessage = {
-        id: Date.now(),
-        content: newMessage,
-        sender: { name: "You", isBot: false },
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-      };
-      setMessages(prev => [...prev, userMessage]);
-      setNewMessage("");
+    if (!newMessage.trim() || isLoading) return;
 
-      try {
-        const data = await ChatAPI.sendMessage(userMessage.content);
+    const messageText = newMessage.trim();
+    setNewMessage(""); 
+
+    const userMessage = {
+      id: Date.now(),
+      content: messageText,
+      sender: { name: "You", isBot: false },
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    };
+
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      setMessages(prev => [...prev, userMessage]);
+
+      const response = await sendMessage(messageText);
+      
+      if (response.botMessage) {
         const botMessage = {
-          id: Date.now() + 1,
-          content: data.response,
+          id: response.botMessage._id || Date.now() + 1,
+          content: response.botMessage.content,
           sender: { name: "AI Assistant", isBot: true },
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
         };
         setMessages(prev => [...prev, botMessage]);
-      } catch (error) {
-        console.error("Error sending message:", error);
-        const errorMessage = {
-          id: Date.now() + 1,
-          content: "Sorry, there was an error processing your request. Please try again.",
-          sender: { name: "System", isBot: true },
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-        };
-        setMessages(prev => [...prev, errorMessage]);
-      } finally {
-        setIsLoading(false);
       }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      const errorMessage = {
+        id: Date.now(),
+        content: error.message || "I apologize, but I'm currently unable to process your request due to high demand. Please try again later.",
+        sender: { name: "AI Assistant", isBot: true },
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center -mt-12 z-50">
-      <Card className="w-50 max-w-3xl bg-gray-900 border-0 flex flex-col h-[calc(100vh-12rem)] mt-16 shadow-xl relative">
+    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center -mt-12 z-50 ">
+      <Card className="w-50  bg-gray-900 border-0 flex flex-col h-[calc(100vh-12rem)] mt-16 shadow-xl relative  ">
         <CardHeader className="flex items-center justify-between px-6 py-4 bg-gray-900 border-b border-green-300">
           <div className="flex items-center gap-4 w-full">
-          <svg
+            <svg
               viewBox="0 0 240 240"
               className="w-12 h-12"
               fill="none"
@@ -118,7 +117,7 @@ function AiAssistant({ isOpen, onClose }) {
               <path d="M160 40 Q180 10 150 30" stroke="#A5F3FC" strokeWidth="8" strokeLinecap="round" />
               <path d="M100 35 Q120 10 140 35" stroke="#A5F3FC" strokeWidth="8" strokeLinecap="round" />
               <path
-                d="M65 100 C65 70 95 50 120 50 C145 50 175 70 175 100 C175 130 150 160 120 160 C90 160 65 130 65 100Z"
+                d="M65 100 C65 70 95 50 120 50 C145 50 175 70 175 100 C175 130 150 160 120 160 C90 160 65 100 65 100Z"
                 fill="#C4A484"
                 opacity="0.9"
               />
@@ -133,8 +132,8 @@ function AiAssistant({ isOpen, onClose }) {
               <rect x="80" y="165" width="80" height="15" className="fill-[#80EE98]" />
               <rect x="90" y="150" width="60" height="15" className="fill-[#80EE98]" />
               <g className="waving-hands">
-                <path d="M50 140 Q40 130 45 120" stroke="#C4A484" strokeWidth="6" strokeLinecap="round" fill="none" />
-                <path d="M190 140 Q200 130 195 120" stroke="#C4A484" strokeWidth="6" strokeLinecap="round" fill="none" />
+                <path d="M50 140 Q40 130 45 120" stroke="#C4A484" strokeWidth="6" strokeLinecap="round" fill="none" className="waving-hand left-hand" />
+                <path d="M190 140 Q200 130 195 120" stroke="#C4A484" strokeWidth="6" strokeLinecap="round" fill="none" className="waving-hand right-hand" />
               </g>
               <defs>
                 <linearGradient id="robotGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -147,7 +146,7 @@ function AiAssistant({ isOpen, onClose }) {
                 </linearGradient>
               </defs>
             </svg>
-            <h2 className="text-xl font-semibold text-btg">AI Assistant</h2>
+            <h2 className="text-xl font-semibold text-[#80EE98]">AI Assistant</h2>
             <button onClick={onClose} className="ml-auto text-gray-400 hover:text-white">
               <X className="w-6 h-6" />
             </button>
@@ -158,57 +157,60 @@ function AiAssistant({ isOpen, onClose }) {
           ref={chatContainerRef}
           className="flex-grow overflow-y-auto p-0 pb-2 custom-scrollbar"
         >
-          <div className="py-4 px-4">
-            <div className="flex flex-col gap-6">
-              {messages.map((message, index) => (
-                <div
-                  key={message.id}
-                  className={cn(
-                    "w-full py-2",
-                    message.sender.isBot ? "bg-gray-900" : "bg-transparent"
-                  )}
-                >
-                  <div className="max-w-3xl mx-auto">
-                    <div
-                      className={cn(
-                        "flex flex-col gap-1",
-                        message.sender.isBot ? "items-start" : "items-end"
-                      )}
-                    >
+          {error ? (
+            <div className="flex flex-col items-start p-4">
+              <div className="bg-[#1f2937] text-gray-100 px-4 py-2 rounded-lg max-w-[75%]">
+                <p className="text-sm">{error}</p>
+                <div className="text-xs text-gray-400 mt-1">
+                  {new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="py-4 px-4">
+              <div className="flex flex-col gap-6">
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={cn(
+                      "w-full py-2",
+                      message.sender.isBot ? "bg-gray-900" : "bg-transparent"
+                    )}
+                  >
+                    <div className="max-w-3xl mx-auto">
                       <div
                         className={cn(
-                          "rounded-lg px-4 py-3",
-                          message.sender.isBot
-                          ? "bg-[#374151] text-gray-100"
-                            : "bg-[#374151] text-gray-100"
+                          "flex flex-col gap-1",
+                          message.sender.isBot ? "items-start" : "items-end"
                         )}
-                        style={{
-                          maxWidth: "75%",
-                          wordWrap: "break-word",
-                          overflowWrap: "break-word",
-                          whiteSpace: "pre-line",
-                          hyphens: "auto",
-                          WebkitHyphens: "auto",
-                          msHyphens: "auto"
-                        }}
                       >
-                        <p className="text-sm" style={{
-                          lineHeight: '1.5',
-                          letterSpacing: '0.2px',
-                          textAlign: 'justify',
-                          wordSpacing: '0.05em'
-                        }}>{message.content}</p>
-                      </div>
-                      <div className="flex items-center gap-1 text-xs text-gray-400 px-1">
-                        <time dateTime={message.timestamp}>{message.timestamp}</time>
+                        <div
+                          className={cn(
+                            "rounded-lg px-4 py-3",
+                            message.sender.isBot
+                              ? "bg-[#374151] text-gray-100"
+                              : "bg-[#374151] text-gray-100"
+                          )}
+                          style={{
+                            maxWidth: "75%",
+                            wordWrap: "break-word",
+                            overflowWrap: "break-word",
+                            whiteSpace: "pre-line",
+                          }}
+                        >
+                          <p className="text-sm">{message.content}</p>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs text-gray-400 px-1">
+                          <time dateTime={message.timestamp}>{message.timestamp}</time>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
+                ))}
+                <div ref={messagesEndRef} />
+              </div>
             </div>
-          </div>
+          )}
         </CardContent>
 
         {isLoading && (
@@ -229,13 +231,14 @@ function AiAssistant({ isOpen, onClose }) {
               placeholder="Type your message here..."
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              className="flex-grow border border-gray-600 bg-[#2A3F5A] text-gray-100 placeholder:text-gray-400 focus:ring-2 focus:ring-gray-500  rounded-lg"
+              className="flex-grow border border-gray-600 bg-[#2A3F5A] text-gray-100 placeholder:text-gray-400 focus:ring-2 focus:ring-gray-500 rounded-lg"
               aria-label="Message"
+              disabled={!!error}
             />
             <button
               type="submit"
-              className="h-10 w-10 p-0  bg-gradient-to-r from-[#80EE98] to-[#09D1C7]  hover:from-[#09D1C7] hover:to-[#80EE98] rounded-lg flex items-center justify-center disabled:opacity-50"
-              disabled={isLoading}
+              className="h-10 w-10 p-0 bg-gradient-to-r from-[#80EE98] to-[#09D1C7] hover:from-[#09D1C7] hover:to-[#80EE98] rounded-lg flex items-center justify-center disabled:opacity-50"
+              disabled={isLoading || !!error}
             >
               <svg 
                 viewBox="0 0 24 24" 
@@ -261,20 +264,41 @@ function AiAssistant({ isOpen, onClose }) {
           50% { opacity: 0.5; }
         }
 
-
-
-        .glow {
-          filter: drop-shadow(0 0 12px #0ea5e9);
-        }
-
         @keyframes wave {
           0%, 100% { transform: rotate(0deg); }
-          50% { transform: rotate(-20deg); }
+          25% { transform: rotate(-15deg); }
+          75% { transform: rotate(15deg); }
         }
 
-        .waving-hands {
-          animation: wave 1.5s ease-in-out infinite;
-          transform-origin: bottom center;
+        .waving-hand {
+          animation: wave 2s ease-in-out infinite;
+        }
+
+        .left-hand {
+          transform-origin: 45px 120px;
+        }
+
+        .right-hand {
+          transform-origin: 195px 120px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(128, 238, 152, 0.1);
+          border-radius: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(128, 238, 152, 0.5);
+          border-radius: 4px;
+          transition: background 0.2s ease;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(128, 238, 152, 0.7);
         }
       `}</style>
     </div>

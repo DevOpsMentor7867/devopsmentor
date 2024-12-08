@@ -9,6 +9,7 @@ const api = axios.create({
 export const RegisterUser = () => {
   const [RegisterError, setError] = useState(null);
   const [RegisterCheck, setRegCheck] = useState(null);
+  const [timerReset, setTimerReset] = useState(false);
 
   const signup = async (email, password) => {
     setError(null);
@@ -18,9 +19,14 @@ export const RegisterUser = () => {
       const response = await api.post("/user/register", { email, password });
 
       if (response.status >= 200 && response.status < 300) {
+
         console.log("Register User Successful", response.data);
         if (response.status === 209) {
           setRegCheck(response.data);
+        }
+        console.log("RDM", response.data.message)
+        if(response.data.message ==="OTP sent to email. Please verify within 2 minutes." ) {
+          setTimerReset(true);
         }
       } else {
         setError("Failed to register user.");
@@ -38,8 +44,7 @@ export const RegisterUser = () => {
       }
       console.error("Register User Error:", error);
     }
-    console.log(RegisterError, "refefefe");
   };
 
-  return { signup, RegisterError, RegisterCheck };
+  return { signup, RegisterError, RegisterCheck, timerReset };
 };

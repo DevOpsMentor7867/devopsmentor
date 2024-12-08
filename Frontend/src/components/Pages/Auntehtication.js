@@ -32,7 +32,7 @@ export default function AuthComponent() {
   const [forgotPasswordStatus, setForgotPasswordStatus] = useState(null);
   const [isForgotPasswordLoading, setIsForgotPasswordLoading] = useState(false);
   // Hooks
-  const { signup, RegisterError, RegisterCheck } = RegisterUser();
+  const { signup, RegisterError, RegisterCheck, timerReset } = RegisterUser();
   const { login, loginError } = LoginUser();
   const { PostSignup, VerifyotpError } = VerifyOTP();
 
@@ -72,6 +72,10 @@ export default function AuthComponent() {
         console.log("REGCHECK", RegisterCheck)
         setIsLoading(false);
         setShowOTPDialog(true);
+      }
+      console.log("TIMER",timerReset )
+      if(timerReset) {
+        setTimeLeft(120)
       }
     } else {
       await login(email, password);
@@ -632,7 +636,6 @@ export default function AuthComponent() {
                     <Button
                       onClick={handleVerifyOTP}
                       className="w-full bg-gradient-to-r from-[#80EE98] to-[#09D1C7] text-[#1A202C] hover:from-[#09D1C7] hover:to-[#80EE98] rounded-md mt-4 "
-                      disabled={timeLeft === 0}
                     >
                       Verify OTP
                     </Button>

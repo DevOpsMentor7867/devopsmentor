@@ -47,8 +47,8 @@ export default function DashboardOverview() {
             <User className="w-6 h-6 text-[#09D1C7]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Welcome back, Ahmad Sattar!</h1>
-            <p className="text-gray-400">Continue your DevOps journey</p>
+            <h1 className="text-2xl font-bold text-btg">Welcome back, Ahmad Sattar!</h1>
+            <p className="text-btg">Continue your DevOps journey</p>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -56,11 +56,11 @@ export default function DashboardOverview() {
             <input
               type="text"
               placeholder="Search..."
-              className="bg-white/10 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:ring-2 ring-[#09D1C7]/50"
+              className="bg-white/20 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:ring-2 ring-[#09D1C7]/20"
             />
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           </div>
-          <button className="relative p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors">
+          <button className="relative p-2 rounded-lg bg-white/20 hover:bg-white/20 transition-colors">
             <Bell className="w-5 h-5" />
             <span className="absolute top-1 right-1 w-2 h-2 bg-[#09D1C7] rounded-full" />
           </button>
@@ -68,12 +68,12 @@ export default function DashboardOverview() {
       </header>
 
       {/* Main Grid */}
-      <div className="grid grid-cols-12 gap-6">
+      <div className="grid grid-cols-12 gap-6 text-gtb">
         {/* Learning Progress */}
-        <div className="col-span-8 bg-[#09D1C7]/10 rounded-xl p-6">
+        <div className="col-span-8 bg-[#09D1C7]/20 rounded-xl p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold">Learning Progress</h2>
-            <select className="bg-white/10 rounded-lg px-3 py-1">
+            <select className="bg-white/20 rounded-lg px-3 py-1">
               <option>This Month</option>
               <option>Last Month</option>
             </select>
@@ -104,7 +104,7 @@ export default function DashboardOverview() {
         </div>
 
         {/* Today's Schedule */}
-        <div className="col-span-4 bg-[#80EE98]/10 rounded-xl p-6">
+        <div className="col-span-4 bg-[#80EE98]/20 rounded-xl p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold">Today's Schedule</h2>
             <Calendar className="w-5 h-5 text-[#80EE98]" />
@@ -134,20 +134,20 @@ export default function DashboardOverview() {
         </div>
 
         {/* Tools Progress */}
-        <div className="col-span-6 bg-[#845EF7]/10 rounded-xl p-6">
+        <div className="col-span-6 bg-[#845EF7]/20 rounded-xl p-6">
           <h2 className="text-xl font-semibold mb-6">Tools Progress</h2>
           <div className="grid grid-cols-2 gap-6">
             {progressData.map((tool) => (
               <motion.div
                 key={tool.name}
                 whileHover={{ scale: 1.02 }}
-                className="bg-white/10 rounded-xl p-4"
+                className="bg-white/20 rounded-xl p-4"
               >
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="font-semibold">{tool.name}</h3>
                   <span style={{ color: tool.color }}>{tool.progress}%</span>
                 </div>
-                <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                <div className="h-2 bg-white/20 rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${tool.progress}%` }}
@@ -162,7 +162,7 @@ export default function DashboardOverview() {
         </div>
 
         {/* Course Completion */}
-        <div className="col-span-6 bg-[#FF6B6B]/10 rounded-xl p-6">
+        <div className="col-span-6 bg-[#FF6B6B]/20 rounded-xl p-6">
           <h2 className="text-xl font-semibold mb-6">Course Completion</h2>
           <div className="flex items-center justify-center h-[250px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -195,7 +195,7 @@ export default function DashboardOverview() {
         </div>
 
         {/* Quick Actions */}
-        <div className="col-span-4 bg-white/10 rounded-xl p-6">
+        <div className="col-span-4 bg-white/20 rounded-xl p-6">
           <h2 className="text-xl font-semibold mb-6">Quick Actions</h2>
           <div className="grid grid-cols-2 gap-4">
             {[
@@ -208,7 +208,7 @@ export default function DashboardOverview() {
                 key={action.name}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-sm font-medium flex flex-col items-center gap-2"
+                className="p-4 rounded-lg bg-white/5 hover:bg-white/20 transition-colors text-sm font-medium flex flex-col items-center gap-2"
                 style={{ color: action.color }}
               >
                 <action.icon className="w-6 h-6" />
@@ -219,7 +219,7 @@ export default function DashboardOverview() {
         </div>
 
         {/* Recent Activity */}
-        <div className="col-span-8 bg-[#09D1C7]/10 rounded-xl p-6">
+        <div className="col-span-8 bg-[#09D1C7]/20 rounded-xl p-6">
           <h2 className="text-xl font-semibold mb-6">Recent Activity</h2>
           <div className="space-y-4">
             {[

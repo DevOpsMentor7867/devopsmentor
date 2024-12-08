@@ -3,29 +3,47 @@ const Message = require('../models/Messagedb');
 const Conversation = require('../models/conversation');
 require('dotenv').config();
 
-
 // Configure OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
 // Get conversation history
-exports.getConversationHistory = async (req, res) => {
+const getConversationHistory = async (req, res) => {
   try {
     const userId = req.user._id;
-    const conversation = await Conversation.findOne({ user: userId }).populate('messages');
+    let conversation = await Conversation.findOne({ user: userId }).populate('messages');
     
+    // If no conversation exists, create one
     if (!conversation) {
-      console.log('No conversation found for user:', userId);
-      return res.status(404).json({
-        success: false,
-        error: 'No conversation found for this user'
+      console.log('Creating new conversation for user:', userId);
+      conversation = new Conversation({ 
+        user: userId, 
+        messages: [] 
       });
+      await conversation.save();
+      if (conversation.messages.length === 0) {
+        const welcomeMessage = new Message({
+          content: "Hello! I am your DevOps mentor. How can I assist you today?",
+          sender: 'AI_ASSISTANT',
+          recipient: 'USER',
+          userId: userId,
+          timestamp: new Date()
+        });
+        await welcomeMessage.save();
+        conversation.messages.push(welcomeMessage._id);
+        await conversation.save();
+      }
     }
 
-    res.json({ success: true, conversation });
+    // Always return a success response with the conversation (empty or not)
+    res.json({ 
+      success: true, 
+      conversation: await conversation.populate('messages')
+    });
+
   } catch (error) {
-    console.error('Error fetching conversation:', {
+    console.error('Error in conversation history:', {
       message: error.message,
       stack: error.stack,
       userId: req.user._id
@@ -38,7 +56,7 @@ exports.getConversationHistory = async (req, res) => {
 };
 
 // Post a new message and get AI response
-exports.chat = async (req, res) => {
+const chat = async (req, res) => {
   try {
     console.log('Received chat request:', req.body);
 
@@ -78,7 +96,7 @@ exports.chat = async (req, res) => {
         messages: [
           {
             role: "system",
-            content: "You are a computer science expert. Provide detailed and accurate answers to computer science-related questions."
+            content: "You are a computer science and DevOps expert. Provide detailed and accurate answers to computer science-related questions and if someone ask for irrelevant question then reply please ask Questions related to Computer Science and DevOps."
           },
           { role: "user", content: message }
         ],
@@ -189,4 +207,11 @@ exports.chat = async (req, res) => {
     });
   }
 };
+
+module.exports = {
+  getConversationHistory,
+  chat
+};
+
+console.log('Chatbot controller loaded successfully.');
 

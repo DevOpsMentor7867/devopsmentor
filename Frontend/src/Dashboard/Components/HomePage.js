@@ -74,7 +74,7 @@ export default function HomePage() {
           alt="Background"
           className="w-full h-full object-cover mt-12"
         />
-        <div className="absolute backdrop-blur-sm  inset-0 bg-black/70" />
+        <div className="absolute backdrop-blur-lg  inset-0 bg-black/70" />
       </div> */}
 
       <div className="relative text-btg text-center  backdrop-blur-sm h-[41rem] ">
