@@ -113,7 +113,7 @@ const login = async (req, res) => {
           code: "USER_NOT_FOUND",
         });
       }
-      res.status(200).json({ user: user, token: result.token });
+      res.status(200).json({ user: user});
     } else {
       res.status(401).json({ message: result.message });
     }

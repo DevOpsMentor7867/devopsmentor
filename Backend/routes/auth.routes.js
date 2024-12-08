@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
 const userAuth = require("../controllers/userAuth");
+const userInfo = require("../controllers/userAuth/user-info")
 const authMiddleware = require('../middleware/userMiddleware');
 
 const asyncHandler = fn => async (req, res, next) => {
@@ -27,8 +28,8 @@ router.post('/logout', authMiddleware, asyncHandler(userAuth.logout));
 router.post('/auth', authMiddleware, asyncHandler(userAuth.checkAuthentication));
 router.post('/forgot-password', asyncHandler(userAuth.forgotPassword));
 router.post('/reset-password', asyncHandler(userAuth.resetPassword));
-router.delete('/delete', authMiddleware, asyncHandler(userAuth.deleteUser));
-router.put('/info', authMiddleware, asyncHandler(userAuth.setUserInformation));
+router.post('/delete-user', authMiddleware, asyncHandler(userAuth.deleteUser));
+router.post('/SetUserInformation', authMiddleware, asyncHandler(userInfo.SetUserInformation));
 
 router.get('/verify-passwords', asyncHandler(async (req, res) => {
   await userAuth.verifyStoredPasswords();

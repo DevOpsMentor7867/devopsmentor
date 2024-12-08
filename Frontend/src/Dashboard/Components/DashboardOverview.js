@@ -39,7 +39,7 @@ const pieData = [
 
 export default function DashboardOverview() {
   return (
-    <div className="min-h-screen backdrop-blur-sm text-white p-6 z-50">
+    <div className="min-h-screen backdrop-blur-lg text-white p-6 z-50">
       {/* Header */}
       <header className="flex justify-between items-center mb-8">
         <div className="flex items-center gap-4">

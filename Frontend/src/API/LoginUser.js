@@ -19,7 +19,8 @@ export const LoginUser = () => {
       const response = await api.post("/user/login", { email, password });
       if (response.status >= 200 && response.status < 300) {
         // eslint-disable-next-line
-        const {token} = response.token;
+        // const {token} = response.token;
+        console.log(response)
 
         dispatch({ type: "LOGIN", payload: response.data.user });
         navigate("/Dashboard");
