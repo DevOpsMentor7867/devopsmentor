@@ -38,7 +38,7 @@ verification_queue.process(async (job) => {
         await redisClient.del(stored_key);
         return { 
           success: false, 
-          message: 'This email is already registered. Please login instead of registering again.',
+          message: 'An account with this email already exists. Please login or register with a different email.',
           code: 'ALREADY_REGISTERED'
         };
       }
@@ -72,7 +72,7 @@ verification_queue.process(async (job) => {
         await redisClient.del(stored_key);
         return { 
           success: false, 
-          message: 'This email is already registered. Please login instead of registering again.',
+          message: 'An account with this email already exists. Please login or register with a different email.',
           code: 'ALREADY_REGISTERED'
         };
       }

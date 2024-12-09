@@ -12,9 +12,7 @@ import {
 
 export default function Sidebar({ isOpen, onToggle }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-  const handleMouseEnter = () => setIsHovered(true);
-  const handleMouseLeave = () => setIsHovered(false);
+
 
   const menuItems = [
     {
@@ -79,7 +77,7 @@ export default function Sidebar({ isOpen, onToggle }) {
       </button>
 
       {/* Sidebar for desktop */}
-      <div className="fixed top-0 left-0 z-40 h-screen hidden md:block bg-black/20">
+      <div className="fixed top-0 left-0 z-40 h-screen hidden md:block bg-black/20 backdrop-blur-sm">
         <div
           className={`h-screen transition-all duration-300 relative border-r border-transparent sidebar-gradient-border ${
             isOpen ? "w-[15rem]" : "w-14"
@@ -96,23 +94,14 @@ export default function Sidebar({ isOpen, onToggle }) {
 
             <button
               onClick={onToggle}
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
+
               className="text-gray-400 hover:bg-opacity-10 hover:text-white"
             >
-              {isOpen || isHovered ? (
-                <Menu
+              <Menu
                   className={`h-6 w-6 text-[#80EE98] hover:text-white hover:bg-[#80EE98]/20 transition-all duration-300 ${
                     isOpen ? "" : "ml-3"
                   }`}
                 />
-              ) : (
-                <img
-                  src="/project-logo.png"
-                  alt="Project Logo"
-                  className="object-cover h-16 w-16 md:h-12 md:w-12"
-                />
-              )}
               <span className="sr-only">Toggle Menu</span>
             </button>
           </div>

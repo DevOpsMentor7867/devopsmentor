@@ -9,7 +9,7 @@ const api = axios.create({
 export const RegisterUser = () => {
   const [RegisterError, setError] = useState(null);
   const [RegisterCheck, setRegCheck] = useState(null);
-  const [timerReset, setTimerReset] = useState(false);
+  const [timerReset, setTimerReset] = useState(true);
 
   const signup = async (email, password) => {
     setError(null);
@@ -25,8 +25,8 @@ export const RegisterUser = () => {
           setRegCheck(response.data);
         }
         console.log("RDM", response.data.message)
-        if(response.data.message ==="OTP sent to email. Please verify within 2 minutes." ) {
-          setTimerReset(true);
+        if(response.data.message ==="Registration already in progress. Please check your email for OTP or try again later" ) {
+          setTimerReset(false);
         }
       } else {
         setError("Failed to register user.");

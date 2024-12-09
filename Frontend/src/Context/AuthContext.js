@@ -14,18 +14,17 @@ export const AuthContext = createContext();
 export const authReducer = (state, action) => {
   switch (action.type) {
     case "LOGIN":
-      // Handle both user and token in a backward-compatible way
       return { 
         ...state, 
-        user: action.payload.user || action.payload, // Support both new and old payload format
-        token: action.payload.token || null, // Add token support
+        user: action.payload.user || action.payload, 
+        token: action.payload.token || null, 
         loading: false 
       };
     case "LOGOUT":
       return { 
         ...state, 
         user: null,
-        token: null, // Clear token on logout
+        token: null, 
         loading: false 
       };
     case "UPDATE_USER":
@@ -46,7 +45,7 @@ export const authReducer = (state, action) => {
 export const AuthContextProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, {
     user: null,
-    token: null, // Add token to initial state
+    token: null, 
     loading: true,
   });
 
@@ -59,7 +58,6 @@ export const AuthContextProvider = ({ children }) => {
       try {
         const response = await api.post('/user/auth');
         if (response.status === 200) {
-          // Handle both user and token in the response
           dispatch({ 
             type: 'LOGIN', 
             payload: {

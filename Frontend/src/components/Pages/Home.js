@@ -331,7 +331,7 @@ export default function LandingPage() {
       <footer className=" text-white/80 py-12 relative z-10">
         <div className="mt-8 pt-8 border-t border-white/20 text-center">
           <div className="max-w-7xl mx-auto px-4"></div>
-          <p>&copy; 2023 DevOps Mentor. All rights reserved.</p>
+          <p>&copy; 2024 DevOps Mentor. All rights reserved.</p>
         </div>
       </footer>
     </div>

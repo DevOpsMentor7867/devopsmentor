@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "../UI/button";
 import { Input } from "../UI/input";
 import { Label } from "../UI/label";
@@ -36,13 +36,11 @@ export default function AuthComponent() {
   const { login, loginError } = LoginUser();
   const { PostSignup, VerifyotpError } = VerifyOTP();
 
-  // Helper functions
-  // const clearInputs = () => {
-  //   setEmail("");
-  //   setPassword("");
-  //   setConfirmPassword("");
-  //   setOtp(["", "", "", "", "", ""]);
-  // };
+  const clearInputs = () => {
+    setPassword("");
+    setConfirmPassword("");
+    setOtp(["", "", "", "", "", ""]);
+  };
 
   const handleGoogleSignIn = async () => {
     try {
@@ -51,7 +49,7 @@ export default function AuthComponent() {
     } catch (error) {
       console.error("Google sign in error:", error);
     }
-    // clearInputs();
+    clearInputs();
   };
 
   const toggleModal = () => {
@@ -74,14 +72,14 @@ export default function AuthComponent() {
         setShowOTPDialog(true);
       }
       console.log("TIMER",timerReset )
-      if(timerReset) {
+      if(!timerReset) {
         setTimeLeft(120)
       }
     } else {
       await login(email, password);
       setIsLoading(false);
     }
-    // clearInputs();
+    clearInputs();
   };
 
   const handleVerifyOTP = async () => {
@@ -163,16 +161,13 @@ export default function AuthComponent() {
     );
   };
 
-  const retryOTP = useCallback(() => {
-    setOtp(["", "", "", "", "", ""]);
-    setTimeLeft(120);
-  }, []);
 
-  const formatTime = (seconds) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
-  };
+
+  // const formatTime = (seconds) => {
+  //   const minutes = Math.floor(seconds / 60);
+  //   const remainingSeconds = seconds % 60;
+  //   return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
+  // };
 
   // Effects
   useEffect(() => {
@@ -621,7 +616,7 @@ export default function AuthComponent() {
                       </p>
                     )}
 
-                    <div className="flex items-center justify-between">
+                    {/* <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-400">
                         OTP Expires in: {formatTime(timeLeft)}
                       </span>
@@ -631,7 +626,7 @@ export default function AuthComponent() {
                       >
                         <RefreshCcw size={20} />
                       </button>
-                    </div>
+                    </div> */}
 
                     <Button
                       onClick={handleVerifyOTP}
