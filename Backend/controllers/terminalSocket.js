@@ -131,15 +131,7 @@ containerClose.process(process.env.containerWorkers || 2, async (job) => {
 module.exports = setupTerminalNamespace;*/
 
 
-const redisClientPool = require('../redis/redis-server');
-const dockerClientPool = require('../docker/docker_connection');
-const { setUpSocketServer, getIo } = require('../socketServer/socket');
-const Bull = require("bull");
-const stream = require('stream');
 
-const containerStart = new Bull("linuxContainerStart", { redis: { port: 6379, host: "localhost" } });
-const containerExec = new Bull("linuxContainerExecute", { redis: { port: 6379, host: "localhost" } });
-const containerClose = new Bull("linuxContainerClose", { redis: { port: 6379, host: "localhost" } });
 
 /*const setupTerminalNamespace = async () => {
   const io = getIo();
@@ -386,6 +378,17 @@ console.log("Terminal server setup complete");*/
     });
   });
 };*/
+
+
+const redisClientPool = require('../redis/redis-server');
+const dockerClientPool = require('../docker/docker_connection');
+const { setUpSocketServer, getIo } = require('../socketServer/socket');
+const Bull = require("bull");
+const stream = require('stream');
+
+const containerStart = new Bull("linuxContainerStart", { redis: { port: 6379, host: "localhost" } });
+const containerExec = new Bull("linuxContainerExecute", { redis: { port: 6379, host: "localhost" } });
+const containerClose = new Bull("linuxContainerClose", { redis: { port: 6379, host: "localhost" } });
 
 
 const setupTerminalNamespace = async () => {

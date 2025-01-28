@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { io } from 'socket.io-client';
+import { useEffect, useRef, useState } from "react";
+import { io } from "socket.io-client";
 
 export function useSocket(dockerImage) {
   const [isConnected, setIsConnected] = useState(false);
@@ -7,6 +7,11 @@ export function useSocket(dockerImage) {
   const socketRef = useRef(null);
 
   useEffect(() => {
+    // Return early if dockerImage is null or undefined
+    if (!dockerImage) {
+      return;
+    }
+
     const socket = io("http://localhost:8000/terminal", {
       withCredentials: true,
       transports: ["websocket", "polling"],
@@ -18,20 +23,20 @@ export function useSocket(dockerImage) {
       reconnectionDelay: 1000,
     });
 
-    socket.on('connect', () => {
-      console.log('Socket connected');
+    socket.on("connect", () => {
+      console.log("Socket connected");
       setIsConnected(true);
       setSocketId(socket.id);
     });
 
-    socket.on('disconnect', (reason) => {
-      console.log('Socket disconnected:', reason);
+    socket.on("disconnect", (reason) => {
+      console.log("Socket disconnected:", reason);
       setIsConnected(false);
       setSocketId(null);
     });
 
-    socket.on('connect_error', (error) => {
-      console.error('Connection error:', error);
+    socket.on("connect_error", (error) => {
+      console.error("Connection error:", error);
       setIsConnected(false);
     });
 
@@ -47,10 +52,9 @@ export function useSocket(dockerImage) {
     if (socketRef.current) {
       socketRef.current.emit(event, data);
     } else {
-      console.error('Socket is not connected');
+      console.error("Socket is not connected");
     }
   };
 
   return { socket: socketRef.current, isConnected, socketId, emit };
 }
-

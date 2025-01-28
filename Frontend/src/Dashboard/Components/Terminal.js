@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { useSocket } from '../hooks/useSocket';
+import { useSocket } from "../hooks/useSocket";
+import { useAnsibleSocket } from "../hooks/useAnsibleSocket";
 import { Terminal } from "xterm";
 // import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
@@ -61,23 +62,35 @@ function TerminalComponent({ isOpen }) {
   const [currentHintIndex, setCurrentHintIndex] = useState(0);
   const location = useLocation();
   const { toolName, labName, docker_image } = location.state || {};
-  const { socket, isConnected, socketId, emit } = useSocket(docker_image);
+
+  const {
+    socket: dockerSocket,
+    isConnected,
+    socketId,
+    emit: dockerEmit,
+  } = useSocket(toolName !== "Ansible" ? docker_image : null);
+
+  const {
+    socket: ansibleSocket,
+    isAnsibleSocketConnected,
+    // ansibleSocketId,
+    emit: ansibleEmit,
+  } = useAnsibleSocket();
+
   // eslint-disable-next-line
   const [term, setTerm] = useState(null);
-
 
   const { labId } = useParams();
   const dragStartX = useRef(0);
   const dragStartWidth = useRef(0);
   const terminalRef = useRef(null);
   const fitAddonRef = useRef(null);
-  const terminalInitialized = useRef(false); 
+  const terminalInitialized = useRef(false);
   const navigate = useNavigate();
 
-  const timerRef = useRef(null); 
+  const timerRef = useRef(null);
   const timeRef = useRef(3600);
   const containerRef = useRef(null);
-
 
   useEffect(() => {
     if (ShowSucsess) {
@@ -88,7 +101,6 @@ function TerminalComponent({ isOpen }) {
       });
     }
   }, [ShowSucsess]);
-
 
   // page reload check
   useEffect(() => {
@@ -107,7 +119,7 @@ function TerminalComponent({ isOpen }) {
 
       if (userConfirmed) {
         // If the user confirms, we can proceed with the navigation
-        navigate(-1);  // Go back in the history (same as back button)
+        navigate(-1); // Go back in the history (same as back button)
       } else {
         // Optionally, you can push a new state to the history to stay on the page
         window.history.pushState(null, "", window.location.href);
@@ -172,13 +184,11 @@ function TerminalComponent({ isOpen }) {
     fetchQuestions();
   }, [fetchQuestions]);
 
-
-
-
   useEffect(() => {
     if (terminalInitialized.current) return;
 
     const initializeTerminal = () => {
+      const inputBuffer = { current: "" }
       if (!terminalRef.current || terminalInitialized.current) return;
 
       const newTerm = new Terminal({
@@ -225,9 +235,9 @@ function TerminalComponent({ isOpen }) {
         "|____/ \\___| \\_/  \\___/| .__/|___/    |_|  |_|\\___|_| |_|\\__\\___/|_|   ",
         "                       |_|                                              ",
       ];
-      
+
       const style = document.createElement("style");
-    style.textContent = `
+      style.textContent = `
       .xterm-viewport::-webkit-scrollbar {
         width: 10px;
       }
@@ -239,7 +249,7 @@ function TerminalComponent({ isOpen }) {
         border-radius: 6px;
         border: 3px solid #1F2937;
       } `;
-    document.head.appendChild(style);
+      document.head.appendChild(style);
 
       asciiArt.forEach((line, index) => {
         let gradientLine = "";
@@ -263,8 +273,36 @@ function TerminalComponent({ isOpen }) {
       terminalInitialized.current = true;
 
       newTerm.onKey(({ key }) => {
-        emit("command", key);
+        if (toolName === "Ansible") {
+          ansibleEmit("command", key); // Send command to Ansible socket
+        } else {
+          dockerEmit("command", key); // Send command to Docker socket
+        }
       });
+
+      // newTerm.onKey(({ key, domEvent }) => {
+      //   const printable = !domEvent.altKey && !domEvent.ctrlKey && !domEvent.metaKey
+
+      //   if (domEvent.keyCode === 13) {
+      //     // Enter key
+      //     if (toolName === "Ansible") {
+      //       ansibleEmit("command", inputBuffer.current + "\n")
+      //     } else {
+      //       dockerEmit("command", inputBuffer.current + "\n")
+      //     }
+      //     inputBuffer.current = ""
+      //     term.write("\r\n")
+      //   } else if (domEvent.keyCode === 8) {
+      //     // Backspace
+      //     if (inputBuffer.current.length > 0) {
+      //       inputBuffer.current = inputBuffer.current.slice(0, -1)
+      //       term.write("\b \b")
+      //     }
+      //   } else if (printable) {
+      //     inputBuffer.current += key
+      //     term.write(key)
+      //   }
+      // })
 
       return () => {
         window.removeEventListener("resize", handleResize);
@@ -273,30 +311,53 @@ function TerminalComponent({ isOpen }) {
     };
 
     initializeTerminal();
-  }, [emit]);
+  }, [dockerEmit, ansibleEmit, toolName, term]);
 
   useEffect(() => {
-    if (socket && term) {
-      const handleOutput = (data) => {
-        term.write(data);
-      };
+    if (toolName !== "Ansible") {
+      if (dockerSocket && term) {
+        const handleOutput = (data) => {
+          term.write(data);
+        };
 
-      socket.on('output', handleOutput);
+        dockerSocket.on("output", handleOutput);
+
+        return () => {
+          dockerSocket.off("output", handleOutput);
+        };
+      }
+    }
+  }, [dockerSocket, term, toolName]);
+  
+  useEffect(() => {
+    if (toolName === "Ansible" && ansibleSocket && term) {
+      const handleAnsibleOutput = (data) => {
+        term.write(data)
+      }
+
+      ansibleSocket.on("output", handleAnsibleOutput)
 
       return () => {
-        socket.off('output', handleOutput);
-      };
+        ansibleSocket.off("output", handleAnsibleOutput)
+      }
     }
-  }, [socket, term]);
+  }, [ansibleSocket, term, toolName])
+
+
 
   useEffect(() => {
     if (isConnected) {
-      console.log('Socket connected, ready to use terminal');
+      console.log("Socket connected, ready to use terminal");
     } else {
-      console.log('Socket disconnected, terminal may not be usable');
+      console.log("Socket disconnected, terminal may not be usable");
     }
-  }, [isConnected]);
 
+    if (isAnsibleSocketConnected) {
+      console.log("Ansible Socket connected, ready to use terminal");
+    } else {
+      console.log("Ansible Socket disconnected, terminal may not be usable");
+    }
+  }, [isConnected, isAnsibleSocketConnected]);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -340,11 +401,12 @@ function TerminalComponent({ isOpen }) {
     return () => window.removeEventListener("resize", handleResize);
   }, [terminalWidth]);
 
-
   useEffect(() => {
     const intervalId = setInterval(() => {
       // Capture the current scroll position
-      const currentScrollPos = containerRef.current ? containerRef.current.scrollLeft : 0;
+      const currentScrollPos = containerRef.current
+        ? containerRef.current.scrollLeft
+        : 0;
 
       // Decrease time by 1 second
       timeRef.current = Math.max(timeRef.current - 1, 0); // Prevent going below 0
@@ -616,8 +678,11 @@ function TerminalComponent({ isOpen }) {
                         <div className="text-center">
                           <div className="flex items-center mt-2 text-white">
                             <Clock className="w-6 h-6 mr-2 " />
-                            <span className="text-red-700 ml-2 font-mono text-lg"  ref={timerRef}>
-                            {formatTime(timeRef.current)}
+                            <span
+                              className="text-red-700 ml-2 font-mono text-lg"
+                              ref={timerRef}
+                            >
+                              {formatTime(timeRef.current)}
                             </span>
                           </div>
                         </div>
@@ -632,9 +697,12 @@ function TerminalComponent({ isOpen }) {
                       </div>
                     </div>
 
-                    <div className="prose prose-invert overflow-y-auto custom-scrollbar pr-2 max-h-[40vh] md:max-h-[50vh] lg:max-h-[49vh] xl:max-h-[56vh]" ref={containerRef}>
-                      <div className="text-lg "  >
-                        <RenderQuestion 
+                    <div
+                      className="prose prose-invert overflow-y-auto custom-scrollbar pr-2 max-h-[40vh] md:max-h-[50vh] lg:max-h-[49vh] xl:max-h-[56vh]"
+                      ref={containerRef}
+                    >
+                      <div className="text-lg ">
+                        <RenderQuestion
                           questionString={getCurrentQuestion().question}
                         />
                       </div>

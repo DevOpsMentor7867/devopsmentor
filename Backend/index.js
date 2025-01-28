@@ -12,6 +12,7 @@ const execInstancePool =  require('./docker/execPool');
 const {setUpSocketServer, getIo} = require('./socketServer/socket');
 const  setupTerminalNamespace = require('./controllers/terminalSocket');
 const cors = require('cors');
+const setupAnsibleTerminalNamespace = require('./controllers/AnsibleTerminalSocket');
 const app = express();
 
 app.use(cors({
@@ -45,7 +46,9 @@ const initializeApp = async () => {
     await redisClientPool.initialize(); 
 
    await dockerClientPool.initialize();
+
    setupTerminalNamespace();
+   setupAnsibleTerminalNamespace();
   
     const port = process.env.PORT || 3000;
     httpServer.listen(port, () => {
