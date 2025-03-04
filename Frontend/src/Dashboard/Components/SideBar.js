@@ -43,8 +43,8 @@ export default function Sidebar({ isOpen, onToggle }) {
       icon: (
         <GraduationCap className="h-5 w-5 text-[#09D1C7] hover:text-white hover:bg-[#09D1C7]/20 transition-transform duration-300 ease-in-out hover:scale-110" />
       ),
-      label: "Terminal",
-      to: "",
+      label: "Pricing",
+      to: "/dashboard/pricing",
       className: "",
     },
     {

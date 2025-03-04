@@ -8,6 +8,8 @@ import ToolData from "./Components/ToolsPage";
 import Labs from "./Components/LabsPage";
 import LoadingScreen from "./Components/LoadingPage";
 import HomePage from "./Components/HomePage";
+import Pricing from "./Components/Pricing/pricing";
+import CheckoutPage from "./Components/Pricing/CheckoutPage";
 
 export default function DashboardLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -29,10 +31,12 @@ export default function DashboardLayout() {
           <Route path="/" element={<HomePage />} />
           <Route path="/tools" element={<ToolData />} />
           <Route path="/:toolId/labs" element={<Labs />} /> {/* Labs page route */}
-          <Route path="/terminal" element={<TerminalQuiz />} />
-          <Route path="/labs/:labId/questions" element={<TerminalQuiz sOpen={isSidebarOpen} />} />
+          {/* <Route path="/terminal" element={<TerminalQuiz />} /> */}
+          <Route path="/labs/:labId/questions" element={<TerminalQuiz isOpen={isSidebarOpen} />} />
           <Route path="/profile" element={<UserProfile />} />
+          <Route path="/pricing" element= {<Pricing/>} />
           <Route path="/loading" element={<LoadingScreen />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
         </Routes>
       </main>
     </div>

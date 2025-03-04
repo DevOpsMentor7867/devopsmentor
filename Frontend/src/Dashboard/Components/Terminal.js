@@ -14,6 +14,7 @@ import confetti from "canvas-confetti";
 import RenderQuestion from "./RenderQuestion";
 import { FitAddon } from "@xterm/addon-fit";
 import "xterm/css/xterm.css";
+import LoadingSpinner from "../UI/LoadingSpinner"
 
 import {
   Users,
@@ -62,6 +63,7 @@ function TerminalComponent({ isOpen }) {
   const [currentHintIndex, setCurrentHintIndex] = useState(0);
   const location = useLocation();
   const { toolName, labName, docker_image } = location.state || {};
+  const [isLoading, setIsLoading] = useState(false);
 
   const {
     socket: dockerSocket,
@@ -73,7 +75,7 @@ function TerminalComponent({ isOpen }) {
   const {
     socket: ansibleSocket,
     isAnsibleSocketConnected,
-    // ansibleSocketId,
+    ansibleSocketId,
     emit: ansibleEmit,
   } = useAnsibleSocket();
 
@@ -161,6 +163,7 @@ function TerminalComponent({ isOpen }) {
   // }, [navigate]);
 
   const fetchQuestions = useCallback(async () => {
+    setIsLoading(true); // Set loading to true before fetch starts
     try {
       const response = await fetch(
         `http://localhost:8000/api/user/labs/${labId}/questions`
@@ -177,9 +180,11 @@ function TerminalComponent({ isOpen }) {
       setScripts(allScripts);
     } catch (error) {
       console.error("Error fetching questions:", error);
+    } finally {
+      setIsLoading(false);
     }
   }, [labId]);
-
+  
   useEffect(() => {
     fetchQuestions();
   }, [fetchQuestions]);
@@ -188,19 +193,21 @@ function TerminalComponent({ isOpen }) {
     if (terminalInitialized.current) return;
 
     const initializeTerminal = () => {
-      const inputBuffer = { current: "" }
       if (!terminalRef.current || terminalInitialized.current) return;
 
       const newTerm = new Terminal({
         theme: {
           background: "#1F2937",
-          // foreground: "#ffffff",
           cursor: "#ffffff",
           selection: "rgba(255, 255, 255, 0.3)",
         },
         fontFamily: 'Menlo, Monaco, "Courier New", monospace',
         fontSize: 14,
         cursorBlink: true,
+        encoding: 'utf-8',
+        convertEol: true,
+        scrollback: 1000,
+        disableStdin: false
       });
 
       const fitAddon = new FitAddon();
@@ -280,29 +287,7 @@ function TerminalComponent({ isOpen }) {
         }
       });
 
-      // newTerm.onKey(({ key, domEvent }) => {
-      //   const printable = !domEvent.altKey && !domEvent.ctrlKey && !domEvent.metaKey
 
-      //   if (domEvent.keyCode === 13) {
-      //     // Enter key
-      //     if (toolName === "Ansible") {
-      //       ansibleEmit("command", inputBuffer.current + "\n")
-      //     } else {
-      //       dockerEmit("command", inputBuffer.current + "\n")
-      //     }
-      //     inputBuffer.current = ""
-      //     term.write("\r\n")
-      //   } else if (domEvent.keyCode === 8) {
-      //     // Backspace
-      //     if (inputBuffer.current.length > 0) {
-      //       inputBuffer.current = inputBuffer.current.slice(0, -1)
-      //       term.write("\b \b")
-      //     }
-      //   } else if (printable) {
-      //     inputBuffer.current += key
-      //     term.write(key)
-      //   }
-      // })
 
       return () => {
         window.removeEventListener("resize", handleResize);
@@ -475,6 +460,11 @@ function TerminalComponent({ isOpen }) {
   const handleCheck = useCallback(
     async (script) => {
       console.log("script from check", script);
+      setIsLoading(true); // Set loading to true before the operation starts
+      
+      // Determine which socketId to use based on toolName
+      const socketIdToUse = toolName === "Ansible" ? ansibleSocketId : socketId;
+      
       try {
         const response = await fetch(
           "http://localhost:8000/api/user/checkanswer",
@@ -483,7 +473,7 @@ function TerminalComponent({ isOpen }) {
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ socketId, script }),
+            body: JSON.stringify({ socketId: socketIdToUse, script,  toolName}),
           }
         );
         if (response.ok) {
@@ -499,15 +489,21 @@ function TerminalComponent({ isOpen }) {
               setIsChecked(true);
               setShowSucsess(true);
             }
+            setIsLoading(false); 
+          }).catch(error => {
+            console.error("Error parsing JSON:", error);
+            setIsLoading(false); 
           });
         } else {
           console.error(response.message);
+          setIsLoading(false); 
         }
       } catch (error) {
         console.error("Error:", error);
+        setIsLoading(false); 
       }
     },
-    [socketId]
+    [socketId, ansibleSocketId, toolName]
   );
 
   const handleEndLab = () => {
@@ -566,6 +562,7 @@ function TerminalComponent({ isOpen }) {
     //   isOpen ? "" : "ml-16 -mr-8"
     // }
     <>
+    {isLoading && <LoadingSpinner />}
       <motion.div
         className={` ${isFullScreen ? "fixed inset-0 z-50 bg-gray-900" : ""}`}
         initial="hidden"
