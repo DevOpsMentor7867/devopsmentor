@@ -11,8 +11,9 @@ const dockerClientPool =  require('./docker/docker_connection');
 const execInstancePool =  require('./docker/execPool');
 const {setUpSocketServer, getIo} = require('./socketServer/socket');
 const  setupTerminalNamespace = require('./controllers/terminalSocket');
-const cors = require('cors');
+const setupJenkinsNamespace = require("./controllers/jenkins");
 const setupAnsibleTerminalNamespace = require('./controllers/AnsibleTerminalSocket');
+const cors = require('cors');
 const app = express();
 
 app.use(cors({
@@ -49,7 +50,8 @@ const initializeApp = async () => {
 
    setupTerminalNamespace();
    setupAnsibleTerminalNamespace();
-  
+   await setupJenkinsNamespace();
+
     const port = process.env.PORT || 3000;
     httpServer.listen(port, () => {
       console.log(`Server running on port: ${port}`);

@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSocket } from "../hooks/useSocket";
 import { useAnsibleSocket } from "../hooks/useAnsibleSocket";
+import { useJenkinsSocket } from "../hooks/useJenkinsSocket";
 import { Terminal } from "xterm";
 // import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
@@ -14,9 +15,10 @@ import confetti from "canvas-confetti";
 import RenderQuestion from "./RenderQuestion";
 import { FitAddon } from "@xterm/addon-fit";
 import "xterm/css/xterm.css";
-import LoadingSpinner from "../UI/LoadingSpinner"
+import LoadingSpinner from "../UI/LoadingSpinner";
 
 import {
+  Monitor,
   Users,
   Brain,
   Ban,
@@ -64,20 +66,30 @@ function TerminalComponent({ isOpen }) {
   const location = useLocation();
   const { toolName, labName, docker_image } = location.state || {};
   const [isLoading, setIsLoading] = useState(false);
+  const [jenkinsURL, setJenkinsURL] = useState(null);
 
   const {
     socket: dockerSocket,
     isConnected,
     socketId,
     emit: dockerEmit,
-  } = useSocket(toolName !== "Ansible" ? docker_image : null);
+  } = useSocket(
+    toolName !== "Ansible" && toolName !== "Jenkins" ? docker_image : null
+  );
 
   const {
     socket: ansibleSocket,
     isAnsibleSocketConnected,
     ansibleSocketId,
     emit: ansibleEmit,
-  } = useAnsibleSocket();
+  } = useAnsibleSocket(toolName === "Ansible");
+
+  const {
+    socket: jenkinsSocket,
+    isJenkinsSocketConnected,
+    //jenkinsSocketId,
+    emit: jenkinsEmit,
+  } = useJenkinsSocket(toolName === "Jenkins");
 
   // eslint-disable-next-line
   const [term, setTerm] = useState(null);
@@ -184,7 +196,7 @@ function TerminalComponent({ isOpen }) {
       setIsLoading(false);
     }
   }, [labId]);
-  
+
   useEffect(() => {
     fetchQuestions();
   }, [fetchQuestions]);
@@ -204,10 +216,10 @@ function TerminalComponent({ isOpen }) {
         fontFamily: 'Menlo, Monaco, "Courier New", monospace',
         fontSize: 14,
         cursorBlink: true,
-        encoding: 'utf-8',
+        encoding: "utf-8",
         convertEol: true,
         scrollback: 1000,
-        disableStdin: false
+        disableStdin: false,
       });
 
       const fitAddon = new FitAddon();
@@ -281,13 +293,13 @@ function TerminalComponent({ isOpen }) {
 
       newTerm.onKey(({ key }) => {
         if (toolName === "Ansible") {
-          ansibleEmit("command", key); // Send command to Ansible socket
+          ansibleEmit("command", key);
+        } else if (toolName === "Jenkins") {
+          jenkinsEmit("command", key);
         } else {
-          dockerEmit("command", key); // Send command to Docker socket
+          dockerEmit("command", key);
         }
       });
-
-
 
       return () => {
         window.removeEventListener("resize", handleResize);
@@ -296,7 +308,7 @@ function TerminalComponent({ isOpen }) {
     };
 
     initializeTerminal();
-  }, [dockerEmit, ansibleEmit, toolName, term]);
+  }, [dockerEmit, ansibleEmit, jenkinsEmit, toolName, term]);
 
   useEffect(() => {
     if (toolName !== "Ansible") {
@@ -313,22 +325,48 @@ function TerminalComponent({ isOpen }) {
       }
     }
   }, [dockerSocket, term, toolName]);
-  
+
   useEffect(() => {
     if (toolName === "Ansible" && ansibleSocket && term) {
       const handleAnsibleOutput = (data) => {
-        term.write(data)
-      }
+        term.write(data);
+      };
 
-      ansibleSocket.on("output", handleAnsibleOutput)
+      ansibleSocket.on("output", handleAnsibleOutput);
 
       return () => {
-        ansibleSocket.off("output", handleAnsibleOutput)
-      }
+        ansibleSocket.off("output", handleAnsibleOutput);
+      };
     }
-  }, [ansibleSocket, term, toolName])
+  }, [ansibleSocket, term, toolName]);
 
+  useEffect(() => {
+    if (toolName === "Jenkins" && jenkinsSocket && term) {
+      const handleJenkinsOutput = (data) => {
+        term.write(data);
+      };
 
+      jenkinsSocket.on("output", handleJenkinsOutput);
+
+      return () => {
+        jenkinsSocket.off("output", handleJenkinsOutput);
+      };
+    }
+  }, [jenkinsSocket, term, toolName]);
+
+  useEffect(() => {
+    if (toolName === "Jenkins" && jenkinsSocket) {
+      const handleJenkinsURL = (data) => {
+        setJenkinsURL(data.url); // you'd create this state to render in your JSX
+      };
+
+      jenkinsSocket.on("jenkins_url", handleJenkinsURL);
+
+      return () => {
+        jenkinsSocket.off("jenkins_url", handleJenkinsURL);
+      };
+    }
+  }, [jenkinsSocket, toolName]);
 
   useEffect(() => {
     if (isConnected) {
@@ -342,7 +380,13 @@ function TerminalComponent({ isOpen }) {
     } else {
       console.log("Ansible Socket disconnected, terminal may not be usable");
     }
-  }, [isConnected, isAnsibleSocketConnected]);
+
+    if (isJenkinsSocketConnected) {
+      console.log("Jenkins Socket connected, ready to use terminal");
+    } else {
+      console.log("Jenkins Socket disconnected, terminal may not be usable");
+    }
+  }, [isConnected, isAnsibleSocketConnected, isJenkinsSocketConnected]);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -461,10 +505,10 @@ function TerminalComponent({ isOpen }) {
     async (script) => {
       console.log("script from check", script);
       setIsLoading(true); // Set loading to true before the operation starts
-      
+
       // Determine which socketId to use based on toolName
       const socketIdToUse = toolName === "Ansible" ? ansibleSocketId : socketId;
-      
+
       try {
         const response = await fetch(
           "http://localhost:8000/api/user/checkanswer",
@@ -473,34 +517,37 @@ function TerminalComponent({ isOpen }) {
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ socketId: socketIdToUse, script,  toolName}),
+            body: JSON.stringify({ socketId: socketIdToUse, script, toolName }),
           }
         );
         if (response.ok) {
-          response.json().then((data) => {
-            const { result } = data;
-            console.log("Result:", result);
-            // eslint-disable-next-line
-            if (result == 0) {
-              setShowQuestionFailure(true);
-              setIsChecked(false);
-            } else {
-              setShowQuestionFailure(false);
-              setIsChecked(true);
-              setShowSucsess(true);
-            }
-            setIsLoading(false); 
-          }).catch(error => {
-            console.error("Error parsing JSON:", error);
-            setIsLoading(false); 
-          });
+          response
+            .json()
+            .then((data) => {
+              const { result } = data;
+              console.log("Result:", result);
+              // eslint-disable-next-line
+              if (result == 0) {
+                setShowQuestionFailure(true);
+                setIsChecked(false);
+              } else {
+                setShowQuestionFailure(false);
+                setIsChecked(true);
+                setShowSucsess(true);
+              }
+              setIsLoading(false);
+            })
+            .catch((error) => {
+              console.error("Error parsing JSON:", error);
+              setIsLoading(false);
+            });
         } else {
           console.error(response.message);
-          setIsLoading(false); 
+          setIsLoading(false);
         }
       } catch (error) {
         console.error("Error:", error);
-        setIsLoading(false); 
+        setIsLoading(false);
       }
     },
     [socketId, ansibleSocketId, toolName]
@@ -562,7 +609,7 @@ function TerminalComponent({ isOpen }) {
     //   isOpen ? "" : "ml-16 -mr-8"
     // }
     <>
-    {isLoading && <LoadingSpinner />}
+      {isLoading && <LoadingSpinner />}
       <motion.div
         className={` ${isFullScreen ? "fixed inset-0 z-50 bg-gray-900" : ""}`}
         initial="hidden"
@@ -581,8 +628,29 @@ function TerminalComponent({ isOpen }) {
                   <p className="text-sm text-white">{labName}</p>
                 </div>
               </div>
+              {toolName === "Jenkins" && (
+                <motion.button
+                  onClick={() => {
+                    if (jenkinsURL) {
+                      window.open(jenkinsURL, "_blank", "noopener,noreferrer");
+                    } else {
+                      alert("Jenkins is not ready yet!");
+                    }
+                  }}
+                  className=" ml-8 mt-6 px-4 py-1 rounded-lg bg-gradient-to-r from-[#80EE98] to-[#09D1C7] hover:from-[#09D1C7] hover:to-[#80EE98] text-black hover:opacity-90 transition-opacity flex items-center gap-2"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Monitor className="w-4 h-4" />
+                  Access UI
+                </motion.button>
+              )}
 
-              <div className="flex-1 flex justify-center ml-20">
+              <div
+                className={`flex-1 flex justify-center ${
+                  toolName === "Jenkins" ? "mr-16" : "ml-20"
+                }`}
+              >
                 <div className="rounded-lg p-2 shadow-xl">
                   <div className="text-center">
                     <p className="text-xl text-btg">Progress</p>
