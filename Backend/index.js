@@ -12,6 +12,7 @@ const {setUpSocketServer, getIo} = require('./socketServer/socket');
 const  setupTerminalNamespace = require('./controllers/terminalSocket');
 const setupJenkinsNamespace = require("./controllers/jenkins");
 const setupAnsibleTerminalNamespace = require('./controllers/AnsibleTerminalSocket');
+const setupKubernetesNamespace = require('./controllers/k8');
 const cors = require('cors');
 const app = express();
 
@@ -50,7 +51,8 @@ const initializeApp = async () => {
    setupTerminalNamespace();
    setupAnsibleTerminalNamespace();
    await setupJenkinsNamespace();
-
+    await setupKubernetesNamespace();
+    
     const port = process.env.PORT || 3000;
     httpServer.listen(port, () => {
       console.log(`Server running on port: ${port}`);

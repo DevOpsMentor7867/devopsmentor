@@ -1,20 +1,21 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { useSocket } from "../hooks/useSocket";
+import { useKubernetesSocket } from "../hooks/useKubernetesSocket";
 import { useAnsibleSocket } from "../hooks/useAnsibleSocket";
 import { useJenkinsSocket } from "../hooks/useJenkinsSocket";
-import { Terminal } from "xterm";
-import "xterm/css/xterm.css";
 import Collaboration from "./Collaboration/Collaboration";
-import AiAssistant from "./AiAssistant";
-import CompletionPopup from "./CompletionPopup";
+import { motion, AnimatePresence } from "framer-motion";
 import ConfirmationPopup from "./ConfirmationPopup";
-import confetti from "canvas-confetti";
+import LoadingSpinner from "../UI/LoadingSpinner";
+import CompletionPopup from "./CompletionPopup";
+import { useSocket } from "../hooks/useSocket";
 import RenderQuestion from "./RenderQuestion";
 import { FitAddon } from "@xterm/addon-fit";
+import AiAssistant from "./AiAssistant";
+import confetti from "canvas-confetti";
+import { Terminal } from "xterm";
 import "xterm/css/xterm.css";
-import LoadingSpinner from "../UI/LoadingSpinner";
+import "xterm/css/xterm.css";
 import axios from "axios";
 import {
   Monitor,
@@ -96,6 +97,13 @@ function TerminalComponent({ isOpen }) {
     jenkinsSocketId,
     emit: jenkinsEmit,
   } = useJenkinsSocket(toolName === "Jenkins");
+
+  const {
+    socket: kubernetesSocket,
+    isKubernetesSocketConnected,
+    // kubernetesSocketId,
+    emit: kubernetesEmit,
+  } = useKubernetesSocket(toolName === "Kubernetes");
 
   // eslint-disable-next-line
   const [term, setTerm] = useState(null);
@@ -298,10 +306,13 @@ function TerminalComponent({ isOpen }) {
           ansibleEmit("command", key);
         } else if (toolName === "Jenkins") {
           jenkinsEmit("command", key);
+        } else if (toolName === "Kubernetes") {
+          kubernetesEmit("command", key);
         } else {
           dockerEmit("command", key);
         }
       });
+      
 
       return () => {
         window.removeEventListener("resize", handleResize);
@@ -310,7 +321,7 @@ function TerminalComponent({ isOpen }) {
     };
 
     initializeTerminal();
-  }, [dockerEmit, ansibleEmit, jenkinsEmit, toolName, term]);
+  }, [dockerEmit, ansibleEmit, jenkinsEmit, kubernetesEmit, toolName, term]);
 
   useEffect(() => {
     if (toolName !== "Ansible") {
@@ -359,8 +370,7 @@ function TerminalComponent({ isOpen }) {
   useEffect(() => {
     if (toolName === "Jenkins" && jenkinsSocket) {
       const handleJenkinsURL = (data) => {
-        console.log("asdkjasndkajs",data.url)
-        setJenkinsURL(data.url); // you'd create this state to render in your JSX
+        setJenkinsURL(data.url); 
       };
 
       jenkinsSocket.on("jenkins_url", handleJenkinsURL);
@@ -370,6 +380,20 @@ function TerminalComponent({ isOpen }) {
       };
     }
   }, [jenkinsSocket, toolName]);
+
+  useEffect(() => {
+    if (toolName === "Kubernetes" && kubernetesSocket && term) {
+      const handleKubernetesOutput = (data) => {
+        term.write(data);
+      };
+  
+      kubernetesSocket.on("output", handleKubernetesOutput);
+  
+      return () => {
+        kubernetesSocket.off("output", handleKubernetesOutput);
+      };
+    }
+  }, [kubernetesSocket, term, toolName]);
 
   useEffect(() => {
     if (isConnected) {
@@ -389,7 +413,13 @@ function TerminalComponent({ isOpen }) {
     } else {
       console.log("Jenkins Socket disconnected, terminal may not be usable");
     }
-  }, [isConnected, isAnsibleSocketConnected, isJenkinsSocketConnected]);
+
+    if (isKubernetesSocketConnected) {
+      console.log("Kubernetes Socket connected, ready to use terminal");
+    } else {
+      console.log("Kubernetes Socket disconnected, terminal may not be usable");
+    }
+  }, [isConnected, isAnsibleSocketConnected, isJenkinsSocketConnected, isKubernetesSocketConnected]);
 
   useEffect(() => {
     const handleMouseMove = (e) => {

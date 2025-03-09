@@ -42,11 +42,11 @@ const  setupKubernetesNamespace= async () => {
             const setupKubeConfig = spawn('sudo', [
                 'bash', '-c', `
                     mkdir -p /home/${uniqueUser}/.kube &&
-                    cp /home/wajeeha/.kube/config /home/${uniqueUser}/.kube/ &&
-                    cp -r /home/wajeeha/.minikube /home/${uniqueUser}/ &&
+                    cp /home/ahmad/.kube/config /home/${uniqueUser}/.kube/ &&
+                    cp -r /home/ahmad/.minikube /home/${uniqueUser}/ &&
                     chown -R ${uniqueUser}:${uniqueUser} /home/${uniqueUser}/.kube &&
                     chown -R ${uniqueUser}:${uniqueUser} /home/${uniqueUser}/.minikube
-                    sed -i "s|/home/wajeeha/.minikube|/home/${uniqueUser}/.minikube|g" /home/${uniqueUser}/.kube/config
+                    sed -i "s|/home/ahmad/.minikube|/home/${uniqueUser}/.minikube|g" /home/${uniqueUser}/.kube/config
                 `
             ]);
             
