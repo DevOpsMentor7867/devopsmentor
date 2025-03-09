@@ -29,15 +29,15 @@ const setupAnsibleTerminalNamespace = async () => {
       const containersConfig = [
         {
           name: `control-node`,
-          image: "ansible-control-node:latest",
+          image: "ahmad7867/ansible-control-node:latest",
         },
         {
           name: `worker-node-1`,
-          image: "ansible-managed-node-1:latest",
+          image: "ahmad7867/ansible-managed-node-1:latest",
         },
         {
           name: `worker-node-2`,
-          image: "ansible-managed-node-2:latest",
+          image: "ahmad7867/ansible-managed-node-2:latest",
         },
       ];
 

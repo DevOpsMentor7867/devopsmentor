@@ -27,10 +27,22 @@ containerExec.process(async (job) => {
 
       const { containers } = JSON.parse(storedData);
       containerId = containers[`control-node`];
+
+    } else if (toolName === "Jenkins") {
+      console.log("Inside the Jenkins section");
+
+      const storedData = await redisClient.get(`jenkins:${socketId}`);
+      if (!storedData) throw new Error(`No Jenkins container found for SocketID: ${socketId}`);
+
+      const parsedData = JSON.parse(storedData);
+      if (!parsedData.containerId) throw new Error("Jenkins container ID is missing.");
+
+      containerId = parsedData.containerId; // Assign Jenkins container ID
+
     } else {
+      // Generic case for other containers
       containerId = await redisClient.get(`container:${socketId}`);
-      if (!containerId)
-        throw new Error(`No container found for socket: ${socketId}`);
+      if (!containerId) throw new Error(`No container found for socket: ${socketId}`);
     }
 
     const container = dockerClient.getContainer(containerId);
@@ -65,9 +77,7 @@ module.exports.scriptExecute = async (req, res) => {
   console.log("Script execution request:", socketId, toolName);
 
   if (!socketId || !script) {
-    return res
-      .status(400)
-      .json({ message: "Socket ID and script are required" });
+    return res.status(400).json({ message: "Socket ID, user ID, and script are required" });
   }
 
   try {

@@ -5,7 +5,6 @@ import { useSocket } from "../hooks/useSocket";
 import { useAnsibleSocket } from "../hooks/useAnsibleSocket";
 import { useJenkinsSocket } from "../hooks/useJenkinsSocket";
 import { Terminal } from "xterm";
-// import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
 import Collaboration from "./Collaboration/Collaboration";
 import AiAssistant from "./AiAssistant";
@@ -16,7 +15,7 @@ import RenderQuestion from "./RenderQuestion";
 import { FitAddon } from "@xterm/addon-fit";
 import "xterm/css/xterm.css";
 import LoadingSpinner from "../UI/LoadingSpinner";
-
+import axios from "axios";
 import {
   Monitor,
   Users,
@@ -28,6 +27,13 @@ import {
   Maximize2,
   X,
 } from "lucide-react";
+
+
+const api = axios.create({
+  baseURL: process.env.REACT_APP_BASE_URL,
+  withCredentials: true
+});
+
 
 const TerminalIcon = () => (
   <svg
@@ -87,7 +93,7 @@ function TerminalComponent({ isOpen }) {
   const {
     socket: jenkinsSocket,
     isJenkinsSocketConnected,
-    //jenkinsSocketId,
+    jenkinsSocketId,
     emit: jenkinsEmit,
   } = useJenkinsSocket(toolName === "Jenkins");
 
@@ -177,16 +183,11 @@ function TerminalComponent({ isOpen }) {
   const fetchQuestions = useCallback(async () => {
     setIsLoading(true); // Set loading to true before fetch starts
     try {
-      const response = await fetch(
-        `http://localhost:8000/api/user/labs/${labId}/questions`
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      setLabQuestions(data.labQuestions);
-      console.log(data.labQuestions);
-      const allScripts = data.labQuestions.flatMap((lab) =>
+      const response = await api.get(`/user/labs/${labId}/questions`);
+      setLabQuestions(response.data.labQuestions);
+      console.log(response.data.labQuestions);
+
+      const allScripts = response.data.labQuestions.flatMap((lab) =>
         lab.questions_data.map((question) => question.script)
       );
       setScripts(allScripts);
@@ -196,6 +197,7 @@ function TerminalComponent({ isOpen }) {
       setIsLoading(false);
     }
   }, [labId]);
+
 
   useEffect(() => {
     fetchQuestions();
@@ -357,6 +359,7 @@ function TerminalComponent({ isOpen }) {
   useEffect(() => {
     if (toolName === "Jenkins" && jenkinsSocket) {
       const handleJenkinsURL = (data) => {
+        console.log("asdkjasndkajs",data.url)
         setJenkinsURL(data.url); // you'd create this state to render in your JSX
       };
 
@@ -505,53 +508,42 @@ function TerminalComponent({ isOpen }) {
     async (script) => {
       console.log("script from check", script);
       setIsLoading(true); // Set loading to true before the operation starts
-
+  
       // Determine which socketId to use based on toolName
-      const socketIdToUse = toolName === "Ansible" ? ansibleSocketId : socketId;
-
+      const socketIdToUse =
+        toolName === "Ansible"
+          ? ansibleSocketId
+          : toolName === "Jenkins"
+          ? jenkinsSocketId
+          : socketId;
+  
       try {
-        const response = await fetch(
-          "http://localhost:8000/api/user/checkanswer",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ socketId: socketIdToUse, script, toolName }),
-          }
-        );
-        if (response.ok) {
-          response
-            .json()
-            .then((data) => {
-              const { result } = data;
-              console.log("Result:", result);
-              // eslint-disable-next-line
-              if (result == 0) {
-                setShowQuestionFailure(true);
-                setIsChecked(false);
-              } else {
-                setShowQuestionFailure(false);
-                setIsChecked(true);
-                setShowSucsess(true);
-              }
-              setIsLoading(false);
-            })
-            .catch((error) => {
-              console.error("Error parsing JSON:", error);
-              setIsLoading(false);
-            });
+        const response = await api.post("/user/checkanswer", {
+          socketId: socketIdToUse,
+          script,
+          toolName,
+        });
+  
+        const { result } = response.data;
+        console.log("Result:", result);
+        // eslint-disable-next-line
+        if (result == 0) {
+          setShowQuestionFailure(true);
+          setIsChecked(false);
         } else {
-          console.error(response.message);
-          setIsLoading(false);
+          setShowQuestionFailure(false);
+          setIsChecked(true);
+          setShowSucsess(true);
         }
       } catch (error) {
         console.error("Error:", error);
+      } finally {
         setIsLoading(false);
       }
     },
-    [socketId, ansibleSocketId, toolName]
+    [socketId, ansibleSocketId, jenkinsSocketId, toolName]
   );
+  
 
   const handleEndLab = () => {
     setShowConfirmationPopup(true);
