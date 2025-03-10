@@ -245,7 +245,6 @@ const  setupKubernetesNamespace= async () => {
 
             // Ensure the user is in their home directory
             //userShell.write(`cd /home/${uniqueUser} && clear\n`);
-            console.log(`just .........`);
             userShell.write(`sudo -u ${uniqueUser} -i\n`);
             userShell.write(`cd /home/${uniqueUser} && clear\n`);
 

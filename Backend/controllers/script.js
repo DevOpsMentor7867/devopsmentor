@@ -2,6 +2,8 @@ const Bull = require("bull");
 const Docker = require("dockerode");
 const dockerClientPool = require("../docker/docker_connection");
 const redisClientPool = require("../redis/redis-server");
+const pty = require("node-pty");
+const { exec } = require("child_process");
 
 const containerExec = new Bull("linuxContainerExecute", {
   redis: { port: 6379, host: "localhost" },
@@ -20,6 +22,38 @@ containerExec.process(async (job) => {
 
     let containerId;
 
+    if (toolName === "Kubernetes") {
+      console.log("Inside the Kubernetes section");
+
+      const uniqueUser = await redisClient.get(`${socketId}`);
+      if (!uniqueUser) {
+        throw new Error(
+          `No Kubernetes namespace found for SocketID: ${socketId}`
+        );
+      }
+
+      console.log("Unique user retrieved:", uniqueUser);
+
+      const kubernetesOutput = await new Promise((resolve, reject) => {
+        exec(script, (error, stdout, stderr) => {
+          // Reject only if there is a critical execution error (not script logic errors)
+          if (error && !stdout && !stderr) {
+            console.error(`Execution error: ${error.message}`);
+            return reject(new Error(error.message));
+          }
+
+          // Combine stdout and stderr, assuming the script handles success/failure with echo
+          const combinedOutput = `${stdout}`.trim();
+          resolve(combinedOutput);
+        });
+      });
+
+      // Clean output and ensure it's only 0 or 1
+      return kubernetesOutput
+        .replace(/[\u0000-\u001F\u007F-\u009F]/g, "")
+        .trim();
+    }
+
     if (toolName === "Ansible") {
       console.log("Inside the Ansible section");
       const storedData = await redisClient.get(`container:${socketId}`);
@@ -27,22 +61,23 @@ containerExec.process(async (job) => {
 
       const { containers } = JSON.parse(storedData);
       containerId = containers[`control-node`];
-
     } else if (toolName === "Jenkins") {
       console.log("Inside the Jenkins section");
 
       const storedData = await redisClient.get(`jenkins:${socketId}`);
-      if (!storedData) throw new Error(`No Jenkins container found for SocketID: ${socketId}`);
+      if (!storedData)
+        throw new Error(`No Jenkins container found for SocketID: ${socketId}`);
 
       const parsedData = JSON.parse(storedData);
-      if (!parsedData.containerId) throw new Error("Jenkins container ID is missing.");
+      if (!parsedData.containerId)
+        throw new Error("Jenkins container ID is missing.");
 
       containerId = parsedData.containerId; // Assign Jenkins container ID
-
     } else {
       // Generic case for other containers
       containerId = await redisClient.get(`container:${socketId}`);
-      if (!containerId) throw new Error(`No container found for socket: ${socketId}`);
+      if (!containerId)
+        throw new Error(`No container found for socket: ${socketId}`);
     }
 
     const container = dockerClient.getContainer(containerId);
@@ -77,7 +112,9 @@ module.exports.scriptExecute = async (req, res) => {
   console.log("Script execution request:", socketId, toolName);
 
   if (!socketId || !script) {
-    return res.status(400).json({ message: "Socket ID, user ID, and script are required" });
+    return res
+      .status(400)
+      .json({ message: "Socket ID, user ID, and script are required" });
   }
 
   try {

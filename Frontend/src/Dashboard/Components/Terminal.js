@@ -29,12 +29,10 @@ import {
   X,
 } from "lucide-react";
 
-
 const api = axios.create({
   baseURL: process.env.REACT_APP_BASE_URL,
-  withCredentials: true
+  withCredentials: true,
 });
-
 
 const TerminalIcon = () => (
   <svg
@@ -101,7 +99,7 @@ function TerminalComponent({ isOpen }) {
   const {
     socket: kubernetesSocket,
     isKubernetesSocketConnected,
-    // kubernetesSocketId,
+    kubernetesSocketId,
     emit: kubernetesEmit,
   } = useKubernetesSocket(toolName === "Kubernetes");
 
@@ -205,7 +203,6 @@ function TerminalComponent({ isOpen }) {
       setIsLoading(false);
     }
   }, [labId]);
-
 
   useEffect(() => {
     fetchQuestions();
@@ -312,7 +309,6 @@ function TerminalComponent({ isOpen }) {
           dockerEmit("command", key);
         }
       });
-      
 
       return () => {
         window.removeEventListener("resize", handleResize);
@@ -370,7 +366,7 @@ function TerminalComponent({ isOpen }) {
   useEffect(() => {
     if (toolName === "Jenkins" && jenkinsSocket) {
       const handleJenkinsURL = (data) => {
-        setJenkinsURL(data.url); 
+        setJenkinsURL(data.url);
       };
 
       jenkinsSocket.on("jenkins_url", handleJenkinsURL);
@@ -386,9 +382,9 @@ function TerminalComponent({ isOpen }) {
       const handleKubernetesOutput = (data) => {
         term.write(data);
       };
-  
+
       kubernetesSocket.on("output", handleKubernetesOutput);
-  
+
       return () => {
         kubernetesSocket.off("output", handleKubernetesOutput);
       };
@@ -419,7 +415,12 @@ function TerminalComponent({ isOpen }) {
     } else {
       console.log("Kubernetes Socket disconnected, terminal may not be usable");
     }
-  }, [isConnected, isAnsibleSocketConnected, isJenkinsSocketConnected, isKubernetesSocketConnected]);
+  }, [
+    isConnected,
+    isAnsibleSocketConnected,
+    isJenkinsSocketConnected,
+    isKubernetesSocketConnected,
+  ]);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -538,22 +539,24 @@ function TerminalComponent({ isOpen }) {
     async (script) => {
       console.log("script from check", script);
       setIsLoading(true); // Set loading to true before the operation starts
-  
+
       // Determine which socketId to use based on toolName
       const socketIdToUse =
         toolName === "Ansible"
           ? ansibleSocketId
           : toolName === "Jenkins"
           ? jenkinsSocketId
+          : toolName === "Kubernetes"
+          ? kubernetesSocketId
           : socketId;
-  
+
       try {
         const response = await api.post("/user/checkanswer", {
           socketId: socketIdToUse,
           script,
           toolName,
         });
-  
+
         const { result } = response.data;
         console.log("Result:", result);
         // eslint-disable-next-line
@@ -571,9 +574,8 @@ function TerminalComponent({ isOpen }) {
         setIsLoading(false);
       }
     },
-    [socketId, ansibleSocketId, jenkinsSocketId, toolName]
+    [socketId, ansibleSocketId, jenkinsSocketId, kubernetesSocketId, toolName]
   );
-  
 
   const handleEndLab = () => {
     setShowConfirmationPopup(true);
