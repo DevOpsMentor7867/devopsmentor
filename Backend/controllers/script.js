@@ -35,23 +35,26 @@ containerExec.process(async (job) => {
       console.log("Unique user retrieved:", uniqueUser);
 
       const kubernetesOutput = await new Promise((resolve, reject) => {
-        exec(script, (error, stdout, stderr) => {
-          // Reject only if there is a critical execution error (not script logic errors)
+        exec(`bash -c "${script}"`, (error, stdout, stderr) => {
           if (error && !stdout && !stderr) {
             console.error(`Execution error: ${error.message}`);
             return reject(new Error(error.message));
           }
 
-          // Combine stdout and stderr, assuming the script handles success/failure with echo
-          const combinedOutput = `${stdout}`.trim();
-          resolve(combinedOutput);
+          // Combine stdout and stderr
+          const combinedOutput = `${stdout}${stderr}`.trim();
+
+          // Extract only 0 or 1 using regex to avoid extra outputs
+          const match = combinedOutput.match(/\b[01]\b/);
+          if (!match) {
+            return reject(new Error("Unexpected output format."));
+          }
+
+          resolve(match[0]);
         });
       });
 
-      // Clean output and ensure it's only 0 or 1
-      return kubernetesOutput
-        .replace(/[\u0000-\u001F\u007F-\u009F]/g, "")
-        .trim();
+      return kubernetesOutput;
     }
 
     if (toolName === "Ansible") {
