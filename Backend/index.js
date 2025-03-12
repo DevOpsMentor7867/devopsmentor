@@ -12,7 +12,8 @@ const { setUpSocketServer, getIo } = require("./socketServer/socket");
 const setupTerminalNamespace = require("./controllers/terminalSocket");
 const setupJenkinsNamespace = require("./controllers/jenkins");
 const setupAnsibleTerminalNamespace = require("./controllers/AnsibleTerminalSocket");
-const setupKubernetesNamespace = require("./controllers/k8");
+const setupKubernetesNamespace = require("./controllers/kubernetes");
+const setupArgoCDNamespace = require("./controllers/argocd");
 const cors = require("cors");
 const app = express();
 
@@ -48,10 +49,11 @@ const initializeApp = async () => {
 
     await dockerClientPool.initialize();
 
-    setupTerminalNamespace();
-    setupAnsibleTerminalNamespace();
+    await setupTerminalNamespace();
+    await setupAnsibleTerminalNamespace();
     await setupJenkinsNamespace();
-    setupKubernetesNamespace();
+    await setupKubernetesNamespace();
+    await setupArgoCDNamespace();
 
     const port = process.env.PORT || 3000;
     httpServer.listen(port, () => {

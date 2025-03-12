@@ -1,82 +1,91 @@
-const { setUpSocketServer, getIo } = require("../socketServer/socket")
-const redisClientPool = require("../redis/redis-server")
-const Docker = require("dockerode")
-const path = require("path")
-const { promisify } = require("util")
-const childProcess = require("child_process")
-const exec = promisify(childProcess.exec)
-const Convert = require('ansi-to-html');
-const convert = new Convert();
+const redisClientPool = require('../redis/redis-server');
+const dockerClientPool = require('../docker/docker_connection');
+const { setUpSocketServer, getIo } = require('../socketServer/socket');
+const Bull = require("bull");
+const stream = require('stream');
+const pty = require('node-pty');
 
-const setupAnsibleTerminalNamespace = async () => {
-  const io = getIo()
-  const AnsibleterminalNamespace = io.of("/Ansible-terminal")
-  const docker = new Docker()
+const containerStart = new Bull("linuxContainerStart", { redis: { port: 6379, host: "localhost" } });
+const containerExec = new Bull("linuxContainerExecute", { redis: { port: 6379, host: "localhost" } });
+const containerClose = new Bull("linuxContainerClose", { redis: { port: 6379, host: "localhost" } });
 
-  AnsibleterminalNamespace.on("connection", async (socket) => {
-    const composeFilePath = "./controllers/AnsibleComposeFile/docker-compose.yaml"
-    const redisClient = await redisClientPool.borrowClient()
+const ptySessions = {};
 
-    console.log(`User connected to terminal: ${socket.id}`)
+const setupTerminalNamespace = async () => {
+    const io = getIo();
+    const terminalNamespace = io.of('/terminal');
+  
+    console.log("Initializing Terminal Namespace...");
+    terminalNamespace.on('connection', async (socket) => {
+      let dockerClient = await dockerClientPool.borrowClient();
+      let redisClient = await redisClientPool.borrowClient();
+      const docker_image = socket.handshake.auth.docker_image;
 
-    try {
-      // Start docker-compose
-      const { stdout } = await exec(`docker-compose -f ${composeFilePath} up -d`)
-      console.log("Docker containers started successfully!")
-      console.log(stdout)
-
-      // Save the socket ID and the state of the compose setup in Redis
-      await redisClient.set(`compose:${socket.id}`, "running")
-
-      // Get the container instance
-      const container = docker.getContainer("DM-control-node")
-
-      // Create an exec instance
-      const execInstance = await container.exec({
-        Cmd: ["/bin/bash"],
+      // Create and start a new container for each connection
+      const container = await dockerClient.createContainer({
+        Image: docker_image,
+        Cmd: ['/bin/bash'],
+        Tty: true,
         AttachStdin: true,
         AttachStdout: true,
         AttachStderr: true,
-        Tty: true,
-        Env: ["LANG=C.UTF-8", "LC_ALL=C.UTF-8", "TERM=xterm-256color"]
+        OpenStdin: true,
+        StdinOnce: false,
+        HostConfig: {
+          Privileged: true,
+          CapAdd: ['ALL'],
+        },
       });
-
-      // Start the exec instance
-      const stream = await execInstance.start({ hijack: true, stdin: true })
-
-      // Handle output from the container and send it to the client
-      stream.on("data", (chunk) => {
-        socket.emit("output", chunk.toString())
-      })
-
-      // Handle incoming commands
-      socket.on("command", async (command) => {
+  
+      console.log(`Starting the container for socket ID: ${socket.id}...`);
+      await container.start();
+  
+      const containerId = container.id;
+      await redisClient.set(`container:${socket.id}`, containerId);
+  
+      // Create a PTY instance and attach it to the running container
+      const ptyProcess = pty.spawn('docker', ['exec', '-it', containerId, '/bin/bash'], {
+        name: 'xterm-color',
+        cols: 80,
+        rows: 24,
+      });
+  
+      // Store PTY process for this user
+      ptySessions[socket.id] = ptyProcess;
+  
+      // Handle output from PTY and send it to frontend
+      ptyProcess.onData((data) => {
+        socket.emit('output', data);
+      });
+  
+      socket.on('command', (command) => {
         if (command !== "done_lab") {
-          stream.write(command)
+          ptySessions[socket.id]?.write(command); // Use stored PTY instance
         }
-      })
-
-      // Handle disconnection: tear down containers
-      socket.on("disconnect", async () => {
-        console.log(`User disconnected: ${socket.id}`)
-        const composeStatus = await redisClient.get(`compose:${socket.id}`)
-        if (composeStatus === "running") {
-          try {
-            await exec(`docker-compose -f ${composeFilePath} down`)
-            console.log("Docker containers stopped successfully!")
-          } catch (downError) {
-            console.error(`Error stopping containers: ${downError.message}`)
-          }
-          await redisClient.del(`compose:${socket.id}`)
+      });
+  
+      socket.on('resize', ({ cols, rows }) => {
+        ptySessions[socket.id]?.resize(cols, rows);
+      });
+  
+      socket.on('disconnect', async () => {
+        console.log(`User disconnected: ${socket.id}`);
+        if (ptySessions[socket.id]) {
+          ptySessions[socket.id].kill(); // Kill PTY session
+          delete ptySessions[socket.id]; // Remove PTY reference
         }
-        stream.end()
-      })
-    } catch (err) {
-      console.error("Error:", err)
-      socket.emit("error", "Failed to set up the environment or connect to the container.")
-    }
-  })
-}
-
-module.exports = setupAnsibleTerminalNamespace
-
+  
+        const storedContainerId = await redisClient.get(`container:${socket.id}`);
+        if (storedContainerId) {
+          const containerToStop = dockerClient.getContainer(storedContainerId);
+          await containerToStop.stop();
+          await containerToStop.remove();
+          console.log(`Container ${storedContainerId} stopped and removed for socket ID: ${socket.id}`);
+        }
+  
+        await redisClient.del(`container:${socket.id}`);
+      });
+    });
+  };
+  
+  module.exports = setupTerminalNamespace;

@@ -8,7 +8,7 @@ const LoadingSpinner = () => {
         <div className="flex flex-col items-center mt-5">
           <div className="w-8 h-8 border-4 border-t-4 border-[#80EE98] border-t-[#09D1C7] rounded-full animate-spin"></div>
           <p className="mt-3 text-[#80EE98] text-center">
-            Verifying Your Outputs
+            Setting You Up!
           </p>
         </div>
       </div>

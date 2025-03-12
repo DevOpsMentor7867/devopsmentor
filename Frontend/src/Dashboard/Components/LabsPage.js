@@ -8,9 +8,8 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: process.env.REACT_APP_BASE_URL,
-  withCredentials: true 
+  withCredentials: true,
 });
-
 
 const Labs = () => {
   const [labs, setLabs] = useState([]);
@@ -25,13 +24,15 @@ const Labs = () => {
   const handleLabClick = async (lab) => {
     setSelectedLab(lab);
     setIsLoading(true);
-    navigate(`/dashboard/labs/${lab._id}/questions`, {
-      state: {
-        toolName: toolName,
-        labName: lab.name,
-        docker_image: lab.docker_image,
-      },
-    });
+
+      // Navigate immediately for other tools
+      navigate(`/dashboard/labs/${lab._id}/questions`, {
+        state: {
+          toolName: toolName,
+          labName: lab.name,
+          docker_image: lab.docker_image,
+        },
+      });
   };
 
   const fetchLabs = useCallback(async () => {

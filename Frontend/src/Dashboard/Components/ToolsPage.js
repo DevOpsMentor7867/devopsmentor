@@ -5,16 +5,20 @@ import { Button } from "../UI/button";
 import { Card } from "../UI/Card";
 import { CardContent } from "../UI/CardContent";
 import { ChevronRight } from "lucide-react";
+import LoadingPage from "./LoadingPage";
+
 import axios from "axios";
 
 const api = axios.create({
   baseURL: process.env.REACT_APP_BASE_URL,
-  withCredentials: true 
+  withCredentials: true,
 });
 
 const ToolsPage = () => {
   const [tools, setTools] = useState([]);
   const [error, setError] = useState(null);
+  const [isLoaded, setIsLoading] = useState(false);
+
   const navigate = useNavigate();
 
   const handleToolClick = (toolId, toolName, toolDescription) => {
@@ -29,6 +33,7 @@ const ToolsPage = () => {
 
   const fetchTools = async () => {
     try {
+      setIsLoading(true);
       const response = await api.get("/user/gettools");
       if (!Array.isArray(response.data.tools)) {
         throw new Error("Tools data is not an array");
@@ -37,12 +42,23 @@ const ToolsPage = () => {
       console.log(response.data.tools);
     } catch (error) {
       console.error("Error fetching tools:", error);
-      setError(`Failed to load tools. ${error.response?.data?.message || error.message}`);
+      setError(
+        `Failed to load tools. ${
+          error.response?.data?.message || error.message
+        }`
+      );
+    }
+    finally {
+      setIsLoading(false);
     }
   };
 
   if (error) {
     return <div className="text-red-500 text-center">{error}</div>;
+  }
+
+  if (isLoaded) {
+    return <LoadingPage />;
   }
 
   return (
@@ -127,7 +143,8 @@ const ToolsPage = () => {
                                 : "bg-white/10 text-white hover:bg-white/20"
                             }`}
                       >
-                        Explore Now <ChevronRight className="ml-1 h-3 w-3 inline" />
+                        Explore Now{" "}
+                        <ChevronRight className="ml-1 h-3 w-3 inline" />
                       </Button>
                     </CardContent>
                   </Card>

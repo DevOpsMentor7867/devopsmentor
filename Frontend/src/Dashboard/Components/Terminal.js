@@ -5,6 +5,7 @@ import { useAnsibleSocket } from "../hooks/useAnsibleSocket";
 import { useJenkinsSocket } from "../hooks/useJenkinsSocket";
 import Collaboration from "./Collaboration/Collaboration";
 import { motion, AnimatePresence } from "framer-motion";
+import { useArgoSocket } from "../hooks/useArgoSocket";
 import ConfirmationPopup from "./ConfirmationPopup";
 import LoadingSpinner from "../UI/LoadingSpinner";
 import CompletionPopup from "./CompletionPopup";
@@ -72,6 +73,7 @@ function TerminalComponent({ isOpen }) {
   const { toolName, labName, docker_image } = location.state || {};
   const [isLoading, setIsLoading] = useState(false);
   const [jenkinsURL, setJenkinsURL] = useState(null);
+  const [argoURL, setargoURL] = useState(null);
 
   const {
     socket: dockerSocket,
@@ -102,6 +104,14 @@ function TerminalComponent({ isOpen }) {
     kubernetesSocketId,
     emit: kubernetesEmit,
   } = useKubernetesSocket(toolName === "Kubernetes");
+
+  const {
+    socket: argoSocket,
+    isArgoSocketConnected,
+    argoSocketId,
+    emit: argoEmit,
+  } = useArgoSocket(toolName === "Argo CD");
+  
 
   // eslint-disable-next-line
   const [term, setTerm] = useState(null);
@@ -305,10 +315,13 @@ function TerminalComponent({ isOpen }) {
           jenkinsEmit("command", key);
         } else if (toolName === "Kubernetes") {
           kubernetesEmit("command", key);
+        } else if (toolName === "Argo CD") {
+          argoEmit("command", key);
         } else {
           dockerEmit("command", key);
         }
       });
+      
 
       return () => {
         window.removeEventListener("resize", handleResize);
@@ -317,7 +330,7 @@ function TerminalComponent({ isOpen }) {
     };
 
     initializeTerminal();
-  }, [dockerEmit, ansibleEmit, jenkinsEmit, kubernetesEmit, toolName, term]);
+  }, [dockerEmit, ansibleEmit, jenkinsEmit, kubernetesEmit, argoEmit, toolName, term]);
 
   useEffect(() => {
     if (toolName !== "Ansible") {
@@ -392,6 +405,35 @@ function TerminalComponent({ isOpen }) {
   }, [kubernetesSocket, term, toolName]);
 
   useEffect(() => {
+    if (toolName === "Argo CD" && argoSocket && term) {
+      const handleArgoOutput = (data) => {
+        term.write(data);
+      };
+  
+      argoSocket.on("output", handleArgoOutput);
+  
+      return () => {
+        argoSocket.off("output", handleArgoOutput);
+      };
+    }
+  }, [argoSocket, term, toolName]);
+
+  useEffect(() => {
+    if (toolName === "Argo CD" && argoSocket) {
+      const handleargoURL = (data) => {
+        setargoURL(data.url);
+      };
+
+      argoSocket.on("argo_url", handleargoURL);
+
+      return () => {
+        argoSocket.off("argo_url", handleargoURL);
+      };
+    }
+  }, [argoSocket, toolName]);
+  
+
+  useEffect(() => {
     if (isConnected) {
       console.log("Socket connected, ready to use terminal");
     } else {
@@ -415,11 +457,18 @@ function TerminalComponent({ isOpen }) {
     } else {
       console.log("Kubernetes Socket disconnected, terminal may not be usable");
     }
+
+    if (isArgoSocketConnected) {
+      console.log("ARGO CD Socket connected, ready to use terminal");
+    } else {
+      console.log("ARGO CD Socket disconnected, terminal may not be usable");
+    }
   }, [
     isConnected,
     isAnsibleSocketConnected,
     isJenkinsSocketConnected,
     isKubernetesSocketConnected,
+    isArgoSocketConnected
   ]);
 
   useEffect(() => {
@@ -542,13 +591,16 @@ function TerminalComponent({ isOpen }) {
 
       // Determine which socketId to use based on toolName
       const socketIdToUse =
-        toolName === "Ansible"
-          ? ansibleSocketId
-          : toolName === "Jenkins"
-          ? jenkinsSocketId
-          : toolName === "Kubernetes"
-          ? kubernetesSocketId
-          : socketId;
+    toolName === "Ansible"
+        ? ansibleSocketId
+        : toolName === "Jenkins"
+        ? jenkinsSocketId
+        : toolName === "Kubernetes"
+        ? kubernetesSocketId
+        : toolName === "Argo CD"
+        ? argoSocketId
+        : socketId;
+
 
       try {
         const response = await api.post("/user/checkanswer", {
@@ -574,7 +626,7 @@ function TerminalComponent({ isOpen }) {
         setIsLoading(false);
       }
     },
-    [socketId, ansibleSocketId, jenkinsSocketId, kubernetesSocketId, toolName]
+    [socketId, ansibleSocketId, jenkinsSocketId, kubernetesSocketId, argoSocketId, toolName]
   );
 
   const handleEndLab = () => {
@@ -659,6 +711,24 @@ function TerminalComponent({ isOpen }) {
                       window.open(jenkinsURL, "_blank", "noopener,noreferrer");
                     } else {
                       alert("Jenkins is not ready yet!");
+                    }
+                  }}
+                  className=" ml-8 mt-6 px-4 py-1 rounded-lg bg-gradient-to-r from-[#80EE98] to-[#09D1C7] hover:from-[#09D1C7] hover:to-[#80EE98] text-black hover:opacity-90 transition-opacity flex items-center gap-2"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Monitor className="w-4 h-4" />
+                  Access UI
+                </motion.button>
+              )}
+
+              {toolName === "Argo CD" && (
+                <motion.button
+                  onClick={() => {
+                    if (argoURL) {
+                      window.open(argoURL, "_blank", "noopener,noreferrer");
+                    } else {
+                      alert("Argo is not ready yet!");
                     }
                   }}
                   className=" ml-8 mt-6 px-4 py-1 rounded-lg bg-gradient-to-r from-[#80EE98] to-[#09D1C7] hover:from-[#09D1C7] hover:to-[#80EE98] text-black hover:opacity-90 transition-opacity flex items-center gap-2"

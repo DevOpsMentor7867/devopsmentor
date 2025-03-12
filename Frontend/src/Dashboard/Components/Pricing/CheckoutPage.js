@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, Check } from "lucide-react";
+// eslint-disable-next-line
 import { loadStripe } from "@stripe/stripe-js";
 import { getNames } from "country-list";
 import { useAuthContext } from "../../../API/UseAuthContext";
 
-const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
+// const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
 const countries = getNames();
 
 export default function CheckoutPage() {
@@ -38,12 +39,12 @@ export default function CheckoutPage() {
           description: plan.description,
         }),
       });
-
+// eslint-disable-next-line
       const { sessionId } = await response.json();
 
       // Redirect to Stripe Checkout
-      const stripe = await stripePromise;
-      const { error } = await stripe.redirectToCheckout({ sessionId });
+      // const stripe = await stripePromise;
+      const { error } = "await stripe.redirectToCheckout({ sessionId });"
 
       if (error) {
         console.error("Error:", error);

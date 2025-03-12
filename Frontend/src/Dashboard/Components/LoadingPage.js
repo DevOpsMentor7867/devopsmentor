@@ -100,7 +100,9 @@ const LoadingAnimation = () => {
         />
         <div className="absolute  inset-0 bg-black/70" />
       </div>
+      
     <div style={styles.wrapper} className='backdrop-blur-sm'>
+
       <style>
         {Object.values(keyframes).join('\n')}
       </style>

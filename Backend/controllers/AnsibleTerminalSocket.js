@@ -12,6 +12,7 @@ const setupAnsibleTerminalNamespace = async () => {
   const io = getIo();
   const AnsibleterminalNamespace = io.of("/Ansible-terminal");
   const docker = new Docker();
+  console.log("Initializing Ansible Namespace");
 
   AnsibleterminalNamespace.on("connection", async (socket) => {
     const redisClient = await redisClientPool.borrowClient();

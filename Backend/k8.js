@@ -1,6 +1,6 @@
-const redisClientPool = require('../redis/redis-server');
-const dockerClientPool = require('../docker/docker_connection');
-const { setUpSocketServer, getIo } = require('../socketServer/socket');
+const redisClientPool = require('./redis/redis-server');
+const dockerClientPool = require('./docker/docker_connection');
+const { setUpSocketServer, getIo } = require('./socketServer/socket');
 const Bull = require("bull");
 const { Exec } = require('dockerode');
 const { exec, spawn } = require('child_process');

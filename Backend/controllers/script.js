@@ -57,6 +57,45 @@ containerExec.process(async (job) => {
       return kubernetesOutput;
     }
 
+    if (toolName === "Argo CD") {
+      console.log("Inside the ARGO CD section");
+
+      const uniqueUser = await redisClient.get(`${socketId}`);
+      if (!uniqueUser) {
+        throw new Error(
+          `No Kubernetes namespace found for SocketID: ${socketId}`
+        );
+      }
+
+      console.log("Unique user retrieved:", uniqueUser);
+
+      // Replace placeholder with the actual username
+      const finalScript = script.replace(/\$username/g, uniqueUser);
+      console.log("Final script:", finalScript);
+
+      const kubernetesOutput = await new Promise((resolve, reject) => {
+        exec(`bash -c "${finalScript}"`, (error, stdout, stderr) => {
+          if (error && !stdout && !stderr) {
+            console.error(`Execution error: ${error.message}`);
+            return reject(new Error(error.message));
+          }
+
+          // Combine stdout and stderr
+          const combinedOutput = `${stdout}${stderr}`.trim();
+
+          // Extract only 0 or 1 using regex to avoid extra outputs
+          const match = combinedOutput.match(/\b[01]\b/);
+          if (!match) {
+            return reject(new Error("Unexpected output format."));
+          }
+
+          resolve(match[0]);
+        });
+      });
+
+      return kubernetesOutput;
+    }
+
     if (toolName === "Ansible") {
       console.log("Inside the Ansible section");
       const storedData = await redisClient.get(`container:${socketId}`);
